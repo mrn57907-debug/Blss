@@ -105,16 +105,17 @@ const ADMIN_UID = "LjQ83SsbQiZ12lFfvxqH2XOKdT62";
     input.style.height = 'auto';
     try {
       await addDoc(collection(db, 'messages'), {
-        text, uid: currentUser.uid,
-        name: currentUser.displayName || 'مجهول',
-        avatar: (currentUser.displayName || 'X')[0].toUpperCase(),
-        ts: serverTimestamp()
-      });
+  text,
+  uid: currentUser.uid,
+  name: currentUser.displayName || 'مجهول',
+  avatar: (currentUser.displayName || 'X')[0].toUpperCase(),
+  createdAt: serverTimestamp()
+});
     } catch(e) { console.error(e); }
   };
 
   function subscribeChat() {
-    const q = query(collection(db, 'messages'), orderBy('ts', 'asc'));
+    const q = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
     chatUnsub = onSnapshot(q, (snap) => {
       const area = document.getElementById('msgArea');
       area.innerHTML = '';
@@ -129,7 +130,7 @@ const ADMIN_UID = "LjQ83SsbQiZ12lFfvxqH2XOKdT62";
     const col = colors[m.name.charCodeAt(0) % colors.length];
     const div = document.createElement('div');
     div.className = 'msg' + (own ? ' own' : '');
-    const ts = m.ts?.toDate ? m.ts.toDate().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}) : '';
+    const ts = m.createdAt?.toDate ? m.createdAt.toDate().toLocaleTimeString(...) : '';
     div.innerHTML = `
       <div class="msg-av" style="background:${col}20;color:${col};border:1px solid ${col}40">${m.avatar}</div>
       <div class="msg-body">
