@@ -34,7 +34,7 @@ let chatUnsub = null;
 let dmUnsub = null;
 let activeDmUid = null;
 
-// â”€â”€ AUTH STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── AUTH STATE ──────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
@@ -44,7 +44,7 @@ onAuthStateChanged(auth, async (user) => {
       currentUserData = snap.data();
       if (currentUserData.isBanned) {
         await signOut(auth);
-        showAuthError('ØªÙ… Ø­Ø¸Ø± Ø­Ø³Ø§Ø¨Ùƒ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ Ù…Ù† Ø§Ù„Ù…ÙˆÙ‚Ø¹');
+        showAuthError('تم حظر حسابك نهائياً من الموقع');
         return;
       }
     }
@@ -64,14 +64,14 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// â”€â”€ REGISTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── REGISTER ────────────────────────────────────────────────
 window.registerUser = async () => {
   const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const pass = document.getElementById('regPass').value;
   const year = document.getElementById('regYear').value;
-  if (!name || !email || !pass || !year) return showAuthError('Ø§ÙƒÙ…Ù„ ÙƒÙ„ Ø§Ù„Ø­Ù‚ÙˆÙ„');
-  if (pass.length < 6) return showAuthError('ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø± 6 Ø§Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø§Ù‚Ù„');
+  if (!name || !email || !pass || !year) return showAuthError('اكمل كل الحقول');
+  if (pass.length < 6) return showAuthError('كلمة السر 6 احرف على الاقل');
   setAuthLoading(true);
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
@@ -94,11 +94,11 @@ window.registerUser = async () => {
   setAuthLoading(false);
 };
 
-// â”€â”€ LOGIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── LOGIN ────────────────────────────────────────────────────
 window.loginUser = async () => {
   const email = document.getElementById('loginEmail').value.trim();
   const pass = document.getElementById('loginPass').value;
-  if (!email || !pass) return showAuthError('Ø§ÙƒØªØ¨ Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø±');
+  if (!email || !pass) return showAuthError('اكتب الايميل وكلمة السر');
   setAuthLoading(true);
   try {
     await signInWithEmailAndPassword(auth, email, pass);
@@ -112,20 +112,20 @@ window.logoutUser = async () => {
   await signOut(auth);
 };
 
-// â”€â”€ PUBLIC CHAT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PUBLIC CHAT ──────────────────────────────────────────────
 window.sendMsg = async () => {
   if (!currentUser) return;
   if (currentUserData?.isChatBanned) {
-    showToast('ØªÙ… Ø­Ø¸Ø± Ø­Ø³Ø§Ø¨Ùƒ Ù…Ù† Ø§Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ø¦Ù„ Ù…Ø¤Ù‚ØªØ§Ù‹');
+    showToast('تم حظر حسابك من ارسال رسائل مؤقتاً');
     return;
   }
   if (currentUserData?.isBanned) {
-    showToast('ØªÙ… Ø­Ø¸Ø± Ø­Ø³Ø§Ø¨Ùƒ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹');
+    showToast('تم حظر حسابك نهائياً');
     return;
   }
   const chatLock = document.getElementById('chatLockMsg');
   if (chatLock && chatLock.style.display !== 'none') {
-    showToast('Ø§Ù„Ø¯Ø±Ø¯Ø´Ø© Ù…ØºÙ„Ù‚Ø© Ù…Ø¤Ù‚ØªØ§Ù‹');
+    showToast('الدردشة مغلقة مؤقتاً');
     return;
   }
   const input = document.getElementById('msgInput');
@@ -137,7 +137,7 @@ window.sendMsg = async () => {
     await addDoc(collection(db, 'messages'), {
       text,
       uid: currentUser.uid,
-      name: currentUserData?.name || currentUser.displayName || 'Ù…Ø¬Ù‡ÙˆÙ„',
+      name: currentUserData?.name || currentUser.displayName || 'مجهول',
       shortId: currentUserData?.shortId || '--------',
       photoUrl: currentUserData?.photoUrl || '',
       createdAt: serverTimestamp()
@@ -165,8 +165,8 @@ function renderMsg(m, msgId, area) {
   const av = m.photoUrl
     ? `<img src="${m.photoUrl}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid ${col}40">`
     : `<div class="msg-av" style="background:${col}20;color:${col};border:1px solid ${col}40">${(m.name||'?')[0].toUpperCase()}</div>`;
-  const adminBtns = isAdmin ? `<button class="msg-del-btn" onclick="adminDeleteMsg('${msgId}')">ðŸ—‘</button><button class="msg-ban-btn" onclick="adminQuickBan('${m.uid}','chat')">ðŸš«</button><button class="msg-ban-btn" onclick="adminQuickBan('${m.uid}','full')" style="background:rgba(239,68,68,.15)">â›”</button>` : '';
-  const reportBtn = !own ? `<button class="msg-report-btn" onclick="reportMsg('${msgId}','${escHtml(m.name||'')}')">âš‘</button>` : '';
+  const adminBtns = isAdmin ? `<button class="msg-del-btn" onclick="adminDeleteMsg('${msgId}')">🗑</button><button class="msg-ban-btn" onclick="adminQuickBan('${m.uid}','chat')">🚫</button><button class="msg-ban-btn" onclick="adminQuickBan('${m.uid}','full')" style="background:rgba(239,68,68,.15)">⛔</button>` : '';
+  const reportBtn = !own ? `<button class="msg-report-btn" onclick="reportMsg('${msgId}','${escHtml(m.name||'')}')">⚑</button>` : '';
   div.innerHTML = `
     <div class="msg-av-wrap" onclick="viewProfile('${m.uid}')" style="cursor:pointer">${av}</div>
     <div class="msg-body">
@@ -176,18 +176,25 @@ function renderMsg(m, msgId, area) {
         <span class="msg-ts">${ts}</span>
         ${reportBtn}${adminBtns}
       </div>
-      <div class="msg-bubble">${renderContent(m.text)}</div>
+      <div class="msg-bubble">${renderContent(m.text, m.fileUrl, m.fileType, m.fileName)}</div>
     </div>`;
   area.appendChild(div);
 }
 
-function renderContent(text) {
+function renderContent(text, fileUrl, fileType, fileName) {
+  if (!text && !fileUrl) return '';
+  if (fileUrl) {
+    if (fileType === 'image') {
+      return `<img src="${fileUrl}" style="max-width:220px;border-radius:10px;margin-top:4px;display:block">`;
+    } else {
+      return `<a href="${fileUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.3);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px">📄 ${escHtml(fileName||'ملف')}</a>`;
+    }
+  }
   if (!text) return '';
-  if (text.startsWith('<img ') || text.startsWith('<a ')) return text;
   return escHtml(text);
 }
 
-// â”€â”€ FILE/IMAGE UPLOAD IN CHAT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── FILE/IMAGE UPLOAD IN CHAT ────────────────────────────────
 window.triggerFileUpload = (type) => {
   const input = document.getElementById(type === 'image' ? 'imgUploadInput' : 'pdfUploadInput');
   input.click();
@@ -195,27 +202,33 @@ window.triggerFileUpload = (type) => {
 
 async function uploadFile(file, type) {
   if (!currentUser) return;
-  if (currentUserData?.isChatBanned) { showToast('Ù…Ø­Ø¸ÙˆØ± Ù…Ù† Ø§Ù„Ø§Ø±Ø³Ø§Ù„ Ù…Ø¤Ù‚ØªØ§Ù‹'); return; }
-  showToast('Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø±ÙØ¹...');
+  if (currentUserData?.isChatBanned) { showToast('محظور من الارسال مؤقتاً'); return; }
+  showToast('جاري الرفع...');
   const ext = file.name.split('.').pop();
   const r = ref(storage, `chat/${Date.now()}_${currentUser.uid}.${ext}`);
   const snap = await uploadBytes(r, file);
   const url = await getDownloadURL(snap.ref);
   let content = '';
+  let msgText = '';
   if (type === 'image') {
     content = `<img src="${url}" style="max-width:220px;border-radius:10px;margin-top:4px;display:block">`;
+    msgText = '📷 صورة';
   } else {
-    content = `<a href="${url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.3);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px">ðŸ“„ ${escHtml(file.name)}</a>`;
+    content = `<a href="${url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.3);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px">📄 ${escHtml(file.name)}</a>`;
+    msgText = '📄 ' + file.name.substring(0,50);
   }
   await addDoc(collection(db, 'messages'), {
-    text: content,
+    text: msgText,
+    fileUrl: url,
+    fileType: type,
+    fileName: file.name,
     uid: currentUser.uid,
-    name: currentUserData?.name || currentUser.displayName || 'Ù…Ø¬Ù‡ÙˆÙ„',
+    name: currentUserData?.name || currentUser.displayName || 'مجهول',
     shortId: currentUserData?.shortId || '--------',
     photoUrl: currentUserData?.photoUrl || '',
     createdAt: serverTimestamp()
   });
-  showToast('ØªÙ… Ø§Ù„Ø±ÙØ¹');
+  showToast('تم الرفع');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -231,14 +244,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// â”€â”€ DM / PRIVATE CHAT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── DM / PRIVATE CHAT ────────────────────────────────────────
 window.openDm = async (otherUid) => {
   if (!currentUser || otherUid === currentUser.uid) return;
   const otherSnap = await getDoc(doc(db, 'users', otherUid));
   if (!otherSnap.exists()) return;
   const other = otherSnap.data();
-  if (other.privacyDM === 'closed') { showToast('Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø§ØºÙ„Ù‚ Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ø®Ø§ØµØ©'); return; }
-  if ((other.blockedUsers || []).includes(currentUser.uid)) { showToast('Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ù„Ø© Ù„Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…'); return; }
+  if (other.privacyDM === 'closed') { showToast('هذا المستخدم اغلق الرسائل الخاصة'); return; }
+  if ((other.blockedUsers || []).includes(currentUser.uid)) { showToast('لا يمكن ارسال رسالة لهذا المستخدم'); return; }
   activeDmUid = otherUid;
   document.getElementById('dmName').textContent = other.name;
   document.getElementById('dmId').textContent = '#' + other.shortId;
@@ -269,7 +282,7 @@ function subscribeDm(otherUid) {
       const ts = m.createdAt?.toDate ? m.createdAt.toDate().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}) : '';
       const div = document.createElement('div');
       div.className = 'msg' + (own ? ' own' : '');
-      div.innerHTML = `<div class="msg-body"><div class="msg-meta"><span class="msg-name">${escHtml(m.name||'')}</span><span class="msg-ts">${ts}</span></div><div class="msg-bubble">${renderContent(m.text)}</div></div>`;
+      div.innerHTML = `<div class="msg-body"><div class="msg-meta"><span class="msg-name">${escHtml(m.name||'')}</span><span class="msg-ts">${ts}</span></div><div class="msg-bubble">${renderContent(m.text, m.fileUrl, m.fileType, m.fileName)}</div></div>`;
       area.appendChild(div);
     });
     area.scrollTop = area.scrollHeight;
@@ -278,7 +291,7 @@ function subscribeDm(otherUid) {
 
 window.sendDm = async () => {
   if (!currentUser || !activeDmUid) return;
-  if (currentUserData?.isChatBanned || currentUserData?.isBanned) { showToast('Ù…Ø­Ø¸ÙˆØ± Ù…Ù† Ø§Ù„Ø§Ø±Ø³Ø§Ù„'); return; }
+  if (currentUserData?.isChatBanned || currentUserData?.isBanned) { showToast('محظور من الارسال'); return; }
   const input = document.getElementById('dmInput');
   const text = input.value.trim();
   if (!text) return;
@@ -292,14 +305,14 @@ window.sendDm = async () => {
   await addDoc(collection(db, 'chats', chatId, 'messages'), {
     text,
     uid: currentUser.uid,
-    name: currentUserData?.name || currentUser.displayName || 'Ù…Ø¬Ù‡ÙˆÙ„',
+    name: currentUserData?.name || currentUser.displayName || 'مجهول',
     createdAt: serverTimestamp()
   });
 };
 
 window.dmHandleKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDm(); } };
 
-// â”€â”€ PROFILE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PROFILE ──────────────────────────────────────────────────
 window.viewProfile = async (uid) => {
   const snap = await getDoc(doc(db, 'users', uid));
   if (!snap.exists()) return;
@@ -313,7 +326,7 @@ window.viewProfile = async (uid) => {
   document.getElementById('profName').textContent = d.name || '';
   document.getElementById('profShortId').textContent = '#' + (d.shortId || '--------');
   document.getElementById('profYear').textContent = d.year || '';
-  document.getElementById('profBio').textContent = d.bio || 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³ÙŠØ±Ø© Ø°Ø§ØªÙŠØ©';
+  document.getElementById('profBio').textContent = d.bio || 'لا توجد سيرة ذاتية';
   document.getElementById('profDmBtn').style.display = isSelf ? 'none' : 'flex';
   document.getElementById('profDmBtn').onclick = () => { closeProfile(); openDm(uid); };
   document.getElementById('profBlockBtn').style.display = isSelf ? 'none' : 'flex';
@@ -322,9 +335,9 @@ window.viewProfile = async (uid) => {
   document.getElementById('profAdminBtns').style.display = isAdmin && !isSelf ? 'flex' : 'none';
   if (isAdmin && !isSelf) {
     document.getElementById('profBanChatBtn').onclick = () => adminBanChat(uid, !d.isChatBanned);
-    document.getElementById('profBanChatBtn').textContent = d.isChatBanned ? 'Ø±ÙØ¹ Ø­Ø¸Ø± Ø§Ù„Ø±Ø³Ø§Ø¦Ù„' : 'Ø­Ø¸Ø± Ù…Ù† Ø§Ù„Ø±Ø³Ø§Ø¦Ù„';
+    document.getElementById('profBanChatBtn').textContent = d.isChatBanned ? 'رفع حظر الرسائل' : 'حظر من الرسائل';
     document.getElementById('profBanFullBtn').onclick = () => adminBanFull(uid, !d.isBanned);
-    document.getElementById('profBanFullBtn').textContent = d.isBanned ? 'Ø±ÙØ¹ Ø§Ù„Ø­Ø¸Ø± Ø§Ù„ÙƒØ§Ù…Ù„' : 'Ø­Ø¸Ø± ÙƒØ§Ù…Ù„ Ù…Ù† Ø§Ù„Ù…ÙˆÙ‚Ø¹';
+    document.getElementById('profBanFullBtn').textContent = d.isBanned ? 'رفع الحظر الكامل' : 'حظر كامل من الموقع';
   }
   modal.style.display = 'flex';
 };
@@ -347,7 +360,7 @@ window.saveProfile = async () => {
   const bio = document.getElementById('editBio').value.trim();
   const privacyDM = document.getElementById('editPrivacy').value;
   const photoFile = document.getElementById('editPhoto').files[0];
-  showToast('Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸...');
+  showToast('جاري الحفظ...');
   let photoUrl = currentUserData?.photoUrl || '';
   if (photoFile) {
     const r = ref(storage, `avatars/${currentUser.uid}`);
@@ -362,7 +375,7 @@ window.saveProfile = async () => {
   document.getElementById('headerName').textContent = currentUserData.name;
   document.getElementById('headerAv').textContent = (currentUserData.name||'?')[0].toUpperCase();
   if (photoUrl) document.getElementById('headerAv').style.backgroundImage = `url(${photoUrl})`;
-  showToast('ØªÙ… Ø§Ù„Ø­ÙØ¸');
+  showToast('تم الحفظ');
   closeEditProfile();
 };
 
@@ -371,17 +384,17 @@ window.blockUser = async (uid) => {
   const blocked = currentUserData?.blockedUsers || [];
   if (blocked.includes(uid)) {
     await updateDoc(doc(db, 'users', currentUser.uid), { blockedUsers: blocked.filter(u => u !== uid) });
-    showToast('ØªÙ… Ø±ÙØ¹ Ø§Ù„Ø­Ø¸Ø±');
+    showToast('تم رفع الحظر');
   } else {
     await updateDoc(doc(db, 'users', currentUser.uid), { blockedUsers: [...blocked, uid] });
-    showToast('ØªÙ… Ø­Ø¸Ø± Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…');
+    showToast('تم حظر المستخدم');
   }
   const snap = await getDoc(doc(db, 'users', currentUser.uid));
   currentUserData = snap.data();
   closeProfile();
 };
 
-// â”€â”€ REPORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── REPORT ───────────────────────────────────────────────────
 window.reportMsg = (msgId, senderName) => {
   document.getElementById('reportMsgId').value = msgId;
   document.getElementById('reportSenderName').textContent = senderName;
@@ -393,7 +406,7 @@ window.closeReport = () => { document.getElementById('reportModal').style.displa
 window.submitReport = async () => {
   const msgId = document.getElementById('reportMsgId').value;
   const reason = document.getElementById('reportReason').value.trim();
-  if (!reason) { showToast('Ø§ÙƒØªØ¨ Ø³Ø¨Ø¨ Ø§Ù„Ø¨Ù„Ø§Øº'); return; }
+  if (!reason) { showToast('اكتب سبب البلاغ'); return; }
   await addDoc(collection(db, 'reports'), {
     messageId: msgId,
     reportedBy: currentUser.uid,
@@ -402,15 +415,36 @@ window.submitReport = async () => {
     status: 'pending',
     createdAt: serverTimestamp()
   });
-  showToast('ØªÙ… Ø§Ø±Ø³Ø§Ù„ Ø§Ù„Ø¨Ù„Ø§Øº Ù„Ù„Ø§Ø¯Ù…Ù†');
+  showToast('تم ارسال البلاغ للادمن');
   closeReport();
 };
 
-// â”€â”€ ADMIN ACTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ADMIN ACTIONS ────────────────────────────────────────────
+window.markReportReviewed = async (reportId) => {
+  if (!isAdmin) return;
+  await updateDoc(doc(db, 'reports', reportId), { status: 'reviewed' });
+  loadAdminReports();
+};
+
+window.deleteReport = async (reportId) => {
+  if (!isAdmin) return;
+  await deleteDoc(doc(db, 'reports', reportId));
+  loadAdminReports();
+};
+
+window.adminDeleteMsgAndReview = async (msgId, reportId) => {
+  if (!isAdmin) return;
+  await deleteDoc(doc(db, 'messages', msgId));
+  await updateDoc(doc(db, 'reports', reportId), { status: 'reviewed' });
+  showToast('تم حذف الرسالة وتحديث البلاغ');
+  loadAdminReports();
+};
+
+
 window.adminDeleteMsg = async (msgId) => {
   if (!isAdmin) return;
   await deleteDoc(doc(db, 'messages', msgId));
-  showToast('ØªÙ… Ø­Ø°Ù Ø§Ù„Ø±Ø³Ø§Ù„Ø©');
+  showToast('تم حذف الرسالة');
 };
 
 window.adminQuickBan = async (uid, type) => {
@@ -423,7 +457,7 @@ window.adminQuickBan = async (uid, type) => {
 window.adminBanChat = async (uid, ban) => {
   if (!isAdmin || uid === ADMIN_UID) return;
   await updateDoc(doc(db, 'users', uid), { isChatBanned: ban });
-  showToast(ban ? 'ØªÙ… Ø­Ø¸Ø± Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…Ù† Ø§Ù„Ø±Ø³Ø§Ø¦Ù„' : 'ØªÙ… Ø±ÙØ¹ Ø­Ø¸Ø± Ø§Ù„Ø±Ø³Ø§Ø¦Ù„');
+  showToast(ban ? 'تم حظر المستخدم من الرسائل' : 'تم رفع حظر الرسائل');
   loadAdminUsers();
   closeProfile();
 };
@@ -431,25 +465,25 @@ window.adminBanChat = async (uid, ban) => {
 window.adminBanFull = async (uid, ban) => {
   if (!isAdmin || uid === ADMIN_UID) return;
   await updateDoc(doc(db, 'users', uid), { isBanned: ban, isChatBanned: ban });
-  showToast(ban ? 'ØªÙ… Ø§Ù„Ø­Ø¸Ø± Ø§Ù„ÙƒØ§Ù…Ù„' : 'ØªÙ… Ø±ÙØ¹ Ø§Ù„Ø­Ø¸Ø± Ø§Ù„ÙƒØ§Ù…Ù„');
+  showToast(ban ? 'تم الحظر الكامل' : 'تم رفع الحظر الكامل');
   loadAdminUsers();
   closeProfile();
 };
 
-// â”€â”€ CHAT LOCK (temp close) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CHAT LOCK (temp close) ───────────────────────────────────
 window.lockChat = async () => {
   if (!isAdmin) return;
   const mins = parseInt(document.getElementById('lockMins').value) || 5;
   const lockUntil = Date.now() + mins * 60 * 1000;
   await setDoc(doc(db, 'settings', 'chat'), { locked: true, lockUntil });
-  showToast('ØªÙ… Ù‚ÙÙ„ Ø§Ù„Ø¯Ø±Ø¯Ø´Ø© Ù„Ù…Ø¯Ø© ' + mins + ' Ø¯Ù‚ÙŠÙ‚Ø©');
+  showToast('تم قفل الدردشة لمدة ' + mins + ' دقيقة');
   checkChatLock();
 };
 
 window.unlockChat = async () => {
   if (!isAdmin) return;
   await setDoc(doc(db, 'settings', 'chat'), { locked: false, lockUntil: 0 });
-  showToast('ØªÙ… ÙØªØ­ Ø§Ù„Ø¯Ø±Ø¯Ø´Ø©');
+  showToast('تم فتح الدردشة');
   checkChatLock();
 };
 
@@ -460,7 +494,7 @@ async function checkChatLock() {
   if (snap.exists() && snap.data().locked && snap.data().lockUntil > Date.now()) {
     const remaining = Math.ceil((snap.data().lockUntil - Date.now()) / 60000);
     lockMsg.style.display = 'flex';
-    lockMsg.querySelector('span').textContent = 'Ø§Ù„Ø¯Ø±Ø¯Ø´Ø© Ù…ØºÙ„Ù‚Ø© Ù…Ø¤Ù‚ØªØ§Ù‹ â€” ØªÙØªØ­ Ø®Ù„Ø§Ù„ ' + remaining + ' Ø¯Ù‚ÙŠÙ‚Ø©';
+    lockMsg.querySelector('span').textContent = 'الدردشة مغلقة مؤقتاً — تفتح خلال ' + remaining + ' دقيقة';
     inputRow.style.display = 'none';
   } else {
     if (snap.exists() && snap.data().locked) {
@@ -471,7 +505,7 @@ async function checkChatLock() {
   }
 }
 
-// â”€â”€ ADMIN PANEL DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ADMIN PANEL DATA ─────────────────────────────────────────
 async function loadAdminData() {
   loadAdminUsers();
   loadAdminReports();
@@ -503,20 +537,20 @@ window.loadAdminUsers = async () => {
     const div = document.createElement('div');
     div.className = 'admin-row';
     const statusBadge = u.isBanned
-      ? '<span style="color:var(--red);font-size:10px;border:1px solid rgba(228,156,139,.3);padding:1px 6px;border-radius:4px">Ù…Ø­Ø¸ÙˆØ± ÙƒØ§Ù…Ù„</span>'
+      ? '<span style="color:var(--red);font-size:10px;border:1px solid rgba(228,156,139,.3);padding:1px 6px;border-radius:4px">محظور كامل</span>'
       : u.isChatBanned
-      ? '<span style="color:var(--yellow);font-size:10px;border:1px solid rgba(245,158,11,.3);padding:1px 6px;border-radius:4px">Ù…Ø­Ø¸ÙˆØ± Ø±Ø³Ø§Ø¦Ù„</span>'
-      : '<span style="color:var(--green);font-size:10px;border:1px solid rgba(110,201,176,.3);padding:1px 6px;border-radius:4px">Ù†Ø´Ø·</span>';
+      ? '<span style="color:var(--yellow);font-size:10px;border:1px solid rgba(245,158,11,.3);padding:1px 6px;border-radius:4px">محظور رسائل</span>'
+      : '<span style="color:var(--green);font-size:10px;border:1px solid rgba(110,201,176,.3);padding:1px 6px;border-radius:4px">نشط</span>';
     div.innerHTML = `
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600">${escHtml(u.name||'')} <span style="color:var(--muted);font-size:11px">#${u.shortId||''}</span></div>
-        <div style="font-size:11px;color:var(--muted)">${escHtml(u.email||'')} â€” ${u.year||''}</div>
+        <div style="font-size:11px;color:var(--muted)">${escHtml(u.email||'')} — ${u.year||''}</div>
       </div>
       ${statusBadge}
       <div style="display:flex;gap:4px;flex-shrink:0">
-        <button class="admin-act-btn" onclick="adminBanChat('${u.uid}',${!u.isChatBanned})" title="${u.isChatBanned?'Ø±ÙØ¹ Ø­Ø¸Ø± Ø§Ù„Ø±Ø³Ø§Ø¦Ù„':'Ø­Ø¸Ø± Ù…Ù† Ø§Ù„Ø±Ø³Ø§Ø¦Ù„'}">${u.isChatBanned?'âœ“ðŸ’¬':'ðŸš«'}</button>
-        <button class="admin-act-btn" style="background:rgba(239,68,68,.1)" onclick="adminBanFull('${u.uid}',${!u.isBanned})" title="${u.isBanned?'Ø±ÙØ¹ Ø§Ù„Ø­Ø¸Ø± Ø§Ù„ÙƒØ§Ù…Ù„':'Ø­Ø¸Ø± ÙƒØ§Ù…Ù„'}">${u.isBanned?'âœ“â›”':'â›”'}</button>
-        <button class="admin-act-btn" onclick="viewProfile('${u.uid}')">ðŸ‘¤</button>
+        <button class="admin-act-btn" onclick="adminBanChat('${u.uid}',${!u.isChatBanned})" title="${u.isChatBanned?'رفع حظر الرسائل':'حظر من الرسائل'}">${u.isChatBanned?'✓💬':'🚫'}</button>
+        <button class="admin-act-btn" style="background:rgba(239,68,68,.1)" onclick="adminBanFull('${u.uid}',${!u.isBanned})" title="${u.isBanned?'رفع الحظر الكامل':'حظر كامل'}">${u.isBanned?'✓⛔':'⛔'}</button>
+        <button class="admin-act-btn" onclick="viewProfile('${u.uid}')">👤</button>
       </div>`;
     el.appendChild(div);
   });
@@ -527,7 +561,7 @@ window.loadAdminReports = async () => {
   const el = document.getElementById('adminReportsList');
   if (!el) return;
   el.innerHTML = '';
-  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);padding:16px;text-align:center;font-size:13px">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨Ù„Ø§ØºØ§Øª</div>'; return; }
+  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);padding:16px;text-align:center;font-size:13px">لا توجد بلاغات</div>'; return; }
   snap.forEach(d => {
     const r = d.data();
     const ts = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString('ar') : '';
@@ -538,14 +572,14 @@ window.loadAdminReports = async () => {
     div.style.gap = '6px';
     div.innerHTML = `
       <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-        <span style="font-size:12px;color:var(--muted)">Ù…Ù†: ${escHtml(r.reporterName||'')} â€” ${ts}</span>
-        <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:${r.status==='pending'?'rgba(245,158,11,.1)':'rgba(110,201,176,.1)'};color:${r.status==='pending'?'var(--yellow)':'var(--green)'}">${r.status==='pending'?'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©':'ØªÙ…Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©'}</span>
+        <span style="font-size:12px;color:var(--muted)">من: ${escHtml(r.reporterName||'')} — ${ts}</span>
+        <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:${r.status==='pending'?'rgba(245,158,11,.1)':'rgba(110,201,176,.1)'};color:${r.status==='pending'?'var(--yellow)':'var(--green)'}">${r.status==='pending'?'قيد المراجعة':'تمت المراجعة'}</span>
       </div>
-      <div style="font-size:13px">Ø§Ù„Ø³Ø¨Ø¨: ${escHtml(r.reason||'')}</div>
+      <div style="font-size:13px">السبب: ${escHtml(r.reason||'')}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="admin-act-btn" onclick="adminDeleteMsg('${r.messageId}');updateDoc(doc(db,'reports','${d.id}'),{status:'reviewed'})">ðŸ—‘ Ø­Ø°Ù Ø§Ù„Ø±Ø³Ø§Ù„Ø©</button>
-        <button class="admin-act-btn" onclick="updateDoc(doc(db,'reports','${d.id}'),{status:'reviewed'});loadAdminReports()">âœ“ ØªÙ…Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©</button>
-        <button class="admin-act-btn" onclick="deleteDoc(doc(db,'reports','${d.id}'));loadAdminReports()">âœ• Ø­Ø°Ù Ø§Ù„Ø¨Ù„Ø§Øº</button>
+        <button class="admin-act-btn" onclick="adminDeleteMsgAndReview('${r.messageId}','${d.id}')">🗑 حذف الرسالة</button>
+        <button class="admin-act-btn" onclick="markReportReviewed('${d.id}')">✓ تمت المراجعة</button>
+        <button class="admin-act-btn" onclick="deleteReport('${d.id}')">✕ حذف البلاغ</button>
       </div>`;
     el.appendChild(div);
   });
@@ -559,7 +593,7 @@ async function loadAdminSubjects() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span style="color:${d.data().color}">${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().code)}</span><button class="del-btn" onclick="deleteSubject('${d.id}')">âœ•</button>`;
+    div.innerHTML = `<span style="color:${d.data().color}">${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().code)}</span><button class="del-btn" onclick="deleteSubject('${d.id}')">✕</button>`;
     el.appendChild(div);
   });
 }
@@ -572,7 +606,7 @@ async function loadAdminSections() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span>${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().subject||'')} â€” ${escHtml(d.data().section||'')}</span><button class="del-btn" onclick="deleteSection('${d.id}')">âœ•</button>`;
+    div.innerHTML = `<span>${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().subject||'')} — ${escHtml(d.data().section||'')}</span><button class="del-btn" onclick="deleteSection('${d.id}')">✕</button>`;
     el.appendChild(div);
   });
 }
@@ -585,7 +619,7 @@ async function loadAdminNews() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span>${escHtml(d.data().title)}</span><span class="admin-code">${d.data().tag}</span><button class="del-btn" onclick="deleteNews('${d.id}')">âœ•</button>`;
+    div.innerHTML = `<span>${escHtml(d.data().title)}</span><span class="admin-code">${d.data().tag}</span><button class="del-btn" onclick="deleteNews('${d.id}')">✕</button>`;
     el.appendChild(div);
   });
 }
@@ -598,7 +632,7 @@ async function loadAdminSchedule() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span>${escHtml(d.data().subject||'')}</span><span class="admin-code">${escHtml(d.data().day||'')} ${escHtml(d.data().time||'')}</span><button class="del-btn" onclick="deleteScheduleItem('${d.id}')">âœ•</button>`;
+    div.innerHTML = `<span>${escHtml(d.data().subject||'')}</span><span class="admin-code">${escHtml(d.data().day||'')} ${escHtml(d.data().time||'')}</span><button class="del-btn" onclick="deleteScheduleItem('${d.id}')">✕</button>`;
     el.appendChild(div);
   });
 }
@@ -611,7 +645,7 @@ async function loadAdminSummaries() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span>${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().subject)}</span><button class="del-btn" onclick="deleteSummary('${d.id}')">âœ•</button>`;
+    div.innerHTML = `<span>${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().subject)}</span><button class="del-btn" onclick="deleteSummary('${d.id}')">✕</button>`;
     el.appendChild(div);
   });
 }
@@ -672,32 +706,32 @@ window.uploadSummary = async () => {
   const file = document.getElementById('sumFile').files[0];
   const subject = document.getElementById('sumSubject').value.trim();
   if (!file || !subject) return;
-  showToast('Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø±ÙØ¹...');
+  showToast('جاري الرفع...');
   const r = ref(storage, `summaries/${Date.now()}_${file.name}`);
   const snap = await uploadBytes(r, file);
   const url = await getDownloadURL(snap.ref);
   await addDoc(collection(db, 'summaries'), { subject, name: file.name, url, size: (file.size/1024/1024).toFixed(1)+' MB', uploadedAt: serverTimestamp(), uid: currentUser.uid });
   document.getElementById('sumFile').value = '';
   document.getElementById('sumSubject').value = '';
-  showToast('ØªÙ… Ø§Ù„Ø±ÙØ¹');
+  showToast('تم الرفع');
   loadAdminData(); loadSummaries();
 };
 
 window.deleteSummary = async (id) => { await deleteDoc(doc(db, 'summaries', id)); loadAdminData(); loadSummaries(); };
 
-// â”€â”€ PUBLIC VIEWS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PUBLIC VIEWS ─────────────────────────────────────────────
 window.loadSubjects = async () => {
   const snap = await getDocs(query(collection(db, 'subjects'), orderBy('createdAt','asc')));
   const el = document.getElementById('subjectsGrid');
   if (!el) return;
   el.innerHTML = '';
-  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1">Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…ÙˆØ§Ø¯ Ø¨Ø¹Ø¯</div>'; return; }
+  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1">لا توجد مواد بعد</div>'; return; }
   snap.forEach(d => {
     const data = d.data();
     const card = document.createElement('div');
     card.className = 'subject-card';
     card.style.borderTopColor = data.color;
-    card.innerHTML = `<div class="subj-head"><div class="subj-dot" style="background:${data.color}"></div><div><div class="subj-name">${escHtml(data.name)}</div><div class="subj-code">${escHtml(data.code)}</div></div></div><div class="subj-body" id="files_${d.id}"><div style="color:var(--muted);font-size:12px">Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...</div></div>`;
+    card.innerHTML = `<div class="subj-head"><div class="subj-dot" style="background:${data.color}"></div><div><div class="subj-name">${escHtml(data.name)}</div><div class="subj-code">${escHtml(data.code)}</div></div></div><div class="subj-body" id="files_${d.id}"><div style="color:var(--muted);font-size:12px">جاري التحميل...</div></div>`;
     el.appendChild(card);
     loadFilesForSubject(data.name, `files_${d.id}`);
   });
@@ -709,8 +743,8 @@ async function loadFilesForSubject(subject, elId) {
   if (!el) return;
   const files = [];
   snap.forEach(d => { if (d.data().subject === subject) files.push({...d.data(), id: d.id}); });
-  if (!files.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù„ÙØ§Øª Ø¨Ø¹Ø¯</div>'; return; }
-  el.innerHTML = files.map(f => `<a href="${f.url}" target="_blank" class="file-row"><span class="file-ico">ðŸ“„</span><span>${escHtml(f.name)}</span><span class="file-sz">${f.size}</span><span>â†“</span></a>`).join('');
+  if (!files.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">لا توجد ملفات بعد</div>'; return; }
+  el.innerHTML = files.map(f => `<a href="${f.url}" target="_blank" class="file-row"><span class="file-ico">📄</span><span>${escHtml(f.name)}</span><span class="file-sz">${f.size}</span><span>↓</span></a>`).join('');
 }
 
 window.loadSections = async () => {
@@ -718,12 +752,12 @@ window.loadSections = async () => {
   const el = document.getElementById('sectionsGrid');
   if (!el) return;
   el.innerHTML = '';
-  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³ÙƒØ§Ø´Ù† Ø¨Ø¹Ø¯</div>'; return; }
+  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">لا توجد سكاشن بعد</div>'; return; }
   snap.forEach(d => {
     const data = d.data();
     const card = document.createElement('div');
     card.className = 'sec-card';
-    card.innerHTML = `<div class="sec-head"><div><div class="sec-subject">${escHtml(data.subject||'')}</div><div style="font-size:12px;color:var(--muted)">${escHtml(data.name||'')}</div></div><div class="sec-badge">${escHtml(data.section||'')}</div></div><div class="sec-grid"><div class="sec-cell"><div class="sec-lbl">Ø§Ù„Ù…ÙˆØ¹Ø¯</div><div class="sec-val">${escHtml(data.time||'â€”')}</div></div><div class="sec-cell"><div class="sec-lbl">Ø§Ù„Ù‚Ø§Ø¹Ø©</div><div class="sec-val">${escHtml(data.room||'â€”')}</div></div></div>`;
+    card.innerHTML = `<div class="sec-head"><div><div class="sec-subject">${escHtml(data.subject||'')}</div><div style="font-size:12px;color:var(--muted)">${escHtml(data.name||'')}</div></div><div class="sec-badge">${escHtml(data.section||'')}</div></div><div class="sec-grid"><div class="sec-cell"><div class="sec-lbl">الموعد</div><div class="sec-val">${escHtml(data.time||'—')}</div></div><div class="sec-cell"><div class="sec-lbl">القاعة</div><div class="sec-val">${escHtml(data.room||'—')}</div></div></div>`;
     el.appendChild(card);
   });
 };
@@ -732,7 +766,7 @@ window.loadSchedule = async () => {
   const snap = await getDocs(collection(db, 'schedule'));
   const el = document.getElementById('scheduleTable');
   if (!el) return;
-  const days = ['Ø§Ù„Ø³Ø¨Øª','Ø§Ù„Ø§Ø­Ø¯','Ø§Ù„Ø§Ø«Ù†ÙŠÙ†','Ø§Ù„Ø«Ù„Ø§Ø«Ø§Ø¡','Ø§Ù„Ø§Ø±Ø¨Ø¹Ø§Ø¡','Ø§Ù„Ø®Ù…ÙŠØ³'];
+  const days = ['السبت','الاحد','الاثنين','الثلاثاء','الاربعاء','الخميس'];
   const times = ['8:00','10:00','12:00','14:00','16:00'];
   const data = {};
   snap.forEach(d => { data[d.data().day+'_'+d.data().time] = d.data(); });
@@ -756,9 +790,9 @@ window.loadNews = async () => {
   const el = document.getElementById('newsFeed');
   if (!el) return;
   el.innerHTML = '';
-  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø§Ø®Ø¨Ø§Ø±</div>'; return; }
+  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">لا توجد اخبار</div>'; return; }
   const tagStyles = {urgent:'#ef4444',exam:'#f59e0b',event:'#10b981',general:'#8b9cf4'};
-  const tagLabels = {urgent:'ðŸ”¥ Ø¹Ø§Ø¬Ù„',exam:'ðŸ“ Ø§Ù…ØªØ­Ø§Ù†Ø§Øª',event:'ðŸŽ¯ ÙØ¹Ø§Ù„ÙŠØ§Øª',general:'ðŸ“Œ Ø¹Ø§Ù…'};
+  const tagLabels = {urgent:'🔥 عاجل',exam:'📝 امتحانات',event:'🎯 فعاليات',general:'📌 عام'};
   let i = 1;
   snap.forEach(d => {
     const data = d.data();
@@ -775,11 +809,11 @@ window.loadNews = async () => {
 
 window.loadSummaries = loadSubjects;
 
-// â”€â”€ HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── HELPERS ──────────────────────────────────────────────────
 function escHtml(t) { if(!t) return ''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function firebaseErr(code) {
-  const map = {'auth/email-already-in-use':'Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„ Ù…ÙˆØ¬ÙˆØ¯ Ø¨Ø§Ù„ÙØ¹Ù„','auth/wrong-password':'ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø± ØºÙ„Ø·','auth/user-not-found':'Ù…ÙÙŠØ´ Ø­Ø³Ø§Ø¨ Ø¨Ù‡Ø°Ø§ Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„','auth/invalid-email':'Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„ Ù…Ø´ ØµØ­','auth/weak-password':'ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø± Ø¶Ø¹ÙŠÙØ©','auth/invalid-credential':'Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„ Ø§Ùˆ ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø± ØºÙ„Ø·'};
-  return map[code] || 'Ø­ØµÙ„ Ø®Ø·Ø§ØŒ Ø­Ø§ÙˆÙ„ ØªØ§Ù†ÙŠ';
+  const map = {'auth/email-already-in-use':'الايميل موجود بالفعل','auth/wrong-password':'كلمة السر غلط','auth/user-not-found':'مفيش حساب بهذا الايميل','auth/invalid-email':'الايميل مش صح','auth/weak-password':'كلمة السر ضعيفة','auth/invalid-credential':'الايميل او كلمة السر غلط'};
+  return map[code] || 'حصل خطا، حاول تاني';
 }
 function showAuthError(msg) { const el = document.getElementById('authError'); el.textContent = msg; el.style.display='block'; setTimeout(()=>el.style.display='none',4000); }
 function setAuthLoading(v) { document.querySelectorAll('.auth-btn').forEach(b=>{b.disabled=v; b.textContent=v?'...':b.dataset.label;}); }
@@ -788,7 +822,7 @@ function showAuthScreen() { document.getElementById('authScreen').style.display=
 function showApp(user) {
   document.getElementById('authScreen').style.display='none';
   document.getElementById('appShell').style.display='flex';
-  document.getElementById('headerName').textContent = currentUserData?.name || user.displayName || 'Ù…Ø³ØªØ®Ø¯Ù…';
+  document.getElementById('headerName').textContent = currentUserData?.name || user.displayName || 'مستخدم';
   document.getElementById('headerAv').textContent = (currentUserData?.name||user.displayName||'?')[0].toUpperCase();
   if (currentUserData?.photoUrl) document.getElementById('headerAv').style.backgroundImage = `url(${currentUserData.photoUrl})`;
   loadSubjects(); loadSections(); loadSchedule(); loadNews();
@@ -797,14 +831,16 @@ function showApp(user) {
 }
 window.goTo = (id, el) => {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if(el) el.classList.add('active');
   if(id==='pgSummaries') loadSubjects();
   if(id==='pgSections') loadSections();
   if(id==='pgSchedule') loadSchedule();
   if(id==='pgNews') loadNews();
-  document.getElementById('mobileMenu').style.display='none';
+  if(id==='pgDms') loadDmsList();
+  const mm = document.getElementById('mobileMenu');
+  if(mm) mm.style.display='none';
 };
 window.handleKey = (e) => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} };
 window.autoResize = (el) => { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; };
@@ -812,70 +848,56 @@ window.showRegister = () => { document.getElementById('loginForm').style.display
 window.showLogin = () => { document.getElementById('registerForm').style.display='none'; document.getElementById('loginForm').style.display='flex'; document.getElementById('authError').style.display='none'; };
 window.toggleMenu = () => { const m=document.getElementById('mobileMenu'); m.style.display=m.style.display==='flex'?'none':'flex'; };
 window.switchAdminTab = (id, el) => { document.querySelectorAll('.admin-tab-content').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); };
-window.saveInstName = () => { const v=document.getElementById('instInput').value.trim(); if(v){document.getElementById('instName').textContent=v; showToast('ØªÙ… Ø§Ù„Ø­ÙØ¸');} };
+
+// ── DMs LIST ─────────────────────────────────────────────────
+window.loadDmsList = async () => {
+  const el = document.getElementById('dmsList');
+  if (!el || !currentUser) return;
+  const snap = await getDocs(query(collection(db, 'users'), orderBy('joinedAt','desc')));
+  el.innerHTML = '';
+  snap.forEach(d => {
+    const u = d.data();
+    if (u.uid === currentUser.uid) return;
+    const colors = ['#c9a96e','#8b9cf4','#6ec9b0','#e49c8b','#b4c96e','#e49cb4'];
+    const col = colors[(u.name||'a').charCodeAt(0) % colors.length];
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer';
+    div.onclick = () => openDm(u.uid);
+    const av = u.photoUrl
+      ? `<img src="${u.photoUrl}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid ${col}40">`
+      : `<div style="width:36px;height:36px;border-radius:50%;background:${col}20;color:${col};border:1px solid ${col}40;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">${(u.name||'?')[0].toUpperCase()}</div>`;
+    div.innerHTML = av + `<div><div style="font-size:14px;font-weight:600">${escHtml(u.name||'')}</div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">#${u.shortId||''} — ${u.year||''}</div></div>`;
+    el.appendChild(div);
+  });
+  if (!el.children.length) el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">لا يوجد أعضاء بعد</div>';
+};
+
+window.searchMembers = async (q) => {
+  const el = document.getElementById('dmSearchResults');
+  if (!el) return;
+  if (!q || q.length < 2) { el.innerHTML = ''; return; }
+  const snap = await getDocs(collection(db, 'users'));
+  el.innerHTML = '';
+  snap.forEach(d => {
+    const u = d.data();
+    if (u.uid === currentUser.uid) return;
+    if (!(u.name||'').toLowerCase().includes(q.toLowerCase())) return;
+    const colors = ['#c9a96e','#8b9cf4','#6ec9b0','#e49c8b','#b4c96e','#e49cb4'];
+    const col = colors[(u.name||'a').charCodeAt(0) % colors.length];
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:9px;cursor:pointer';
+    div.onclick = () => { openDm(u.uid); document.getElementById('dmSearchInput').value=''; el.innerHTML=''; };
+    const av = u.photoUrl
+      ? `<img src="${u.photoUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">`
+      : `<div style="width:32px;height:32px;border-radius:50%;background:${col}20;color:${col};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">${(u.name||'?')[0].toUpperCase()}</div>`;
+    div.innerHTML = av + `<div><div style="font-size:13px;font-weight:600">${escHtml(u.name||'')}</div><div style="font-size:11px;color:var(--muted)">#${u.shortId||''}</div></div>`;
+    el.appendChild(div);
+  });
+};
+
+window.saveInstName = () => { const v=document.getElementById('instInput').value.trim(); if(v){document.getElementById('instName').textContent=v; showToast('تم الحفظ');} };
 </script>
 <style>
-:root{--bg:#0c0c0e;--surface:#131318;--card:#18181f;--border:#252530;--gold:#c9a96e;--gold2:#e8c98a;--text:#f0ede8;--muted:#6b6878;--blue:#8b9cf4;--green:#6ec9b0;--red:#e49c8b;--yellow:#f59e0b;--radius:14px;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;max-width:100vw;}
-body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");background-repeat:repeat;background-size:180px;pointer-events:none;z-index:9998;opacity:0.4;}
-
-/* AUTH */
-#authScreen{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 20%,#1a1508 0%,var(--bg) 60%);padding:16px;}
-.auth-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 24px;width:100%;max-width:400px;position:relative;overflow:hidden;animation:boxIn .4s cubic-bezier(.34,1.4,.64,1);}
-.auth-box::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(201,169,110,0.15) 0%,transparent 70%);pointer-events:none;}
-@keyframes boxIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
-.auth-logo{text-align:center;margin-bottom:24px;}
-.auth-emblem{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border:2px solid var(--gold);border-radius:14px;font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:12px;}
-.auth-title{font-size:24px;font-weight:900;color:var(--gold);font-family:'Playfair Display',serif;}
-.auth-sub{font-size:13px;color:var(--muted);margin-top:4px;}
-.auth-field{margin-bottom:10px;}
-.auth-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;}
-.auth-input{width:100%;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;transition:border-color .2s;}
-.auth-input:focus{border-color:var(--gold);}
-.auth-btn{width:100%;padding:12px;background:linear-gradient(135deg,#b8893e,var(--gold2));border:none;border-radius:10px;color:#0c0c0e;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:opacity .2s;}
-.auth-btn:hover{opacity:.9;}
-.auth-switch{text-align:center;font-size:13px;color:var(--muted);margin-top:14px;}
-.auth-switch a{color:var(--gold);cursor:pointer;}
-#authError{display:none;background:rgba(228,156,139,.1);border:1px solid rgba(228,156,139,.3);color:var(--red);border-radius:8px;padding:9px 12px;font-size:13px;margin-top:8px;text-align:center;}
-
-/* APP SHELL â€” MOBILE FIRST */
-#appShell{display:none;flex-direction:column;height:100vh;overflow:hidden;}
-
-/* HEADER */
-header{background:rgba(19,19,24,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;height:54px;flex-shrink:0;z-index:100;}
-.logo-wrap{display:flex;align-items:center;gap:8px;}
-.logo-mark{width:32px;height:32px;border:1.5px solid var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:12px;font-weight:900;color:var(--gold);}
-.logo-text{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--gold);}
-.header-right{display:flex;align-items:center;gap:8px;}
-.u-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#b8893e,var(--gold2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0c0c0e;background-size:cover;background-position:center;}
-.logout-btn{background:none;border:1px solid var(--border);border-radius:7px;color:var(--muted);padding:4px 8px;cursor:pointer;font-size:11px;}
-.hamburger{background:none;border:1px solid var(--border);border-radius:7px;color:var(--text);padding:5px 8px;cursor:pointer;font-size:16px;display:flex;align-items:center;}
-
-/* MOBILE MENU */
-#mobileMenu{display:none;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--border);padding:8px;gap:2px;flex-shrink:0;}
-.nav-btn{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);border:1px solid transparent;background:none;width:100%;text-align:right;font-family:'Tajawal',sans-serif;}
-.nav-btn:hover{background:rgba(201,169,110,.05);color:var(--text);}
-.nav-btn.active{background:rgba(201,169,110,.08);color:var(--gold);border-color:rgba(201,169,110,.15);}
-.nav-ico{font-size:16px;width:20px;text-align:center;}
-
-/* BOTTOM NAV */
-.bottom-nav{display:flex;background:rgba(19,19,24,.95);border-top:1px solid var(--border);flex-shrink:0;}
-.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;cursor:pointer;font-size:10px;color:var(--muted);gap:3px;border:none;background:none;font-family:'Tajawal',sans-serif;transition:color .2s;}
-.bnav-btn.active,.bnav-btn:hover{color:var(--gold);}
-.bnav-ico{font-size:20px;}
-
-/* MAIN */
-main{flex:1;overflow-y:auto;padding:16px;}
-main::-webkit-scrollbar{width:3px;}
-main::-webkit-scrollbar-thumb{background:var(--border);}
-.page{display:none;animation:fadeUp .25s ease;}
-.page.active{display:block;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold);margin-bottom:4px;}
-.page-sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
-
-/* CHAT */
 .chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 180px);}
 .chat-top{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--card);border-radius:12px 12px 0 0;display:flex;align-items:center;gap:10px;}
 .chat-ico{width:34px;height:34px;border-radius:9px;background:rgba(201,169,110,.1);display:flex;align-items:center;justify-content:center;font-size:16px;}
@@ -1021,53 +1043,54 @@ main::-webkit-scrollbar-thumb{background:var(--border);}
     <div class="auth-logo">
       <div class="auth-emblem">BIS</div>
       <div class="auth-title">BIS Community</div>
-      <div class="auth-sub">Ù…Ø¬ØªÙ…Ø¹ Ø·Ù„Ø§Ø¨ Ù†Ø¸Ù… Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø§Ø¹Ù…Ø§Ù„</div>
+      <div class="auth-sub">مجتمع طلاب نظم معلومات الاعمال</div>
     </div>
     <div id="loginForm" style="display:flex;flex-direction:column">
-      <div class="auth-field"><label>Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„</label><input class="auth-input" id="loginEmail" type="email" dir="ltr" placeholder="example@email.com"></div>
-      <div class="auth-field"><label>ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø±</label><input class="auth-input" id="loginPass" type="password" dir="ltr" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"></div>
-      <button class="auth-btn" data-label="ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„" onclick="loginUser()">ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„</button>
-      <div class="auth-switch">Ù…Ø´ Ø¹Ù†Ø¯Ùƒ Ø­Ø³Ø§Ø¨ØŸ <a onclick="showRegister()">Ø³Ø¬Ù„ Ø¯Ù„ÙˆÙ‚ØªÙŠ</a></div>
+      <div class="auth-field"><label>الايميل</label><input class="auth-input" id="loginEmail" type="email" dir="ltr" placeholder="example@email.com"></div>
+      <div class="auth-field"><label>كلمة السر</label><input class="auth-input" id="loginPass" type="password" dir="ltr" placeholder="••••••••"></div>
+      <button class="auth-btn" data-label="تسجيل الدخول" onclick="loginUser()">تسجيل الدخول</button>
+      <div class="auth-switch">مش عندك حساب؟ <a onclick="showRegister()">سجل دلوقتي</a></div>
     </div>
     <div id="registerForm" style="display:none;flex-direction:column">
-      <div class="auth-field"><label>Ø§Ù„Ø§Ø³Ù… (ÙŠÙ…ÙƒÙ† ÙˆÙ‡Ù…ÙŠ)</label><input class="auth-input" id="regName" type="text" placeholder="DataKing ..."></div>
-      <div class="auth-field"><label>Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„</label><input class="auth-input" id="regEmail" type="email" dir="ltr" placeholder="example@email.com"></div>
-      <div class="auth-field"><label>ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø±</label><input class="auth-input" id="regPass" type="password" dir="ltr" placeholder="6 Ø§Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø§Ù‚Ù„"></div>
-      <div class="auth-field"><label>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©</label>
+      <div class="auth-field"><label>الاسم</label><input class="auth-input" id="regName" type="text" placeholder="DataKing ..."></div>
+      <div class="auth-field"><label>الايميل</label><input class="auth-input" id="regEmail" type="email" dir="ltr" placeholder="example@email.com"></div>
+      <div class="auth-field"><label>كلمة السر</label><input class="auth-input" id="regPass" type="password" dir="ltr" placeholder="6 احرف على الاقل"></div>
+      <div class="auth-field"><label>السنة الدراسية</label>
         <select class="auth-input" id="regYear">
-          <option value="" disabled selected>Ø§Ø®ØªØ± Ø³Ù†ØªÙƒ</option>
-          <option>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø§ÙˆÙ„Ù‰</option><option>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø«Ø§Ù†ÙŠØ©</option><option>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø«Ø§Ù„Ø«Ø©</option><option>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø±Ø§Ø¨Ø¹Ø©</option>
+          <option value="" disabled selected>اختر سنتك</option>
+          <option>السنة الاولى</option><option>السنة الثانية</option><option>السنة الثالثة</option><option>السنة الرابعة</option>
         </select>
       </div>
-      <button class="auth-btn" data-label="Ø§Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨" onclick="registerUser()">Ø§Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨</button>
-      <div class="auth-switch">Ø¹Ù†Ø¯Ùƒ Ø­Ø³Ø§Ø¨ØŸ <a onclick="showLogin()">Ø³Ø¬Ù„ Ø¯Ø®ÙˆÙ„</a></div>
+      <button class="auth-btn" data-label="انشاء حساب" onclick="registerUser()">انشاء حساب</button>
+      <div class="auth-switch">عندك حساب؟ <a onclick="showLogin()">سجل دخول</a></div>
     </div>
     <div id="authError"></div>
   </div>
 </div>
 
 <!-- APP SHELL -->
-<div id="appShell">
+<div id="appShell" style="display:none">
   <header>
     <div class="logo-wrap">
       <div class="logo-mark">BIS</div>
       <div class="logo-text">BIS Community</div>
     </div>
     <div class="header-right">
-      <div class="u-av" id="headerAv" onclick="viewProfile(currentUser?.uid)">?</div>
+      <div class="u-av" id="headerAv" onclick="viewProfile(currentUser?.uid)" style="cursor:pointer">?</div>
       <span id="headerName" style="font-size:13px;color:var(--muted)"></span>
-      <button class="logout-btn" onclick="logoutUser()">Ø®Ø±ÙˆØ¬</button>
+      <button class="logout-btn" onclick="logoutUser()">خروج</button>
     </div>
   </header>
 
   <!-- BOTTOM NAVIGATION -->
   <div class="bottom-nav" style="order:99">
-    <button class="bnav-btn active" onclick="goTo('pgChat',this)"><span class="bnav-ico">ðŸ’¬</span>Ø§Ù„Ø´Ø§Øª</button>
-    <button class="bnav-btn" onclick="goTo('pgSummaries',this)"><span class="bnav-ico">ðŸ“š</span>Ù…Ù„Ø®ØµØ§Øª</button>
-    <button class="bnav-btn" onclick="goTo('pgSections',this)"><span class="bnav-ico">ðŸ‘¥</span>Ø³ÙƒØ§Ø´Ù†</button>
-    <button class="bnav-btn" onclick="goTo('pgSchedule',this)"><span class="bnav-ico">ðŸ“…</span>Ø¬Ø¯ÙˆÙ„</button>
-    <button class="bnav-btn" onclick="goTo('pgNews',this)"><span class="bnav-ico">ðŸ“¢</span>Ø§Ø®Ø¨Ø§Ø±</button>
-    <button class="bnav-btn" id="adminNavBtn" style="display:none" onclick="goTo('pgAdmin',this)"><span class="bnav-ico">ðŸ‘‘</span>Ø§Ø¯Ù…Ù†</button>
+    <button class="bnav-btn active" onclick="goTo('pgChat',this)"><span class="bnav-ico">💬</span>الشات</button>
+    <button class="bnav-btn" onclick="goTo('pgDms',this)"><span class="bnav-ico">✉️</span>الخاص</button>
+    <button class="bnav-btn" onclick="goTo('pgSummaries',this)"><span class="bnav-ico">📚</span>ملخصات</button>
+    <button class="bnav-btn" onclick="goTo('pgSections',this)"><span class="bnav-ico">👥</span>سكاشن</button>
+    <button class="bnav-btn" onclick="goTo('pgSchedule',this)"><span class="bnav-ico">📅</span>جدول</button>
+    <button class="bnav-btn" onclick="goTo('pgNews',this)"><span class="bnav-ico">📢</span>اخبار</button>
+    <button class="bnav-btn" id="adminNavBtn" style="display:none" onclick="goTo('pgAdmin',this)"><span class="bnav-ico">👑</span>ادمن</button>
   </div>
 
   <main>
@@ -1075,44 +1098,265 @@ main::-webkit-scrollbar-thumb{background:var(--border);}
     <div class="page active" id="pgChat">
       <div class="chat-wrap">
         <div class="chat-top">
-          <div class="chat-ico">ðŸ’¬</div>
-          <div><div class="chat-top-name">Ø§Ù„Ø´Ø§Øª Ø§Ù„Ø¹Ø§Ù…</div><div class="chat-top-status">â— Ù…Ø¨Ø§Ø´Ø±</div></div>
+          <div class="chat-ico">💬</div>
+          <div><div class="chat-top-name">الشات العام</div><div class="chat-top-status">● مباشر</div></div>
         </div>
         <div id="msgArea"></div>
         <div id="chatLockMsg"><span></span></div>
         <div id="chatInputRow">
-          <button class="att-btn" onclick="triggerFileUpload('image')" title="ØµÙˆØ±Ø©">ðŸ–¼</button>
-          <button class="att-btn" onclick="triggerFileUpload('pdf')" title="PDF">ðŸ“„</button>
-          <textarea class="msg-input" id="msgInput" placeholder="Ø§ÙƒØªØ¨ Ø±Ø³Ø§Ù„Ø©..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-          <button class="send-btn" onclick="sendMsg()">âž¤</button>
+          <button class="att-btn" onclick="triggerFileUpload('image')" title="صورة">🖼</button>
+          <button class="att-btn" onclick="triggerFileUpload('pdf')" title="PDF">📄</button>
+          <textarea class="msg-input" id="msgInput" placeholder="اكتب رسالة..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" onclick="sendMsg()">➤</button>
         </div>
         <input type="file" id="imgUploadInput" accept="image/*" style="display:none">
         <input type="file" id="pdfUploadInput" accept="application/pdf" style="display:none">
       </div>
     </div>
 
+    <!-- DMs PAGE -->
+    <div class="page" id="pgDms">
+      <div class="page-title">✉️ الرسائل الخاصة</div>
+      <div class="page-sub">محادثاتك الخاصة مع الأعضاء</div>
+      <div id="dmsList" style="display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
+      <div style="margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">ابحث عن عضو لمراسلته</div>
+        <input class="f-input" id="dmSearchInput" placeholder="اكتب اسم العضو..." oninput="searchMembers(this.value)">
+        <div id="dmSearchResults" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+
     <!-- SUMMARIES -->
     <div class="page" id="pgSummaries">
-      <div class="page-title">ðŸ“š Ù…Ù„Ø®ØµØ§Øª Ø§Ù„Ù…ÙˆØ§Ø¯</div>
-      <div class="page-sub">Ø§Ù„Ù…Ù„ÙØ§Øª ÙˆØ§Ù„Ù…Ù„Ø®ØµØ§Øª â€” Ø§Ù„Ø§Ø¯Ù…Ù† ÙŠØ±ÙØ¹ ÙˆØ§Ù„ÙƒÙ„ ÙŠØ³ØªÙÙŠØ¯</div>
+      <div class="page-title">📚 ملخصات المواد</div>
+      <div class="page-sub">الملفات والملخصات — الادمن يرفع والكل يستفيد</div>
       <div id="subjectsGrid"></div>
     </div>
 
     <!-- SECTIONS -->
     <div class="page" id="pgSections">
-      <div class="page-title">ðŸ‘¥ Ø§Ù„Ø³ÙƒØ§Ø´Ù†</div>
-      <div class="page-sub">Ù…ÙˆØ§Ø¹ÙŠØ¯ ÙˆØªÙØ§ØµÙŠÙ„ ÙƒÙ„ Ø³ÙƒØ´Ù†</div>
+      <div class="page-title">👥 السكاشن</div>
+      <div class="page-sub">مواعيد وتفاصيل كل سكشن</div>
       <div id="sectionsGrid"></div>
     </div>
 
     <!-- SCHEDULE -->
     <div class="page" id="pgSchedule">
-      <div class="page-title">ðŸ“… Ø§Ù„Ø¬Ø¯ÙˆÙ„</div>
-      <div class="page-sub">Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ø§Ø³Ø¨ÙˆØ¹ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠ</div>
+      <div class="page-title">📅 الجدول</div>
+      <div class="page-sub">جدول الاسبوع الدراسي</div>
       <div id="scheduleTable"></div>
     </div>
 
     <!-- NEWS -->
     <div class="page" id="pgNews">
-      <div class="page-title">ðŸ“¢ Ø§Ø®Ø¨Ø§Ø± Ø§Ù„Ù…Ø¹Ù‡Ø¯</div>
-      <div class="page-sub">ÙƒÙ„ Ø¬Ø¯ÙŠØ¯ Ù…Ù† Ø§Ù„Ø§Ø¯Ø§Ø±Ø©</div>
+      <div class="page-title">📢 اخبار المعهد</div>
+      <div class="page-sub">كل جديد من الادارة</div>
+      <div id="newsFeed"></div>
+    </div>
+
+    <!-- ADMIN PAGE -->
+    <div class="page" id="pgAdmin">
+      <div class="admin-header">
+        <div style="font-size:28px">👑</div>
+        <div>
+          <div class="admin-title">لوحة التحكم</div>
+          <div style="font-size:12px;color:var(--muted)">BIS Community — Admin Panel</div>
+        </div>
+      </div>
+      <div class="stats-4">
+        <div class="stat-mini"><div class="stat-mini-n" id="statUsers">0</div><div class="stat-mini-l">عضو</div></div>
+        <div class="stat-mini"><div class="stat-mini-n" id="statMsgs">0</div><div class="stat-mini-l">رسالة</div></div>
+        <div class="stat-mini"><div class="stat-mini-n" id="statFiles">0</div><div class="stat-mini-l">ملف</div></div>
+        <div class="stat-mini"><div class="stat-mini-n" id="statReports">0</div><div class="stat-mini-l">بلاغ</div></div>
+      </div>
+      <div class="admin-tabs">
+        <button class="atab active" onclick="switchAdminTab('tabUsers',this)">👥 الأعضاء</button>
+        <button class="atab" onclick="switchAdminTab('tabReports',this)">⚑ البلاغات</button>
+        <button class="atab" onclick="switchAdminTab('tabSubjects',this)">📚 المواد</button>
+        <button class="atab" onclick="switchAdminTab('tabSections',this)">👥 السكاشن</button>
+        <button class="atab" onclick="switchAdminTab('tabSchedule',this)">📅 الجدول</button>
+        <button class="atab" onclick="switchAdminTab('tabNews',this)">📢 الاخبار</button>
+        <button class="atab" onclick="switchAdminTab('tabSummaries',this)">📄 الملخصات</button>
+        <button class="atab" onclick="switchAdminTab('tabChat',this)">🔒 الشات</button>
+      </div>
+
+      <div class="admin-tab-content active" id="tabUsers">
+        <div class="admin-list-box">
+          <div class="admin-list-head">قائمة الأعضاء</div>
+          <div id="adminUsersList"></div>
+        </div>
+      </div>
+
+      <div class="admin-tab-content" id="tabReports">
+        <div class="admin-list-box">
+          <div class="admin-list-head">البلاغات الواردة</div>
+          <div id="adminReportsList"></div>
+        </div>
+      </div>
+
+      <div class="admin-tab-content" id="tabSubjects">
+        <div class="admin-form">
+          <div class="admin-form-title">➕ اضافة مادة جديدة</div>
+          <div class="form-row">
+            <div class="form-field"><label>اسم المادة</label><input class="f-input" id="subName" placeholder="مثال: قواعد بيانات"></div>
+            <div class="form-field"><label>الكود</label><input class="f-input" id="subCode" placeholder="مثال: CS301"></div>
+          </div>
+          <div class="form-field" style="margin-bottom:8px"><label>اللون</label><input class="f-input" id="subColor" type="color" value="#c9a96e" style="height:38px;padding:4px"></div>
+          <button class="save-btn" onclick="saveSubject()">حفظ المادة</button>
+        </div>
+        <div class="admin-list-box"><div class="admin-list-head">المواد المضافة</div><div id="adminSubjectList"></div></div>
+      </div>
+
+      <div class="admin-tab-content" id="tabSections">
+        <div class="admin-form">
+          <div class="admin-form-title">➕ اضافة سكشن</div>
+          <div class="form-row">
+            <div class="form-field"><label>اسم الدكتور</label><input class="f-input" id="docName" placeholder="د. محمد"></div>
+            <div class="form-field"><label>المادة</label><input class="f-input" id="docSubject" placeholder="قواعد بيانات"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>رقم السكشن</label><input class="f-input" id="docSection" placeholder="S1"></div>
+            <div class="form-field"><label>الموعد</label><input class="f-input" id="docTime" placeholder="الاحد 10:00"></div>
+          </div>
+          <div class="form-field" style="margin-bottom:8px"><label>القاعة</label><input class="f-input" id="docRoom" placeholder="A101"></div>
+          <button class="save-btn" onclick="saveDoctor()">حفظ السكشن</button>
+        </div>
+        <div class="admin-list-box"><div class="admin-list-head">السكاشن المضافة</div><div id="adminSectionList"></div></div>
+      </div>
+
+      <div class="admin-tab-content" id="tabSchedule">
+        <div class="admin-form">
+          <div class="admin-form-title">➕ اضافة محاضرة للجدول</div>
+          <div class="form-row">
+            <div class="form-field"><label>اليوم</label>
+              <select class="f-input" id="schDay">
+                <option>السبت</option><option>الاحد</option><option>الاثنين</option>
+                <option>الثلاثاء</option><option>الاربعاء</option><option>الخميس</option>
+              </select>
+            </div>
+            <div class="form-field"><label>الوقت</label><input class="f-input" id="schTime" placeholder="8:00"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>المادة</label><input class="f-input" id="schSubject" placeholder="قواعد بيانات"></div>
+            <div class="form-field"><label>القاعة</label><input class="f-input" id="schRoom" placeholder="A101"></div>
+          </div>
+          <button class="save-btn" onclick="saveScheduleItem()">اضافة للجدول</button>
+        </div>
+        <div class="admin-list-box"><div class="admin-list-head">محاضرات الجدول</div><div id="adminScheduleList"></div></div>
+      </div>
+
+      <div class="admin-tab-content" id="tabNews">
+        <div class="admin-form">
+          <div class="admin-form-title">➕ اضافة خبر</div>
+          <div class="form-field" style="margin-bottom:8px"><label>العنوان</label><input class="f-input" id="newsTitle" placeholder="عنوان الخبر"></div>
+          <div class="form-field" style="margin-bottom:8px"><label>التفاصيل</label><textarea class="f-input f-area" id="newsBody" placeholder="تفاصيل الخبر..."></textarea></div>
+          <div class="form-field" style="margin-bottom:8px"><label>النوع</label>
+            <select class="f-input" id="newsTag">
+              <option value="general">📌 عام</option><option value="urgent">🔥 عاجل</option>
+              <option value="exam">📝 امتحانات</option><option value="event">🎯 فعاليات</option>
+            </select>
+          </div>
+          <button class="save-btn" onclick="saveNews()">نشر الخبر</button>
+        </div>
+        <div class="admin-list-box"><div class="admin-list-head">الأخبار المنشورة</div><div id="adminNewsList"></div></div>
+      </div>
+
+      <div class="admin-tab-content" id="tabSummaries">
+        <div class="admin-form">
+          <div class="admin-form-title">➕ رفع ملخص</div>
+          <div class="form-field" style="margin-bottom:8px"><label>المادة</label><input class="f-input" id="sumSubject" placeholder="اسم المادة"></div>
+          <div class="form-field" style="margin-bottom:8px"><label>الملف (PDF)</label><input class="f-input" id="sumFile" type="file" accept="application/pdf" style="padding:6px"></div>
+          <button class="save-btn" onclick="uploadSummary()">رفع الملخص</button>
+        </div>
+        <div class="admin-list-box"><div class="admin-list-head">الملخصات المرفوعة</div><div id="adminSummaryList"></div></div>
+      </div>
+
+      <div class="admin-tab-content" id="tabChat">
+        <div class="admin-form">
+          <div class="admin-form-title">🔒 التحكم في الشات</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">قفل الشات مؤقتاً عن الجميع</div>
+          <div class="lock-row">
+            <input class="f-input" id="lockMins" type="number" min="1" max="60" value="5" style="width:80px">
+            <span style="font-size:13px;color:var(--muted)">دقيقة</span>
+            <button class="save-btn" onclick="lockChat()">🔒 قفل الشات</button>
+            <button class="save-btn" style="background:rgba(110,201,176,.2);color:var(--green);border:1px solid var(--green)" onclick="unlockChat()">🔓 فتح الشات</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- DM PANEL -->
+<div id="dmPanel" style="display:none;position:fixed;inset:0;z-index:400;flex-direction:column;background:var(--bg)">
+  <div class="dm-header">
+    <button class="dm-back" onclick="closeDm()">←</button>
+    <div>
+      <div id="dmName" style="font-weight:700;font-size:15px"></div>
+      <div id="dmId" style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace"></div>
+    </div>
+  </div>
+  <div id="dmMsgArea" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px"></div>
+  <div class="dm-input-row">
+    <input class="dm-input" id="dmInput" placeholder="اكتب رسالة خاصة..." onkeydown="dmHandleKey(event)">
+    <button class="send-btn" onclick="sendDm()">➤</button>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profileModal" style="display:none" onclick="if(event.target===this)closeProfile()">
+  <div class="modal-box">
+    <div class="modal-title">بروفايل العضو <button class="modal-close" onclick="closeProfile()">✕</button></div>
+    <div class="prof-av-lg">
+      <img id="profAvImg" src="" style="display:none;width:100%;height:100%;object-fit:cover">
+      <span id="profAvLetter">?</span>
+    </div>
+    <div class="prof-name" id="profName"></div>
+    <div class="prof-sid" id="profShortId"></div>
+    <div class="prof-year" id="profYear"></div>
+    <div class="prof-bio" id="profBio"></div>
+    <div class="prof-btns">
+      <button class="prof-btn primary" id="profDmBtn" style="display:none">✉️ رسالة خاصة</button>
+      <button class="prof-btn danger" id="profBlockBtn" style="display:none">🚫 حظر</button>
+      <button class="prof-btn" id="profEditBtn" style="display:none" onclick="openEditProfile()">✏️ تعديل بروفايلي</button>
+    </div>
+    <div class="prof-admin-btns" id="profAdminBtns" style="display:none">
+      <button class="prof-btn danger" id="profBanChatBtn">حظر من الرسائل</button>
+      <button class="prof-btn danger" id="profBanFullBtn">حظر كامل</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="editProfileModal" style="display:none" onclick="if(event.target===this)closeEditProfile()">
+  <div class="modal-box">
+    <div class="modal-title">✏️ تعديل البروفايل <button class="modal-close" onclick="closeEditProfile()">✕</button></div>
+    <div class="form-field" style="margin-bottom:10px"><label>الاسم</label><input class="f-input" id="editName" placeholder="اسمك"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>السيرة الذاتية</label><textarea class="f-input f-area" id="editBio" placeholder="عرف نفسك..."></textarea></div>
+    <div class="form-field" style="margin-bottom:10px"><label>الصورة الشخصية</label><input class="f-input" id="editPhoto" type="file" accept="image/*" style="padding:6px"></div>
+    <div class="form-field" style="margin-bottom:14px"><label>الرسائل الخاصة</label>
+      <select class="f-input" id="editPrivacy">
+        <option value="open">مفتوح للجميع</option>
+        <option value="closed">مغلق</option>
+      </select>
+    </div>
+    <button class="save-btn" style="width:100%" onclick="saveProfile()">💾 حفظ التغييرات</button>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="reportModal" style="display:none" onclick="if(event.target===this)closeReport()">
+  <div class="modal-box">
+    <div class="modal-title">⚑ بلاغ عن رسالة <button class="modal-close" onclick="closeReport()">✕</button></div>
+    <input type="hidden" id="reportMsgId">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">بلاغ عن: <span id="reportSenderName" style="color:var(--text)"></span></div>
+    <div class="form-field" style="margin-bottom:14px"><label>سبب البلاغ</label><textarea class="f-input f-area" id="reportReason" placeholder="اكتب سبب البلاغ..."></textarea></div>
+    <button class="save-btn" style="width:100%" onclick="submitReport()">ارسال البلاغ</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+</body>
+</html>
