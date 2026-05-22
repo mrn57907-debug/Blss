@@ -407,27 +407,6 @@ window.submitReport = async () => {
 };
 
 // â”€â”€ ADMIN ACTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-window.markReportReviewed = async (reportId) => {
-  if (!isAdmin) return;
-  await updateDoc(doc(db, 'reports', reportId), { status: 'reviewed' });
-  loadAdminReports();
-};
-
-window.deleteReport = async (reportId) => {
-  if (!isAdmin) return;
-  await deleteDoc(doc(db, 'reports', reportId));
-  loadAdminReports();
-};
-
-window.adminDeleteMsgAndReview = async (msgId, reportId) => {
-  if (!isAdmin) return;
-  await deleteDoc(doc(db, 'messages', msgId));
-  await updateDoc(doc(db, 'reports', reportId), { status: 'reviewed' });
-  showToast('ØªÙ… Ø­Ø°Ù Ø§Ù„Ø±Ø³Ø§Ù„Ø© ÙˆØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨Ù„Ø§Øº');
-  loadAdminReports();
-};
-
-
 window.adminDeleteMsg = async (msgId) => {
   if (!isAdmin) return;
   await deleteDoc(doc(db, 'messages', msgId));
@@ -564,9 +543,9 @@ window.loadAdminReports = async () => {
       </div>
       <div style="font-size:13px">Ø§Ù„Ø³Ø¨Ø¨: ${escHtml(r.reason||'')}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="admin-act-btn" onclick="adminDeleteMsgAndReview('${r.messageId}','${d.id}')">ðŸ—‘ Ø­Ø°Ù Ø§Ù„Ø±Ø³Ø§Ù„Ø©</button>
-        <button class="admin-act-btn" onclick="markReportReviewed('${d.id}')">âœ“ ØªÙ…Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©</button>
-        <button class="admin-act-btn" onclick="deleteReport('${d.id}')">âœ• Ø­Ø°Ù Ø§Ù„Ø¨Ù„Ø§Øº</button>
+        <button class="admin-act-btn" onclick="adminDeleteMsg('${r.messageId}');updateDoc(doc(db,'reports','${d.id}'),{status:'reviewed'})">ðŸ—‘ Ø­Ø°Ù Ø§Ù„Ø±Ø³Ø§Ù„Ø©</button>
+        <button class="admin-act-btn" onclick="updateDoc(doc(db,'reports','${d.id}'),{status:'reviewed'});loadAdminReports()">âœ“ ØªÙ…Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©</button>
+        <button class="admin-act-btn" onclick="deleteDoc(doc(db,'reports','${d.id}'));loadAdminReports()">âœ• Ø­Ø°Ù Ø§Ù„Ø¨Ù„Ø§Øº</button>
       </div>`;
     el.appendChild(div);
   });
