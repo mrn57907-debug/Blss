@@ -34,7 +34,7 @@ let chatUnsub = null;
 let dmUnsub = null;
 let activeDmUid = null;
 
-// ── AUTH STATE ──────────────────────────────────────────────
+// â”€â”€ AUTH STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
@@ -44,7 +44,7 @@ onAuthStateChanged(auth, async (user) => {
       currentUserData = snap.data();
       if (currentUserData.isBanned) {
         await signOut(auth);
-        showAuthError('تم حظر حسابك نهائياً من الموقع');
+        showAuthError('ØªÙ… Ø­Ø¸Ø± Ø­Ø³Ø§Ø¨Ùƒ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ Ù…Ù† Ø§Ù„Ù…ÙˆÙ‚Ø¹');
         return;
       }
     }
@@ -64,14 +64,14 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// ── REGISTER ────────────────────────────────────────────────
+// â”€â”€ REGISTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.registerUser = async () => {
   const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const pass = document.getElementById('regPass').value;
   const year = document.getElementById('regYear').value;
-  if (!name || !email || !pass || !year) return showAuthError('اكمل كل الحقول');
-  if (pass.length < 6) return showAuthError('كلمة السر 6 احرف على الاقل');
+  if (!name || !email || !pass || !year) return showAuthError('Ø§ÙƒÙ…Ù„ ÙƒÙ„ Ø§Ù„Ø­Ù‚ÙˆÙ„');
+  if (pass.length < 6) return showAuthError('ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø± 6 Ø§Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø§Ù‚Ù„');
   setAuthLoading(true);
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
@@ -94,11 +94,11 @@ window.registerUser = async () => {
   setAuthLoading(false);
 };
 
-// ── LOGIN ────────────────────────────────────────────────────
+// â”€â”€ LOGIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.loginUser = async () => {
   const email = document.getElementById('loginEmail').value.trim();
   const pass = document.getElementById('loginPass').value;
-  if (!email || !pass) return showAuthError('اكتب الايميل وكلمة السر');
+  if (!email || !pass) return showAuthError('Ø§ÙƒØªØ¨ Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø±');
   setAuthLoading(true);
   try {
     await signInWithEmailAndPassword(auth, email, pass);
@@ -112,20 +112,20 @@ window.logoutUser = async () => {
   await signOut(auth);
 };
 
-// ── PUBLIC CHAT ──────────────────────────────────────────────
+// â”€â”€ PUBLIC CHAT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.sendMsg = async () => {
   if (!currentUser) return;
   if (currentUserData?.isChatBanned) {
-    showToast('تم حظر حسابك من ارسال رسائل مؤقتاً');
+    showToast('ØªÙ… Ø­Ø¸Ø± Ø­Ø³Ø§Ø¨Ùƒ Ù…Ù† Ø§Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ø¦Ù„ Ù…Ø¤Ù‚ØªØ§Ù‹');
     return;
   }
   if (currentUserData?.isBanned) {
-    showToast('تم حظر حسابك نهائياً');
+    showToast('ØªÙ… Ø­Ø¸Ø± Ø­Ø³Ø§Ø¨Ùƒ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹');
     return;
   }
   const chatLock = document.getElementById('chatLockMsg');
   if (chatLock && chatLock.style.display !== 'none') {
-    showToast('الدردشة مغلقة مؤقتاً');
+    showToast('Ø§Ù„Ø¯Ø±Ø¯Ø´Ø© Ù…ØºÙ„Ù‚Ø© Ù…Ø¤Ù‚ØªØ§Ù‹');
     return;
   }
   const input = document.getElementById('msgInput');
@@ -137,7 +137,7 @@ window.sendMsg = async () => {
     await addDoc(collection(db, 'messages'), {
       text,
       uid: currentUser.uid,
-      name: currentUserData?.name || currentUser.displayName || 'مجهول',
+      name: currentUserData?.name || currentUser.displayName || 'Ù…Ø¬Ù‡ÙˆÙ„',
       shortId: currentUserData?.shortId || '--------',
       photoUrl: currentUserData?.photoUrl || '',
       createdAt: serverTimestamp()
@@ -165,8 +165,8 @@ function renderMsg(m, msgId, area) {
   const av = m.photoUrl
     ? `<img src="${m.photoUrl}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid ${col}40">`
     : `<div class="msg-av" style="background:${col}20;color:${col};border:1px solid ${col}40">${(m.name||'?')[0].toUpperCase()}</div>`;
-  const adminBtns = isAdmin ? `<button class="msg-del-btn" onclick="adminDeleteMsg('${msgId}')">🗑</button><button class="msg-ban-btn" onclick="adminQuickBan('${m.uid}','chat')">🚫</button><button class="msg-ban-btn" onclick="adminQuickBan('${m.uid}','full')" style="background:rgba(239,68,68,.15)">⛔</button>` : '';
-  const reportBtn = !own ? `<button class="msg-report-btn" onclick="reportMsg('${msgId}','${escHtml(m.name||'')}')">⚑</button>` : '';
+  const adminBtns = isAdmin ? `<button class="msg-del-btn" onclick="adminDeleteMsg('${msgId}')">ðŸ—‘</button><button class="msg-ban-btn" onclick="adminQuickBan('${m.uid}','chat')">ðŸš«</button><button class="msg-ban-btn" onclick="adminQuickBan('${m.uid}','full')" style="background:rgba(239,68,68,.15)">â›”</button>` : '';
+  const reportBtn = !own ? `<button class="msg-report-btn" onclick="reportMsg('${msgId}','${escHtml(m.name||'')}')">âš‘</button>` : '';
   div.innerHTML = `
     <div class="msg-av-wrap" onclick="viewProfile('${m.uid}')" style="cursor:pointer">${av}</div>
     <div class="msg-body">
@@ -187,14 +187,14 @@ function renderContent(text, fileUrl, fileType, fileName) {
     if (fileType === 'image') {
       return `<img src="${fileUrl}" style="max-width:220px;border-radius:10px;margin-top:4px;display:block">`;
     } else {
-      return `<a href="${fileUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.3);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px">📄 ${escHtml(fileName||'ملف')}</a>`;
+      return `<a href="${fileUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.3);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px">ðŸ“„ ${escHtml(fileName||'Ù…Ù„Ù')}</a>`;
     }
   }
   if (!text) return '';
   return escHtml(text);
 }
 
-// ── FILE/IMAGE UPLOAD IN CHAT ────────────────────────────────
+// â”€â”€ FILE/IMAGE UPLOAD IN CHAT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.triggerFileUpload = (type) => {
   const input = document.getElementById(type === 'image' ? 'imgUploadInput' : 'pdfUploadInput');
   input.click();
@@ -202,8 +202,8 @@ window.triggerFileUpload = (type) => {
 
 async function uploadFile(file, type) {
   if (!currentUser) return;
-  if (currentUserData?.isChatBanned) { showToast('محظور من الارسال مؤقتاً'); return; }
-  showToast('جاري الرفع...');
+  if (currentUserData?.isChatBanned) { showToast('Ù…Ø­Ø¸ÙˆØ± Ù…Ù† Ø§Ù„Ø§Ø±Ø³Ø§Ù„ Ù…Ø¤Ù‚ØªØ§Ù‹'); return; }
+  showToast('Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø±ÙØ¹...');
   const ext = file.name.split('.').pop();
   const r = ref(storage, `chat/${Date.now()}_${currentUser.uid}.${ext}`);
   const snap = await uploadBytes(r, file);
@@ -212,10 +212,10 @@ async function uploadFile(file, type) {
   let msgText = '';
   if (type === 'image') {
     content = `<img src="${url}" style="max-width:220px;border-radius:10px;margin-top:4px;display:block">`;
-    msgText = '📷 صورة';
+    msgText = 'ðŸ“· ØµÙˆØ±Ø©';
   } else {
-    content = `<a href="${url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.3);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px">📄 ${escHtml(file.name)}</a>`;
-    msgText = '📄 ' + file.name.substring(0,50);
+    content = `<a href="${url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.3);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px">ðŸ“„ ${escHtml(file.name)}</a>`;
+    msgText = 'ðŸ“„ ' + file.name.substring(0,50);
   }
   await addDoc(collection(db, 'messages'), {
     text: msgText,
@@ -223,12 +223,12 @@ async function uploadFile(file, type) {
     fileType: type,
     fileName: file.name,
     uid: currentUser.uid,
-    name: currentUserData?.name || currentUser.displayName || 'مجهول',
+    name: currentUserData?.name || currentUser.displayName || 'Ù…Ø¬Ù‡ÙˆÙ„',
     shortId: currentUserData?.shortId || '--------',
     photoUrl: currentUserData?.photoUrl || '',
     createdAt: serverTimestamp()
   });
-  showToast('تم الرفع');
+  showToast('ØªÙ… Ø§Ù„Ø±ÙØ¹');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -244,14 +244,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── DM / PRIVATE CHAT ────────────────────────────────────────
+// â”€â”€ DM / PRIVATE CHAT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.openDm = async (otherUid) => {
   if (!currentUser || otherUid === currentUser.uid) return;
   const otherSnap = await getDoc(doc(db, 'users', otherUid));
   if (!otherSnap.exists()) return;
   const other = otherSnap.data();
-  if (other.privacyDM === 'closed') { showToast('هذا المستخدم اغلق الرسائل الخاصة'); return; }
-  if ((other.blockedUsers || []).includes(currentUser.uid)) { showToast('لا يمكن ارسال رسالة لهذا المستخدم'); return; }
+  if (other.privacyDM === 'closed') { showToast('Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø§ØºÙ„Ù‚ Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ø®Ø§ØµØ©'); return; }
+  if ((other.blockedUsers || []).includes(currentUser.uid)) { showToast('Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ù„Ø© Ù„Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…'); return; }
   activeDmUid = otherUid;
   document.getElementById('dmName').textContent = other.name;
   document.getElementById('dmId').textContent = '#' + other.shortId;
@@ -291,7 +291,7 @@ function subscribeDm(otherUid) {
 
 window.sendDm = async () => {
   if (!currentUser || !activeDmUid) return;
-  if (currentUserData?.isChatBanned || currentUserData?.isBanned) { showToast('محظور من الارسال'); return; }
+  if (currentUserData?.isChatBanned || currentUserData?.isBanned) { showToast('Ù…Ø­Ø¸ÙˆØ± Ù…Ù† Ø§Ù„Ø§Ø±Ø³Ø§Ù„'); return; }
   const input = document.getElementById('dmInput');
   const text = input.value.trim();
   if (!text) return;
@@ -305,14 +305,14 @@ window.sendDm = async () => {
   await addDoc(collection(db, 'chats', chatId, 'messages'), {
     text,
     uid: currentUser.uid,
-    name: currentUserData?.name || currentUser.displayName || 'مجهول',
+    name: currentUserData?.name || currentUser.displayName || 'Ù…Ø¬Ù‡ÙˆÙ„',
     createdAt: serverTimestamp()
   });
 };
 
 window.dmHandleKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDm(); } };
 
-// ── PROFILE ──────────────────────────────────────────────────
+// â”€â”€ PROFILE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.viewProfile = async (uid) => {
   const snap = await getDoc(doc(db, 'users', uid));
   if (!snap.exists()) return;
@@ -326,7 +326,7 @@ window.viewProfile = async (uid) => {
   document.getElementById('profName').textContent = d.name || '';
   document.getElementById('profShortId').textContent = '#' + (d.shortId || '--------');
   document.getElementById('profYear').textContent = d.year || '';
-  document.getElementById('profBio').textContent = d.bio || 'لا توجد سيرة ذاتية';
+  document.getElementById('profBio').textContent = d.bio || 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³ÙŠØ±Ø© Ø°Ø§ØªÙŠØ©';
   document.getElementById('profDmBtn').style.display = isSelf ? 'none' : 'flex';
   document.getElementById('profDmBtn').onclick = () => { closeProfile(); openDm(uid); };
   document.getElementById('profBlockBtn').style.display = isSelf ? 'none' : 'flex';
@@ -335,9 +335,9 @@ window.viewProfile = async (uid) => {
   document.getElementById('profAdminBtns').style.display = isAdmin && !isSelf ? 'flex' : 'none';
   if (isAdmin && !isSelf) {
     document.getElementById('profBanChatBtn').onclick = () => adminBanChat(uid, !d.isChatBanned);
-    document.getElementById('profBanChatBtn').textContent = d.isChatBanned ? 'رفع حظر الرسائل' : 'حظر من الرسائل';
+    document.getElementById('profBanChatBtn').textContent = d.isChatBanned ? 'Ø±ÙØ¹ Ø­Ø¸Ø± Ø§Ù„Ø±Ø³Ø§Ø¦Ù„' : 'Ø­Ø¸Ø± Ù…Ù† Ø§Ù„Ø±Ø³Ø§Ø¦Ù„';
     document.getElementById('profBanFullBtn').onclick = () => adminBanFull(uid, !d.isBanned);
-    document.getElementById('profBanFullBtn').textContent = d.isBanned ? 'رفع الحظر الكامل' : 'حظر كامل من الموقع';
+    document.getElementById('profBanFullBtn').textContent = d.isBanned ? 'Ø±ÙØ¹ Ø§Ù„Ø­Ø¸Ø± Ø§Ù„ÙƒØ§Ù…Ù„' : 'Ø­Ø¸Ø± ÙƒØ§Ù…Ù„ Ù…Ù† Ø§Ù„Ù…ÙˆÙ‚Ø¹';
   }
   modal.style.display = 'flex';
 };
@@ -360,7 +360,7 @@ window.saveProfile = async () => {
   const bio = document.getElementById('editBio').value.trim();
   const privacyDM = document.getElementById('editPrivacy').value;
   const photoFile = document.getElementById('editPhoto').files[0];
-  showToast('جاري الحفظ...');
+  showToast('Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸...');
   let photoUrl = currentUserData?.photoUrl || '';
   if (photoFile) {
     const r = ref(storage, `avatars/${currentUser.uid}`);
@@ -375,7 +375,7 @@ window.saveProfile = async () => {
   document.getElementById('headerName').textContent = currentUserData.name;
   document.getElementById('headerAv').textContent = (currentUserData.name||'?')[0].toUpperCase();
   if (photoUrl) document.getElementById('headerAv').style.backgroundImage = `url(${photoUrl})`;
-  showToast('تم الحفظ');
+  showToast('ØªÙ… Ø§Ù„Ø­ÙØ¸');
   closeEditProfile();
 };
 
@@ -384,17 +384,17 @@ window.blockUser = async (uid) => {
   const blocked = currentUserData?.blockedUsers || [];
   if (blocked.includes(uid)) {
     await updateDoc(doc(db, 'users', currentUser.uid), { blockedUsers: blocked.filter(u => u !== uid) });
-    showToast('تم رفع الحظر');
+    showToast('ØªÙ… Ø±ÙØ¹ Ø§Ù„Ø­Ø¸Ø±');
   } else {
     await updateDoc(doc(db, 'users', currentUser.uid), { blockedUsers: [...blocked, uid] });
-    showToast('تم حظر المستخدم');
+    showToast('ØªÙ… Ø­Ø¸Ø± Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…');
   }
   const snap = await getDoc(doc(db, 'users', currentUser.uid));
   currentUserData = snap.data();
   closeProfile();
 };
 
-// ── REPORT ───────────────────────────────────────────────────
+// â”€â”€ REPORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.reportMsg = (msgId, senderName) => {
   document.getElementById('reportMsgId').value = msgId;
   document.getElementById('reportSenderName').textContent = senderName;
@@ -406,7 +406,7 @@ window.closeReport = () => { document.getElementById('reportModal').style.displa
 window.submitReport = async () => {
   const msgId = document.getElementById('reportMsgId').value;
   const reason = document.getElementById('reportReason').value.trim();
-  if (!reason) { showToast('اكتب سبب البلاغ'); return; }
+  if (!reason) { showToast('Ø§ÙƒØªØ¨ Ø³Ø¨Ø¨ Ø§Ù„Ø¨Ù„Ø§Øº'); return; }
   await addDoc(collection(db, 'reports'), {
     messageId: msgId,
     reportedBy: currentUser.uid,
@@ -415,11 +415,11 @@ window.submitReport = async () => {
     status: 'pending',
     createdAt: serverTimestamp()
   });
-  showToast('تم ارسال البلاغ للادمن');
+  showToast('ØªÙ… Ø§Ø±Ø³Ø§Ù„ Ø§Ù„Ø¨Ù„Ø§Øº Ù„Ù„Ø§Ø¯Ù…Ù†');
   closeReport();
 };
 
-// ── ADMIN ACTIONS ────────────────────────────────────────────
+// â”€â”€ ADMIN ACTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.markReportReviewed = async (reportId) => {
   if (!isAdmin) return;
   await updateDoc(doc(db, 'reports', reportId), { status: 'reviewed' });
@@ -436,7 +436,7 @@ window.adminDeleteMsgAndReview = async (msgId, reportId) => {
   if (!isAdmin) return;
   await deleteDoc(doc(db, 'messages', msgId));
   await updateDoc(doc(db, 'reports', reportId), { status: 'reviewed' });
-  showToast('تم حذف الرسالة وتحديث البلاغ');
+  showToast('ØªÙ… Ø­Ø°Ù Ø§Ù„Ø±Ø³Ø§Ù„Ø© ÙˆØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨Ù„Ø§Øº');
   loadAdminReports();
 };
 
@@ -444,7 +444,7 @@ window.adminDeleteMsgAndReview = async (msgId, reportId) => {
 window.adminDeleteMsg = async (msgId) => {
   if (!isAdmin) return;
   await deleteDoc(doc(db, 'messages', msgId));
-  showToast('تم حذف الرسالة');
+  showToast('ØªÙ… Ø­Ø°Ù Ø§Ù„Ø±Ø³Ø§Ù„Ø©');
 };
 
 window.adminQuickBan = async (uid, type) => {
@@ -457,7 +457,7 @@ window.adminQuickBan = async (uid, type) => {
 window.adminBanChat = async (uid, ban) => {
   if (!isAdmin || uid === ADMIN_UID) return;
   await updateDoc(doc(db, 'users', uid), { isChatBanned: ban });
-  showToast(ban ? 'تم حظر المستخدم من الرسائل' : 'تم رفع حظر الرسائل');
+  showToast(ban ? 'ØªÙ… Ø­Ø¸Ø± Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…Ù† Ø§Ù„Ø±Ø³Ø§Ø¦Ù„' : 'ØªÙ… Ø±ÙØ¹ Ø­Ø¸Ø± Ø§Ù„Ø±Ø³Ø§Ø¦Ù„');
   loadAdminUsers();
   closeProfile();
 };
@@ -465,25 +465,25 @@ window.adminBanChat = async (uid, ban) => {
 window.adminBanFull = async (uid, ban) => {
   if (!isAdmin || uid === ADMIN_UID) return;
   await updateDoc(doc(db, 'users', uid), { isBanned: ban, isChatBanned: ban });
-  showToast(ban ? 'تم الحظر الكامل' : 'تم رفع الحظر الكامل');
+  showToast(ban ? 'ØªÙ… Ø§Ù„Ø­Ø¸Ø± Ø§Ù„ÙƒØ§Ù…Ù„' : 'ØªÙ… Ø±ÙØ¹ Ø§Ù„Ø­Ø¸Ø± Ø§Ù„ÙƒØ§Ù…Ù„');
   loadAdminUsers();
   closeProfile();
 };
 
-// ── CHAT LOCK (temp close) ───────────────────────────────────
+// â”€â”€ CHAT LOCK (temp close) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.lockChat = async () => {
   if (!isAdmin) return;
   const mins = parseInt(document.getElementById('lockMins').value) || 5;
   const lockUntil = Date.now() + mins * 60 * 1000;
   await setDoc(doc(db, 'settings', 'chat'), { locked: true, lockUntil });
-  showToast('تم قفل الدردشة لمدة ' + mins + ' دقيقة');
+  showToast('ØªÙ… Ù‚ÙÙ„ Ø§Ù„Ø¯Ø±Ø¯Ø´Ø© Ù„Ù…Ø¯Ø© ' + mins + ' Ø¯Ù‚ÙŠÙ‚Ø©');
   checkChatLock();
 };
 
 window.unlockChat = async () => {
   if (!isAdmin) return;
   await setDoc(doc(db, 'settings', 'chat'), { locked: false, lockUntil: 0 });
-  showToast('تم فتح الدردشة');
+  showToast('ØªÙ… ÙØªØ­ Ø§Ù„Ø¯Ø±Ø¯Ø´Ø©');
   checkChatLock();
 };
 
@@ -494,7 +494,7 @@ async function checkChatLock() {
   if (snap.exists() && snap.data().locked && snap.data().lockUntil > Date.now()) {
     const remaining = Math.ceil((snap.data().lockUntil - Date.now()) / 60000);
     lockMsg.style.display = 'flex';
-    lockMsg.querySelector('span').textContent = 'الدردشة مغلقة مؤقتاً — تفتح خلال ' + remaining + ' دقيقة';
+    lockMsg.querySelector('span').textContent = 'Ø§Ù„Ø¯Ø±Ø¯Ø´Ø© Ù…ØºÙ„Ù‚Ø© Ù…Ø¤Ù‚ØªØ§Ù‹ â€” ØªÙØªØ­ Ø®Ù„Ø§Ù„ ' + remaining + ' Ø¯Ù‚ÙŠÙ‚Ø©';
     inputRow.style.display = 'none';
   } else {
     if (snap.exists() && snap.data().locked) {
@@ -505,7 +505,7 @@ async function checkChatLock() {
   }
 }
 
-// ── ADMIN PANEL DATA ─────────────────────────────────────────
+// â”€â”€ ADMIN PANEL DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadAdminData() {
   loadAdminUsers();
   loadAdminReports();
@@ -537,20 +537,20 @@ window.loadAdminUsers = async () => {
     const div = document.createElement('div');
     div.className = 'admin-row';
     const statusBadge = u.isBanned
-      ? '<span style="color:var(--red);font-size:10px;border:1px solid rgba(228,156,139,.3);padding:1px 6px;border-radius:4px">محظور كامل</span>'
+      ? '<span style="color:var(--red);font-size:10px;border:1px solid rgba(228,156,139,.3);padding:1px 6px;border-radius:4px">Ù…Ø­Ø¸ÙˆØ± ÙƒØ§Ù…Ù„</span>'
       : u.isChatBanned
-      ? '<span style="color:var(--yellow);font-size:10px;border:1px solid rgba(245,158,11,.3);padding:1px 6px;border-radius:4px">محظور رسائل</span>'
-      : '<span style="color:var(--green);font-size:10px;border:1px solid rgba(110,201,176,.3);padding:1px 6px;border-radius:4px">نشط</span>';
+      ? '<span style="color:var(--yellow);font-size:10px;border:1px solid rgba(245,158,11,.3);padding:1px 6px;border-radius:4px">Ù…Ø­Ø¸ÙˆØ± Ø±Ø³Ø§Ø¦Ù„</span>'
+      : '<span style="color:var(--green);font-size:10px;border:1px solid rgba(110,201,176,.3);padding:1px 6px;border-radius:4px">Ù†Ø´Ø·</span>';
     div.innerHTML = `
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600">${escHtml(u.name||'')} <span style="color:var(--muted);font-size:11px">#${u.shortId||''}</span></div>
-        <div style="font-size:11px;color:var(--muted)">${escHtml(u.email||'')} — ${u.year||''}</div>
+        <div style="font-size:11px;color:var(--muted)">${escHtml(u.email||'')} â€” ${u.year||''}</div>
       </div>
       ${statusBadge}
       <div style="display:flex;gap:4px;flex-shrink:0">
-        <button class="admin-act-btn" onclick="adminBanChat('${u.uid}',${!u.isChatBanned})" title="${u.isChatBanned?'رفع حظر الرسائل':'حظر من الرسائل'}">${u.isChatBanned?'✓💬':'🚫'}</button>
-        <button class="admin-act-btn" style="background:rgba(239,68,68,.1)" onclick="adminBanFull('${u.uid}',${!u.isBanned})" title="${u.isBanned?'رفع الحظر الكامل':'حظر كامل'}">${u.isBanned?'✓⛔':'⛔'}</button>
-        <button class="admin-act-btn" onclick="viewProfile('${u.uid}')">👤</button>
+        <button class="admin-act-btn" onclick="adminBanChat('${u.uid}',${!u.isChatBanned})" title="${u.isChatBanned?'Ø±ÙØ¹ Ø­Ø¸Ø± Ø§Ù„Ø±Ø³Ø§Ø¦Ù„':'Ø­Ø¸Ø± Ù…Ù† Ø§Ù„Ø±Ø³Ø§Ø¦Ù„'}">${u.isChatBanned?'âœ“ðŸ’¬':'ðŸš«'}</button>
+        <button class="admin-act-btn" style="background:rgba(239,68,68,.1)" onclick="adminBanFull('${u.uid}',${!u.isBanned})" title="${u.isBanned?'Ø±ÙØ¹ Ø§Ù„Ø­Ø¸Ø± Ø§Ù„ÙƒØ§Ù…Ù„':'Ø­Ø¸Ø± ÙƒØ§Ù…Ù„'}">${u.isBanned?'âœ“â›”':'â›”'}</button>
+        <button class="admin-act-btn" onclick="viewProfile('${u.uid}')">ðŸ‘¤</button>
       </div>`;
     el.appendChild(div);
   });
@@ -561,7 +561,7 @@ window.loadAdminReports = async () => {
   const el = document.getElementById('adminReportsList');
   if (!el) return;
   el.innerHTML = '';
-  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);padding:16px;text-align:center;font-size:13px">لا توجد بلاغات</div>'; return; }
+  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);padding:16px;text-align:center;font-size:13px">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨Ù„Ø§ØºØ§Øª</div>'; return; }
   snap.forEach(d => {
     const r = d.data();
     const ts = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString('ar') : '';
@@ -572,14 +572,14 @@ window.loadAdminReports = async () => {
     div.style.gap = '6px';
     div.innerHTML = `
       <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-        <span style="font-size:12px;color:var(--muted)">من: ${escHtml(r.reporterName||'')} — ${ts}</span>
-        <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:${r.status==='pending'?'rgba(245,158,11,.1)':'rgba(110,201,176,.1)'};color:${r.status==='pending'?'var(--yellow)':'var(--green)'}">${r.status==='pending'?'قيد المراجعة':'تمت المراجعة'}</span>
+        <span style="font-size:12px;color:var(--muted)">Ù…Ù†: ${escHtml(r.reporterName||'')} â€” ${ts}</span>
+        <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:${r.status==='pending'?'rgba(245,158,11,.1)':'rgba(110,201,176,.1)'};color:${r.status==='pending'?'var(--yellow)':'var(--green)'}">${r.status==='pending'?'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©':'ØªÙ…Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©'}</span>
       </div>
-      <div style="font-size:13px">السبب: ${escHtml(r.reason||'')}</div>
+      <div style="font-size:13px">Ø§Ù„Ø³Ø¨Ø¨: ${escHtml(r.reason||'')}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="admin-act-btn" onclick="adminDeleteMsgAndReview('${r.messageId}','${d.id}')">🗑 حذف الرسالة</button>
-        <button class="admin-act-btn" onclick="markReportReviewed('${d.id}')">✓ تمت المراجعة</button>
-        <button class="admin-act-btn" onclick="deleteReport('${d.id}')">✕ حذف البلاغ</button>
+        <button class="admin-act-btn" onclick="adminDeleteMsgAndReview('${r.messageId}','${d.id}')">ðŸ—‘ Ø­Ø°Ù Ø§Ù„Ø±Ø³Ø§Ù„Ø©</button>
+        <button class="admin-act-btn" onclick="markReportReviewed('${d.id}')">âœ“ ØªÙ…Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©</button>
+        <button class="admin-act-btn" onclick="deleteReport('${d.id}')">âœ• Ø­Ø°Ù Ø§Ù„Ø¨Ù„Ø§Øº</button>
       </div>`;
     el.appendChild(div);
   });
@@ -593,7 +593,7 @@ async function loadAdminSubjects() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span style="color:${d.data().color}">${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().code)}</span><button class="del-btn" onclick="deleteSubject('${d.id}')">✕</button>`;
+    div.innerHTML = `<span style="color:${d.data().color}">${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().code)}</span><button class="del-btn" onclick="deleteSubject('${d.id}')">âœ•</button>`;
     el.appendChild(div);
   });
 }
@@ -606,7 +606,7 @@ async function loadAdminSections() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span>${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().subject||'')} — ${escHtml(d.data().section||'')}</span><button class="del-btn" onclick="deleteSection('${d.id}')">✕</button>`;
+    div.innerHTML = `<span>${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().subject||'')} â€” ${escHtml(d.data().section||'')}</span><button class="del-btn" onclick="deleteSection('${d.id}')">âœ•</button>`;
     el.appendChild(div);
   });
 }
@@ -619,7 +619,7 @@ async function loadAdminNews() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span>${escHtml(d.data().title)}</span><span class="admin-code">${d.data().tag}</span><button class="del-btn" onclick="deleteNews('${d.id}')">✕</button>`;
+    div.innerHTML = `<span>${escHtml(d.data().title)}</span><span class="admin-code">${d.data().tag}</span><button class="del-btn" onclick="deleteNews('${d.id}')">âœ•</button>`;
     el.appendChild(div);
   });
 }
@@ -632,7 +632,7 @@ async function loadAdminSchedule() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span>${escHtml(d.data().subject||'')}</span><span class="admin-code">${escHtml(d.data().day||'')} ${escHtml(d.data().time||'')}</span><button class="del-btn" onclick="deleteScheduleItem('${d.id}')">✕</button>`;
+    div.innerHTML = `<span>${escHtml(d.data().subject||'')}</span><span class="admin-code">${escHtml(d.data().day||'')} ${escHtml(d.data().time||'')}</span><button class="del-btn" onclick="deleteScheduleItem('${d.id}')">âœ•</button>`;
     el.appendChild(div);
   });
 }
@@ -645,7 +645,7 @@ async function loadAdminSummaries() {
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'admin-row';
-    div.innerHTML = `<span>${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().subject)}</span><button class="del-btn" onclick="deleteSummary('${d.id}')">✕</button>`;
+    div.innerHTML = `<span>${escHtml(d.data().name)}</span><span class="admin-code">${escHtml(d.data().subject)}</span><button class="del-btn" onclick="deleteSummary('${d.id}')">âœ•</button>`;
     el.appendChild(div);
   });
 }
@@ -706,32 +706,32 @@ window.uploadSummary = async () => {
   const file = document.getElementById('sumFile').files[0];
   const subject = document.getElementById('sumSubject').value.trim();
   if (!file || !subject) return;
-  showToast('جاري الرفع...');
+  showToast('Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø±ÙØ¹...');
   const r = ref(storage, `summaries/${Date.now()}_${file.name}`);
   const snap = await uploadBytes(r, file);
   const url = await getDownloadURL(snap.ref);
   await addDoc(collection(db, 'summaries'), { subject, name: file.name, url, size: (file.size/1024/1024).toFixed(1)+' MB', uploadedAt: serverTimestamp(), uid: currentUser.uid });
   document.getElementById('sumFile').value = '';
   document.getElementById('sumSubject').value = '';
-  showToast('تم الرفع');
+  showToast('ØªÙ… Ø§Ù„Ø±ÙØ¹');
   loadAdminData(); loadSummaries();
 };
 
 window.deleteSummary = async (id) => { await deleteDoc(doc(db, 'summaries', id)); loadAdminData(); loadSummaries(); };
 
-// ── PUBLIC VIEWS ─────────────────────────────────────────────
+// â”€â”€ PUBLIC VIEWS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.loadSubjects = async () => {
   const snap = await getDocs(query(collection(db, 'subjects'), orderBy('createdAt','asc')));
   const el = document.getElementById('subjectsGrid');
   if (!el) return;
   el.innerHTML = '';
-  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1">لا توجد مواد بعد</div>'; return; }
+  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1">Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…ÙˆØ§Ø¯ Ø¨Ø¹Ø¯</div>'; return; }
   snap.forEach(d => {
     const data = d.data();
     const card = document.createElement('div');
     card.className = 'subject-card';
     card.style.borderTopColor = data.color;
-    card.innerHTML = `<div class="subj-head"><div class="subj-dot" style="background:${data.color}"></div><div><div class="subj-name">${escHtml(data.name)}</div><div class="subj-code">${escHtml(data.code)}</div></div></div><div class="subj-body" id="files_${d.id}"><div style="color:var(--muted);font-size:12px">جاري التحميل...</div></div>`;
+    card.innerHTML = `<div class="subj-head"><div class="subj-dot" style="background:${data.color}"></div><div><div class="subj-name">${escHtml(data.name)}</div><div class="subj-code">${escHtml(data.code)}</div></div></div><div class="subj-body" id="files_${d.id}"><div style="color:var(--muted);font-size:12px">Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...</div></div>`;
     el.appendChild(card);
     loadFilesForSubject(data.name, `files_${d.id}`);
   });
@@ -743,8 +743,8 @@ async function loadFilesForSubject(subject, elId) {
   if (!el) return;
   const files = [];
   snap.forEach(d => { if (d.data().subject === subject) files.push({...d.data(), id: d.id}); });
-  if (!files.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">لا توجد ملفات بعد</div>'; return; }
-  el.innerHTML = files.map(f => `<a href="${f.url}" target="_blank" class="file-row"><span class="file-ico">📄</span><span>${escHtml(f.name)}</span><span class="file-sz">${f.size}</span><span>↓</span></a>`).join('');
+  if (!files.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù„ÙØ§Øª Ø¨Ø¹Ø¯</div>'; return; }
+  el.innerHTML = files.map(f => `<a href="${f.url}" target="_blank" class="file-row"><span class="file-ico">ðŸ“„</span><span>${escHtml(f.name)}</span><span class="file-sz">${f.size}</span><span>â†“</span></a>`).join('');
 }
 
 window.loadSections = async () => {
@@ -752,12 +752,12 @@ window.loadSections = async () => {
   const el = document.getElementById('sectionsGrid');
   if (!el) return;
   el.innerHTML = '';
-  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">لا توجد سكاشن بعد</div>'; return; }
+  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³ÙƒØ§Ø´Ù† Ø¨Ø¹Ø¯</div>'; return; }
   snap.forEach(d => {
     const data = d.data();
     const card = document.createElement('div');
     card.className = 'sec-card';
-    card.innerHTML = `<div class="sec-head"><div><div class="sec-subject">${escHtml(data.subject||'')}</div><div style="font-size:12px;color:var(--muted)">${escHtml(data.name||'')}</div></div><div class="sec-badge">${escHtml(data.section||'')}</div></div><div class="sec-grid"><div class="sec-cell"><div class="sec-lbl">الموعد</div><div class="sec-val">${escHtml(data.time||'—')}</div></div><div class="sec-cell"><div class="sec-lbl">القاعة</div><div class="sec-val">${escHtml(data.room||'—')}</div></div></div>`;
+    card.innerHTML = `<div class="sec-head"><div><div class="sec-subject">${escHtml(data.subject||'')}</div><div style="font-size:12px;color:var(--muted)">${escHtml(data.name||'')}</div></div><div class="sec-badge">${escHtml(data.section||'')}</div></div><div class="sec-grid"><div class="sec-cell"><div class="sec-lbl">Ø§Ù„Ù…ÙˆØ¹Ø¯</div><div class="sec-val">${escHtml(data.time||'â€”')}</div></div><div class="sec-cell"><div class="sec-lbl">Ø§Ù„Ù‚Ø§Ø¹Ø©</div><div class="sec-val">${escHtml(data.room||'â€”')}</div></div></div>`;
     el.appendChild(card);
   });
 };
@@ -766,7 +766,7 @@ window.loadSchedule = async () => {
   const snap = await getDocs(collection(db, 'schedule'));
   const el = document.getElementById('scheduleTable');
   if (!el) return;
-  const days = ['السبت','الاحد','الاثنين','الثلاثاء','الاربعاء','الخميس'];
+  const days = ['Ø§Ù„Ø³Ø¨Øª','Ø§Ù„Ø§Ø­Ø¯','Ø§Ù„Ø§Ø«Ù†ÙŠÙ†','Ø§Ù„Ø«Ù„Ø§Ø«Ø§Ø¡','Ø§Ù„Ø§Ø±Ø¨Ø¹Ø§Ø¡','Ø§Ù„Ø®Ù…ÙŠØ³'];
   const times = ['8:00','10:00','12:00','14:00','16:00'];
   const data = {};
   snap.forEach(d => { data[d.data().day+'_'+d.data().time] = d.data(); });
@@ -790,9 +790,9 @@ window.loadNews = async () => {
   const el = document.getElementById('newsFeed');
   if (!el) return;
   el.innerHTML = '';
-  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">لا توجد اخبار</div>'; return; }
+  if (snap.empty) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø§Ø®Ø¨Ø§Ø±</div>'; return; }
   const tagStyles = {urgent:'#ef4444',exam:'#f59e0b',event:'#10b981',general:'#8b9cf4'};
-  const tagLabels = {urgent:'🔥 عاجل',exam:'📝 امتحانات',event:'🎯 فعاليات',general:'📌 عام'};
+  const tagLabels = {urgent:'ðŸ”¥ Ø¹Ø§Ø¬Ù„',exam:'ðŸ“ Ø§Ù…ØªØ­Ø§Ù†Ø§Øª',event:'ðŸŽ¯ ÙØ¹Ø§Ù„ÙŠØ§Øª',general:'ðŸ“Œ Ø¹Ø§Ù…'};
   let i = 1;
   snap.forEach(d => {
     const data = d.data();
@@ -809,11 +809,11 @@ window.loadNews = async () => {
 
 window.loadSummaries = loadSubjects;
 
-// ── HELPERS ──────────────────────────────────────────────────
+// â”€â”€ HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function escHtml(t) { if(!t) return ''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function firebaseErr(code) {
-  const map = {'auth/email-already-in-use':'الايميل موجود بالفعل','auth/wrong-password':'كلمة السر غلط','auth/user-not-found':'مفيش حساب بهذا الايميل','auth/invalid-email':'الايميل مش صح','auth/weak-password':'كلمة السر ضعيفة','auth/invalid-credential':'الايميل او كلمة السر غلط'};
-  return map[code] || 'حصل خطا، حاول تاني';
+  const map = {'auth/email-already-in-use':'Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„ Ù…ÙˆØ¬ÙˆØ¯ Ø¨Ø§Ù„ÙØ¹Ù„','auth/wrong-password':'ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø± ØºÙ„Ø·','auth/user-not-found':'Ù…ÙÙŠØ´ Ø­Ø³Ø§Ø¨ Ø¨Ù‡Ø°Ø§ Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„','auth/invalid-email':'Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„ Ù…Ø´ ØµØ­','auth/weak-password':'ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø± Ø¶Ø¹ÙŠÙØ©','auth/invalid-credential':'Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„ Ø§Ùˆ ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø± ØºÙ„Ø·'};
+  return map[code] || 'Ø­ØµÙ„ Ø®Ø·Ø§ØŒ Ø­Ø§ÙˆÙ„ ØªØ§Ù†ÙŠ';
 }
 function showAuthError(msg) { const el = document.getElementById('authError'); el.textContent = msg; el.style.display='block'; setTimeout(()=>el.style.display='none',4000); }
 function setAuthLoading(v) { document.querySelectorAll('.auth-btn').forEach(b=>{b.disabled=v; b.textContent=v?'...':b.dataset.label;}); }
@@ -822,7 +822,7 @@ function showAuthScreen() { document.getElementById('authScreen').style.display=
 function showApp(user) {
   document.getElementById('authScreen').style.display='none';
   document.getElementById('appShell').style.display='flex';
-  document.getElementById('headerName').textContent = currentUserData?.name || user.displayName || 'مستخدم';
+  document.getElementById('headerName').textContent = currentUserData?.name || user.displayName || 'Ù…Ø³ØªØ®Ø¯Ù…';
   document.getElementById('headerAv').textContent = (currentUserData?.name||user.displayName||'?')[0].toUpperCase();
   if (currentUserData?.photoUrl) document.getElementById('headerAv').style.backgroundImage = `url(${currentUserData.photoUrl})`;
   loadSubjects(); loadSections(); loadSchedule(); loadNews();
@@ -849,7 +849,7 @@ window.showLogin = () => { document.getElementById('registerForm').style.display
 window.toggleMenu = () => { const m=document.getElementById('mobileMenu'); m.style.display=m.style.display==='flex'?'none':'flex'; };
 window.switchAdminTab = (id, el) => { document.querySelectorAll('.admin-tab-content').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); };
 
-// ── DMs LIST ─────────────────────────────────────────────────
+// â”€â”€ DMs LIST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.loadDmsList = async () => {
   const el = document.getElementById('dmsList');
   if (!el || !currentUser) return;
@@ -866,10 +866,10 @@ window.loadDmsList = async () => {
     const av = u.photoUrl
       ? `<img src="${u.photoUrl}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid ${col}40">`
       : `<div style="width:36px;height:36px;border-radius:50%;background:${col}20;color:${col};border:1px solid ${col}40;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">${(u.name||'?')[0].toUpperCase()}</div>`;
-    div.innerHTML = av + `<div><div style="font-size:14px;font-weight:600">${escHtml(u.name||'')}</div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">#${u.shortId||''} — ${u.year||''}</div></div>`;
+    div.innerHTML = av + `<div><div style="font-size:14px;font-weight:600">${escHtml(u.name||'')}</div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">#${u.shortId||''} â€” ${u.year||''}</div></div>`;
     el.appendChild(div);
   });
-  if (!el.children.length) el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">لا يوجد أعضاء بعد</div>';
+  if (!el.children.length) el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø£Ø¹Ø¶Ø§Ø¡ Ø¨Ø¹Ø¯</div>';
 };
 
 window.searchMembers = async (q) => {
@@ -895,10 +895,15 @@ window.searchMembers = async (q) => {
   });
 };
 
-window.saveInstName = () => { const v=document.getElementById('instInput').value.trim(); if(v){document.getElementById('instName').textContent=v; showToast('تم الحفظ');} };
+window.saveInstName = () => { const v=document.getElementById('instInput').value.trim(); if(v){document.getElementById('instName').textContent=v; showToast('ØªÙ… Ø§Ù„Ø­ÙØ¸');} };
 </script>
 <style>
-.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 180px);}
+.chat-wrap{
+display:flex;
+flex-direction:column;
+height:calc(100dvh - 160px);
+min-height:0;
+}
 .chat-top{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--card);border-radius:12px 12px 0 0;display:flex;align-items:center;gap:10px;}
 .chat-ico{width:34px;height:34px;border-radius:9px;background:rgba(201,169,110,.1);display:flex;align-items:center;justify-content:center;font-size:16px;}
 .chat-top-name{font-weight:700;font-size:14px;}
@@ -909,7 +914,10 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
 .msg.own{flex-direction:row-reverse;}
 .msg-av-wrap{flex-shrink:0;}
 .msg-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
-.msg-body{max-width:80%;}
+.msg-body{
+max-width:88%;
+word-break:break-word;
+}
 .msg-meta{display:flex;align-items:center;gap:5px;margin-bottom:4px;padding:0 10px;flex-wrap:wrap;}
 .msg.own .msg-meta{flex-direction:row-reverse;}
 .msg-name{font-size:12px;font-weight:700;}
@@ -938,7 +946,11 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
 .dm-input:focus{border-color:var(--gold);}
 
 /* SUBJECTS */
-#subjectsGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+#subjectsGrid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:12px;
+}
 .subject-card{background:var(--card);border:1px solid var(--border);border-top:2px solid var(--gold);border-radius:12px;overflow:hidden;}
 .subj-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 .subj-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
@@ -1034,6 +1046,99 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:9px 18px;font-size:13px;color:var(--gold);opacity:0;transition:all .3s;z-index:9999;pointer-events:none;white-space:nowrap;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
+
+<style id="mobile-fixes">
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html,body{
+  width:100%;
+  overflow-x:hidden;
+  background:#0c0c0e;
+}
+
+img{
+  max-width:100%;
+}
+
+@media (max-width:768px){
+
+  body{
+    overflow-x:hidden;
+  }
+
+  #subjectsGrid{
+    grid-template-columns:1fr !important;
+  }
+
+  .form-row,
+  .form-row-3,
+  .sec-grid,
+  .stats-4{
+    grid-template-columns:1fr !important;
+  }
+
+  .msg-body{
+    max-width:92% !important;
+    word-break:break-word;
+  }
+
+  .chat-wrap{
+    height:calc(100dvh - 130px) !important;
+  }
+
+  .modal-box{
+    max-width:100% !important;
+    width:100% !important;
+    padding:18px !important;
+    border-radius:16px !important;
+  }
+
+  .auth-box{
+    width:95% !important;
+    padding:22px !important;
+  }
+
+  .auth-title{
+    font-size:24px !important;
+  }
+
+  .auth-input,
+  .msg-input,
+  .dm-input{
+    font-size:16px !important;
+  }
+
+  .news-card{
+    flex-direction:column !important;
+  }
+
+  #scheduleTable{
+    overflow-x:auto !important;
+  }
+
+  .sch-row{
+    min-width:700px;
+  }
+
+  .bnav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    z-index:999;
+  }
+
+  .page,
+  main{
+    padding-bottom:90px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -1043,26 +1148,26 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
     <div class="auth-logo">
       <div class="auth-emblem">BIS</div>
       <div class="auth-title">BIS Community</div>
-      <div class="auth-sub">مجتمع طلاب نظم معلومات الاعمال</div>
+      <div class="auth-sub">Ù…Ø¬ØªÙ…Ø¹ Ø·Ù„Ø§Ø¨ Ù†Ø¸Ù… Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø§Ø¹Ù…Ø§Ù„</div>
     </div>
     <div id="loginForm" style="display:flex;flex-direction:column">
-      <div class="auth-field"><label>الايميل</label><input class="auth-input" id="loginEmail" type="email" dir="ltr" placeholder="example@email.com"></div>
-      <div class="auth-field"><label>كلمة السر</label><input class="auth-input" id="loginPass" type="password" dir="ltr" placeholder="••••••••"></div>
-      <button class="auth-btn" data-label="تسجيل الدخول" onclick="loginUser()">تسجيل الدخول</button>
-      <div class="auth-switch">مش عندك حساب؟ <a onclick="showRegister()">سجل دلوقتي</a></div>
+      <div class="auth-field"><label>Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„</label><input class="auth-input" id="loginEmail" type="email" dir="ltr" placeholder="example@email.com"></div>
+      <div class="auth-field"><label>ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø±</label><input class="auth-input" id="loginPass" type="password" dir="ltr" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"></div>
+      <button class="auth-btn" data-label="ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„" onclick="loginUser()">ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„</button>
+      <div class="auth-switch">Ù…Ø´ Ø¹Ù†Ø¯Ùƒ Ø­Ø³Ø§Ø¨ØŸ <a onclick="showRegister()">Ø³Ø¬Ù„ Ø¯Ù„ÙˆÙ‚ØªÙŠ</a></div>
     </div>
     <div id="registerForm" style="display:none;flex-direction:column">
-      <div class="auth-field"><label>الاسم</label><input class="auth-input" id="regName" type="text" placeholder="DataKing ..."></div>
-      <div class="auth-field"><label>الايميل</label><input class="auth-input" id="regEmail" type="email" dir="ltr" placeholder="example@email.com"></div>
-      <div class="auth-field"><label>كلمة السر</label><input class="auth-input" id="regPass" type="password" dir="ltr" placeholder="6 احرف على الاقل"></div>
-      <div class="auth-field"><label>السنة الدراسية</label>
+      <div class="auth-field"><label>Ø§Ù„Ø§Ø³Ù…</label><input class="auth-input" id="regName" type="text" placeholder="DataKing ..."></div>
+      <div class="auth-field"><label>Ø§Ù„Ø§ÙŠÙ…ÙŠÙ„</label><input class="auth-input" id="regEmail" type="email" dir="ltr" placeholder="example@email.com"></div>
+      <div class="auth-field"><label>ÙƒÙ„Ù…Ø© Ø§Ù„Ø³Ø±</label><input class="auth-input" id="regPass" type="password" dir="ltr" placeholder="6 Ø§Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø§Ù‚Ù„"></div>
+      <div class="auth-field"><label>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©</label>
         <select class="auth-input" id="regYear">
-          <option value="" disabled selected>اختر سنتك</option>
-          <option>السنة الاولى</option><option>السنة الثانية</option><option>السنة الثالثة</option><option>السنة الرابعة</option>
+          <option value="" disabled selected>Ø§Ø®ØªØ± Ø³Ù†ØªÙƒ</option>
+          <option>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø§ÙˆÙ„Ù‰</option><option>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø«Ø§Ù†ÙŠØ©</option><option>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø«Ø§Ù„Ø«Ø©</option><option>Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø±Ø§Ø¨Ø¹Ø©</option>
         </select>
       </div>
-      <button class="auth-btn" data-label="انشاء حساب" onclick="registerUser()">انشاء حساب</button>
-      <div class="auth-switch">عندك حساب؟ <a onclick="showLogin()">سجل دخول</a></div>
+      <button class="auth-btn" data-label="Ø§Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨" onclick="registerUser()">Ø§Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨</button>
+      <div class="auth-switch">Ø¹Ù†Ø¯Ùƒ Ø­Ø³Ø§Ø¨ØŸ <a onclick="showLogin()">Ø³Ø¬Ù„ Ø¯Ø®ÙˆÙ„</a></div>
     </div>
     <div id="authError"></div>
   </div>
@@ -1078,19 +1183,19 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
     <div class="header-right">
       <div class="u-av" id="headerAv" onclick="viewProfile(currentUser?.uid)" style="cursor:pointer">?</div>
       <span id="headerName" style="font-size:13px;color:var(--muted)"></span>
-      <button class="logout-btn" onclick="logoutUser()">خروج</button>
+      <button class="logout-btn" onclick="logoutUser()">Ø®Ø±ÙˆØ¬</button>
     </div>
   </header>
 
   <!-- BOTTOM NAVIGATION -->
   <div class="bottom-nav" style="order:99">
-    <button class="bnav-btn active" onclick="goTo('pgChat',this)"><span class="bnav-ico">💬</span>الشات</button>
-    <button class="bnav-btn" onclick="goTo('pgDms',this)"><span class="bnav-ico">✉️</span>الخاص</button>
-    <button class="bnav-btn" onclick="goTo('pgSummaries',this)"><span class="bnav-ico">📚</span>ملخصات</button>
-    <button class="bnav-btn" onclick="goTo('pgSections',this)"><span class="bnav-ico">👥</span>سكاشن</button>
-    <button class="bnav-btn" onclick="goTo('pgSchedule',this)"><span class="bnav-ico">📅</span>جدول</button>
-    <button class="bnav-btn" onclick="goTo('pgNews',this)"><span class="bnav-ico">📢</span>اخبار</button>
-    <button class="bnav-btn" id="adminNavBtn" style="display:none" onclick="goTo('pgAdmin',this)"><span class="bnav-ico">👑</span>ادمن</button>
+    <button class="bnav-btn active" onclick="goTo('pgChat',this)"><span class="bnav-ico">ðŸ’¬</span>Ø§Ù„Ø´Ø§Øª</button>
+    <button class="bnav-btn" onclick="goTo('pgDms',this)"><span class="bnav-ico">âœ‰ï¸</span>Ø§Ù„Ø®Ø§Øµ</button>
+    <button class="bnav-btn" onclick="goTo('pgSummaries',this)"><span class="bnav-ico">ðŸ“š</span>Ù…Ù„Ø®ØµØ§Øª</button>
+    <button class="bnav-btn" onclick="goTo('pgSections',this)"><span class="bnav-ico">ðŸ‘¥</span>Ø³ÙƒØ§Ø´Ù†</button>
+    <button class="bnav-btn" onclick="goTo('pgSchedule',this)"><span class="bnav-ico">ðŸ“…</span>Ø¬Ø¯ÙˆÙ„</button>
+    <button class="bnav-btn" onclick="goTo('pgNews',this)"><span class="bnav-ico">ðŸ“¢</span>Ø§Ø®Ø¨Ø§Ø±</button>
+    <button class="bnav-btn" id="adminNavBtn" style="display:none" onclick="goTo('pgAdmin',this)"><span class="bnav-ico">ðŸ‘‘</span>Ø§Ø¯Ù…Ù†</button>
   </div>
 
   <main>
@@ -1098,16 +1203,16 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
     <div class="page active" id="pgChat">
       <div class="chat-wrap">
         <div class="chat-top">
-          <div class="chat-ico">💬</div>
-          <div><div class="chat-top-name">الشات العام</div><div class="chat-top-status">● مباشر</div></div>
+          <div class="chat-ico">ðŸ’¬</div>
+          <div><div class="chat-top-name">Ø§Ù„Ø´Ø§Øª Ø§Ù„Ø¹Ø§Ù…</div><div class="chat-top-status">â— Ù…Ø¨Ø§Ø´Ø±</div></div>
         </div>
         <div id="msgArea"></div>
         <div id="chatLockMsg"><span></span></div>
         <div id="chatInputRow">
-          <button class="att-btn" onclick="triggerFileUpload('image')" title="صورة">🖼</button>
-          <button class="att-btn" onclick="triggerFileUpload('pdf')" title="PDF">📄</button>
-          <textarea class="msg-input" id="msgInput" placeholder="اكتب رسالة..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-          <button class="send-btn" onclick="sendMsg()">➤</button>
+          <button class="att-btn" onclick="triggerFileUpload('image')" title="ØµÙˆØ±Ø©">ðŸ–¼</button>
+          <button class="att-btn" onclick="triggerFileUpload('pdf')" title="PDF">ðŸ“„</button>
+          <textarea class="msg-input" id="msgInput" placeholder="Ø§ÙƒØªØ¨ Ø±Ø³Ø§Ù„Ø©..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" onclick="sendMsg()">âž¤</button>
         </div>
         <input type="file" id="imgUploadInput" accept="image/*" style="display:none">
         <input type="file" id="pdfUploadInput" accept="application/pdf" style="display:none">
@@ -1116,170 +1221,170 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
 
     <!-- DMs PAGE -->
     <div class="page" id="pgDms">
-      <div class="page-title">✉️ الرسائل الخاصة</div>
-      <div class="page-sub">محادثاتك الخاصة مع الأعضاء</div>
+      <div class="page-title">âœ‰ï¸ Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ø®Ø§ØµØ©</div>
+      <div class="page-sub">Ù…Ø­Ø§Ø¯Ø«Ø§ØªÙƒ Ø§Ù„Ø®Ø§ØµØ© Ù…Ø¹ Ø§Ù„Ø£Ø¹Ø¶Ø§Ø¡</div>
       <div id="dmsList" style="display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
       <div style="margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px">
-        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">ابحث عن عضو لمراسلته</div>
-        <input class="f-input" id="dmSearchInput" placeholder="اكتب اسم العضو..." oninput="searchMembers(this.value)">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Ø§Ø¨Ø­Ø« Ø¹Ù† Ø¹Ø¶Ùˆ Ù„Ù…Ø±Ø§Ø³Ù„ØªÙ‡</div>
+        <input class="f-input" id="dmSearchInput" placeholder="Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ø¹Ø¶Ùˆ..." oninput="searchMembers(this.value)">
         <div id="dmSearchResults" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
       </div>
     </div>
 
     <!-- SUMMARIES -->
     <div class="page" id="pgSummaries">
-      <div class="page-title">📚 ملخصات المواد</div>
-      <div class="page-sub">الملفات والملخصات — الادمن يرفع والكل يستفيد</div>
+      <div class="page-title">ðŸ“š Ù…Ù„Ø®ØµØ§Øª Ø§Ù„Ù…ÙˆØ§Ø¯</div>
+      <div class="page-sub">Ø§Ù„Ù…Ù„ÙØ§Øª ÙˆØ§Ù„Ù…Ù„Ø®ØµØ§Øª â€” Ø§Ù„Ø§Ø¯Ù…Ù† ÙŠØ±ÙØ¹ ÙˆØ§Ù„ÙƒÙ„ ÙŠØ³ØªÙÙŠØ¯</div>
       <div id="subjectsGrid"></div>
     </div>
 
     <!-- SECTIONS -->
     <div class="page" id="pgSections">
-      <div class="page-title">👥 السكاشن</div>
-      <div class="page-sub">مواعيد وتفاصيل كل سكشن</div>
+      <div class="page-title">ðŸ‘¥ Ø§Ù„Ø³ÙƒØ§Ø´Ù†</div>
+      <div class="page-sub">Ù…ÙˆØ§Ø¹ÙŠØ¯ ÙˆØªÙØ§ØµÙŠÙ„ ÙƒÙ„ Ø³ÙƒØ´Ù†</div>
       <div id="sectionsGrid"></div>
     </div>
 
     <!-- SCHEDULE -->
     <div class="page" id="pgSchedule">
-      <div class="page-title">📅 الجدول</div>
-      <div class="page-sub">جدول الاسبوع الدراسي</div>
+      <div class="page-title">ðŸ“… Ø§Ù„Ø¬Ø¯ÙˆÙ„</div>
+      <div class="page-sub">Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ø§Ø³Ø¨ÙˆØ¹ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠ</div>
       <div id="scheduleTable"></div>
     </div>
 
     <!-- NEWS -->
     <div class="page" id="pgNews">
-      <div class="page-title">📢 اخبار المعهد</div>
-      <div class="page-sub">كل جديد من الادارة</div>
+      <div class="page-title">ðŸ“¢ Ø§Ø®Ø¨Ø§Ø± Ø§Ù„Ù…Ø¹Ù‡Ø¯</div>
+      <div class="page-sub">ÙƒÙ„ Ø¬Ø¯ÙŠØ¯ Ù…Ù† Ø§Ù„Ø§Ø¯Ø§Ø±Ø©</div>
       <div id="newsFeed"></div>
     </div>
 
     <!-- ADMIN PAGE -->
     <div class="page" id="pgAdmin">
       <div class="admin-header">
-        <div style="font-size:28px">👑</div>
+        <div style="font-size:28px">ðŸ‘‘</div>
         <div>
-          <div class="admin-title">لوحة التحكم</div>
-          <div style="font-size:12px;color:var(--muted)">BIS Community — Admin Panel</div>
+          <div class="admin-title">Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…</div>
+          <div style="font-size:12px;color:var(--muted)">BIS Community â€” Admin Panel</div>
         </div>
       </div>
       <div class="stats-4">
-        <div class="stat-mini"><div class="stat-mini-n" id="statUsers">0</div><div class="stat-mini-l">عضو</div></div>
-        <div class="stat-mini"><div class="stat-mini-n" id="statMsgs">0</div><div class="stat-mini-l">رسالة</div></div>
-        <div class="stat-mini"><div class="stat-mini-n" id="statFiles">0</div><div class="stat-mini-l">ملف</div></div>
-        <div class="stat-mini"><div class="stat-mini-n" id="statReports">0</div><div class="stat-mini-l">بلاغ</div></div>
+        <div class="stat-mini"><div class="stat-mini-n" id="statUsers">0</div><div class="stat-mini-l">Ø¹Ø¶Ùˆ</div></div>
+        <div class="stat-mini"><div class="stat-mini-n" id="statMsgs">0</div><div class="stat-mini-l">Ø±Ø³Ø§Ù„Ø©</div></div>
+        <div class="stat-mini"><div class="stat-mini-n" id="statFiles">0</div><div class="stat-mini-l">Ù…Ù„Ù</div></div>
+        <div class="stat-mini"><div class="stat-mini-n" id="statReports">0</div><div class="stat-mini-l">Ø¨Ù„Ø§Øº</div></div>
       </div>
       <div class="admin-tabs">
-        <button class="atab active" onclick="switchAdminTab('tabUsers',this)">👥 الأعضاء</button>
-        <button class="atab" onclick="switchAdminTab('tabReports',this)">⚑ البلاغات</button>
-        <button class="atab" onclick="switchAdminTab('tabSubjects',this)">📚 المواد</button>
-        <button class="atab" onclick="switchAdminTab('tabSections',this)">👥 السكاشن</button>
-        <button class="atab" onclick="switchAdminTab('tabSchedule',this)">📅 الجدول</button>
-        <button class="atab" onclick="switchAdminTab('tabNews',this)">📢 الاخبار</button>
-        <button class="atab" onclick="switchAdminTab('tabSummaries',this)">📄 الملخصات</button>
-        <button class="atab" onclick="switchAdminTab('tabChat',this)">🔒 الشات</button>
+        <button class="atab active" onclick="switchAdminTab('tabUsers',this)">ðŸ‘¥ Ø§Ù„Ø£Ø¹Ø¶Ø§Ø¡</button>
+        <button class="atab" onclick="switchAdminTab('tabReports',this)">âš‘ Ø§Ù„Ø¨Ù„Ø§ØºØ§Øª</button>
+        <button class="atab" onclick="switchAdminTab('tabSubjects',this)">ðŸ“š Ø§Ù„Ù…ÙˆØ§Ø¯</button>
+        <button class="atab" onclick="switchAdminTab('tabSections',this)">ðŸ‘¥ Ø§Ù„Ø³ÙƒØ§Ø´Ù†</button>
+        <button class="atab" onclick="switchAdminTab('tabSchedule',this)">ðŸ“… Ø§Ù„Ø¬Ø¯ÙˆÙ„</button>
+        <button class="atab" onclick="switchAdminTab('tabNews',this)">ðŸ“¢ Ø§Ù„Ø§Ø®Ø¨Ø§Ø±</button>
+        <button class="atab" onclick="switchAdminTab('tabSummaries',this)">ðŸ“„ Ø§Ù„Ù…Ù„Ø®ØµØ§Øª</button>
+        <button class="atab" onclick="switchAdminTab('tabChat',this)">ðŸ”’ Ø§Ù„Ø´Ø§Øª</button>
       </div>
 
       <div class="admin-tab-content active" id="tabUsers">
         <div class="admin-list-box">
-          <div class="admin-list-head">قائمة الأعضاء</div>
+          <div class="admin-list-head">Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø£Ø¹Ø¶Ø§Ø¡</div>
           <div id="adminUsersList"></div>
         </div>
       </div>
 
       <div class="admin-tab-content" id="tabReports">
         <div class="admin-list-box">
-          <div class="admin-list-head">البلاغات الواردة</div>
+          <div class="admin-list-head">Ø§Ù„Ø¨Ù„Ø§ØºØ§Øª Ø§Ù„ÙˆØ§Ø±Ø¯Ø©</div>
           <div id="adminReportsList"></div>
         </div>
       </div>
 
       <div class="admin-tab-content" id="tabSubjects">
         <div class="admin-form">
-          <div class="admin-form-title">➕ اضافة مادة جديدة</div>
+          <div class="admin-form-title">âž• Ø§Ø¶Ø§ÙØ© Ù…Ø§Ø¯Ø© Ø¬Ø¯ÙŠØ¯Ø©</div>
           <div class="form-row">
-            <div class="form-field"><label>اسم المادة</label><input class="f-input" id="subName" placeholder="مثال: قواعد بيانات"></div>
-            <div class="form-field"><label>الكود</label><input class="f-input" id="subCode" placeholder="مثال: CS301"></div>
+            <div class="form-field"><label>Ø§Ø³Ù… Ø§Ù„Ù…Ø§Ø¯Ø©</label><input class="f-input" id="subName" placeholder="Ù…Ø«Ø§Ù„: Ù‚ÙˆØ§Ø¹Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª"></div>
+            <div class="form-field"><label>Ø§Ù„ÙƒÙˆØ¯</label><input class="f-input" id="subCode" placeholder="Ù…Ø«Ø§Ù„: CS301"></div>
           </div>
-          <div class="form-field" style="margin-bottom:8px"><label>اللون</label><input class="f-input" id="subColor" type="color" value="#c9a96e" style="height:38px;padding:4px"></div>
-          <button class="save-btn" onclick="saveSubject()">حفظ المادة</button>
+          <div class="form-field" style="margin-bottom:8px"><label>Ø§Ù„Ù„ÙˆÙ†</label><input class="f-input" id="subColor" type="color" value="#c9a96e" style="height:38px;padding:4px"></div>
+          <button class="save-btn" onclick="saveSubject()">Ø­ÙØ¸ Ø§Ù„Ù…Ø§Ø¯Ø©</button>
         </div>
-        <div class="admin-list-box"><div class="admin-list-head">المواد المضافة</div><div id="adminSubjectList"></div></div>
+        <div class="admin-list-box"><div class="admin-list-head">Ø§Ù„Ù…ÙˆØ§Ø¯ Ø§Ù„Ù…Ø¶Ø§ÙØ©</div><div id="adminSubjectList"></div></div>
       </div>
 
       <div class="admin-tab-content" id="tabSections">
         <div class="admin-form">
-          <div class="admin-form-title">➕ اضافة سكشن</div>
+          <div class="admin-form-title">âž• Ø§Ø¶Ø§ÙØ© Ø³ÙƒØ´Ù†</div>
           <div class="form-row">
-            <div class="form-field"><label>اسم الدكتور</label><input class="f-input" id="docName" placeholder="د. محمد"></div>
-            <div class="form-field"><label>المادة</label><input class="f-input" id="docSubject" placeholder="قواعد بيانات"></div>
+            <div class="form-field"><label>Ø§Ø³Ù… Ø§Ù„Ø¯ÙƒØªÙˆØ±</label><input class="f-input" id="docName" placeholder="Ø¯. Ù…Ø­Ù…Ø¯"></div>
+            <div class="form-field"><label>Ø§Ù„Ù…Ø§Ø¯Ø©</label><input class="f-input" id="docSubject" placeholder="Ù‚ÙˆØ§Ø¹Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª"></div>
           </div>
           <div class="form-row">
-            <div class="form-field"><label>رقم السكشن</label><input class="f-input" id="docSection" placeholder="S1"></div>
-            <div class="form-field"><label>الموعد</label><input class="f-input" id="docTime" placeholder="الاحد 10:00"></div>
+            <div class="form-field"><label>Ø±Ù‚Ù… Ø§Ù„Ø³ÙƒØ´Ù†</label><input class="f-input" id="docSection" placeholder="S1"></div>
+            <div class="form-field"><label>Ø§Ù„Ù…ÙˆØ¹Ø¯</label><input class="f-input" id="docTime" placeholder="Ø§Ù„Ø§Ø­Ø¯ 10:00"></div>
           </div>
-          <div class="form-field" style="margin-bottom:8px"><label>القاعة</label><input class="f-input" id="docRoom" placeholder="A101"></div>
-          <button class="save-btn" onclick="saveDoctor()">حفظ السكشن</button>
+          <div class="form-field" style="margin-bottom:8px"><label>Ø§Ù„Ù‚Ø§Ø¹Ø©</label><input class="f-input" id="docRoom" placeholder="A101"></div>
+          <button class="save-btn" onclick="saveDoctor()">Ø­ÙØ¸ Ø§Ù„Ø³ÙƒØ´Ù†</button>
         </div>
-        <div class="admin-list-box"><div class="admin-list-head">السكاشن المضافة</div><div id="adminSectionList"></div></div>
+        <div class="admin-list-box"><div class="admin-list-head">Ø§Ù„Ø³ÙƒØ§Ø´Ù† Ø§Ù„Ù…Ø¶Ø§ÙØ©</div><div id="adminSectionList"></div></div>
       </div>
 
       <div class="admin-tab-content" id="tabSchedule">
         <div class="admin-form">
-          <div class="admin-form-title">➕ اضافة محاضرة للجدول</div>
+          <div class="admin-form-title">âž• Ø§Ø¶Ø§ÙØ© Ù…Ø­Ø§Ø¶Ø±Ø© Ù„Ù„Ø¬Ø¯ÙˆÙ„</div>
           <div class="form-row">
-            <div class="form-field"><label>اليوم</label>
+            <div class="form-field"><label>Ø§Ù„ÙŠÙˆÙ…</label>
               <select class="f-input" id="schDay">
-                <option>السبت</option><option>الاحد</option><option>الاثنين</option>
-                <option>الثلاثاء</option><option>الاربعاء</option><option>الخميس</option>
+                <option>Ø§Ù„Ø³Ø¨Øª</option><option>Ø§Ù„Ø§Ø­Ø¯</option><option>Ø§Ù„Ø§Ø«Ù†ÙŠÙ†</option>
+                <option>Ø§Ù„Ø«Ù„Ø§Ø«Ø§Ø¡</option><option>Ø§Ù„Ø§Ø±Ø¨Ø¹Ø§Ø¡</option><option>Ø§Ù„Ø®Ù…ÙŠØ³</option>
               </select>
             </div>
-            <div class="form-field"><label>الوقت</label><input class="f-input" id="schTime" placeholder="8:00"></div>
+            <div class="form-field"><label>Ø§Ù„ÙˆÙ‚Øª</label><input class="f-input" id="schTime" placeholder="8:00"></div>
           </div>
           <div class="form-row">
-            <div class="form-field"><label>المادة</label><input class="f-input" id="schSubject" placeholder="قواعد بيانات"></div>
-            <div class="form-field"><label>القاعة</label><input class="f-input" id="schRoom" placeholder="A101"></div>
+            <div class="form-field"><label>Ø§Ù„Ù…Ø§Ø¯Ø©</label><input class="f-input" id="schSubject" placeholder="Ù‚ÙˆØ§Ø¹Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª"></div>
+            <div class="form-field"><label>Ø§Ù„Ù‚Ø§Ø¹Ø©</label><input class="f-input" id="schRoom" placeholder="A101"></div>
           </div>
-          <button class="save-btn" onclick="saveScheduleItem()">اضافة للجدول</button>
+          <button class="save-btn" onclick="saveScheduleItem()">Ø§Ø¶Ø§ÙØ© Ù„Ù„Ø¬Ø¯ÙˆÙ„</button>
         </div>
-        <div class="admin-list-box"><div class="admin-list-head">محاضرات الجدول</div><div id="adminScheduleList"></div></div>
+        <div class="admin-list-box"><div class="admin-list-head">Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ø§Ù„Ø¬Ø¯ÙˆÙ„</div><div id="adminScheduleList"></div></div>
       </div>
 
       <div class="admin-tab-content" id="tabNews">
         <div class="admin-form">
-          <div class="admin-form-title">➕ اضافة خبر</div>
-          <div class="form-field" style="margin-bottom:8px"><label>العنوان</label><input class="f-input" id="newsTitle" placeholder="عنوان الخبر"></div>
-          <div class="form-field" style="margin-bottom:8px"><label>التفاصيل</label><textarea class="f-input f-area" id="newsBody" placeholder="تفاصيل الخبر..."></textarea></div>
-          <div class="form-field" style="margin-bottom:8px"><label>النوع</label>
+          <div class="admin-form-title">âž• Ø§Ø¶Ø§ÙØ© Ø®Ø¨Ø±</div>
+          <div class="form-field" style="margin-bottom:8px"><label>Ø§Ù„Ø¹Ù†ÙˆØ§Ù†</label><input class="f-input" id="newsTitle" placeholder="Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø®Ø¨Ø±"></div>
+          <div class="form-field" style="margin-bottom:8px"><label>Ø§Ù„ØªÙØ§ØµÙŠÙ„</label><textarea class="f-input f-area" id="newsBody" placeholder="ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø®Ø¨Ø±..."></textarea></div>
+          <div class="form-field" style="margin-bottom:8px"><label>Ø§Ù„Ù†ÙˆØ¹</label>
             <select class="f-input" id="newsTag">
-              <option value="general">📌 عام</option><option value="urgent">🔥 عاجل</option>
-              <option value="exam">📝 امتحانات</option><option value="event">🎯 فعاليات</option>
+              <option value="general">ðŸ“Œ Ø¹Ø§Ù…</option><option value="urgent">ðŸ”¥ Ø¹Ø§Ø¬Ù„</option>
+              <option value="exam">ðŸ“ Ø§Ù…ØªØ­Ø§Ù†Ø§Øª</option><option value="event">ðŸŽ¯ ÙØ¹Ø§Ù„ÙŠØ§Øª</option>
             </select>
           </div>
-          <button class="save-btn" onclick="saveNews()">نشر الخبر</button>
+          <button class="save-btn" onclick="saveNews()">Ù†Ø´Ø± Ø§Ù„Ø®Ø¨Ø±</button>
         </div>
-        <div class="admin-list-box"><div class="admin-list-head">الأخبار المنشورة</div><div id="adminNewsList"></div></div>
+        <div class="admin-list-box"><div class="admin-list-head">Ø§Ù„Ø£Ø®Ø¨Ø§Ø± Ø§Ù„Ù…Ù†Ø´ÙˆØ±Ø©</div><div id="adminNewsList"></div></div>
       </div>
 
       <div class="admin-tab-content" id="tabSummaries">
         <div class="admin-form">
-          <div class="admin-form-title">➕ رفع ملخص</div>
-          <div class="form-field" style="margin-bottom:8px"><label>المادة</label><input class="f-input" id="sumSubject" placeholder="اسم المادة"></div>
-          <div class="form-field" style="margin-bottom:8px"><label>الملف (PDF)</label><input class="f-input" id="sumFile" type="file" accept="application/pdf" style="padding:6px"></div>
-          <button class="save-btn" onclick="uploadSummary()">رفع الملخص</button>
+          <div class="admin-form-title">âž• Ø±ÙØ¹ Ù…Ù„Ø®Øµ</div>
+          <div class="form-field" style="margin-bottom:8px"><label>Ø§Ù„Ù…Ø§Ø¯Ø©</label><input class="f-input" id="sumSubject" placeholder="Ø§Ø³Ù… Ø§Ù„Ù…Ø§Ø¯Ø©"></div>
+          <div class="form-field" style="margin-bottom:8px"><label>Ø§Ù„Ù…Ù„Ù (PDF)</label><input class="f-input" id="sumFile" type="file" accept="application/pdf" style="padding:6px"></div>
+          <button class="save-btn" onclick="uploadSummary()">Ø±ÙØ¹ Ø§Ù„Ù…Ù„Ø®Øµ</button>
         </div>
-        <div class="admin-list-box"><div class="admin-list-head">الملخصات المرفوعة</div><div id="adminSummaryList"></div></div>
+        <div class="admin-list-box"><div class="admin-list-head">Ø§Ù„Ù…Ù„Ø®ØµØ§Øª Ø§Ù„Ù…Ø±ÙÙˆØ¹Ø©</div><div id="adminSummaryList"></div></div>
       </div>
 
       <div class="admin-tab-content" id="tabChat">
         <div class="admin-form">
-          <div class="admin-form-title">🔒 التحكم في الشات</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">قفل الشات مؤقتاً عن الجميع</div>
+          <div class="admin-form-title">ðŸ”’ Ø§Ù„ØªØ­ÙƒÙ… ÙÙŠ Ø§Ù„Ø´Ø§Øª</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Ù‚ÙÙ„ Ø§Ù„Ø´Ø§Øª Ù…Ø¤Ù‚ØªØ§Ù‹ Ø¹Ù† Ø§Ù„Ø¬Ù…ÙŠØ¹</div>
           <div class="lock-row">
             <input class="f-input" id="lockMins" type="number" min="1" max="60" value="5" style="width:80px">
-            <span style="font-size:13px;color:var(--muted)">دقيقة</span>
-            <button class="save-btn" onclick="lockChat()">🔒 قفل الشات</button>
-            <button class="save-btn" style="background:rgba(110,201,176,.2);color:var(--green);border:1px solid var(--green)" onclick="unlockChat()">🔓 فتح الشات</button>
+            <span style="font-size:13px;color:var(--muted)">Ø¯Ù‚ÙŠÙ‚Ø©</span>
+            <button class="save-btn" onclick="lockChat()">ðŸ”’ Ù‚ÙÙ„ Ø§Ù„Ø´Ø§Øª</button>
+            <button class="save-btn" style="background:rgba(110,201,176,.2);color:var(--green);border:1px solid var(--green)" onclick="unlockChat()">ðŸ”“ ÙØªØ­ Ø§Ù„Ø´Ø§Øª</button>
           </div>
         </div>
       </div>
@@ -1290,7 +1395,7 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
 <!-- DM PANEL -->
 <div id="dmPanel" style="display:none;position:fixed;inset:0;z-index:400;flex-direction:column;background:var(--bg)">
   <div class="dm-header">
-    <button class="dm-back" onclick="closeDm()">←</button>
+    <button class="dm-back" onclick="closeDm()">â†</button>
     <div>
       <div id="dmName" style="font-weight:700;font-size:15px"></div>
       <div id="dmId" style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace"></div>
@@ -1298,15 +1403,15 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
   </div>
   <div id="dmMsgArea" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px"></div>
   <div class="dm-input-row">
-    <input class="dm-input" id="dmInput" placeholder="اكتب رسالة خاصة..." onkeydown="dmHandleKey(event)">
-    <button class="send-btn" onclick="sendDm()">➤</button>
+    <input class="dm-input" id="dmInput" placeholder="Ø§ÙƒØªØ¨ Ø±Ø³Ø§Ù„Ø© Ø®Ø§ØµØ©..." onkeydown="dmHandleKey(event)">
+    <button class="send-btn" onclick="sendDm()">âž¤</button>
   </div>
 </div>
 
 <!-- PROFILE MODAL -->
 <div class="modal-overlay" id="profileModal" style="display:none" onclick="if(event.target===this)closeProfile()">
   <div class="modal-box">
-    <div class="modal-title">بروفايل العضو <button class="modal-close" onclick="closeProfile()">✕</button></div>
+    <div class="modal-title">Ø¨Ø±ÙˆÙØ§ÙŠÙ„ Ø§Ù„Ø¹Ø¶Ùˆ <button class="modal-close" onclick="closeProfile()">âœ•</button></div>
     <div class="prof-av-lg">
       <img id="profAvImg" src="" style="display:none;width:100%;height:100%;object-fit:cover">
       <span id="profAvLetter">?</span>
@@ -1316,13 +1421,13 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
     <div class="prof-year" id="profYear"></div>
     <div class="prof-bio" id="profBio"></div>
     <div class="prof-btns">
-      <button class="prof-btn primary" id="profDmBtn" style="display:none">✉️ رسالة خاصة</button>
-      <button class="prof-btn danger" id="profBlockBtn" style="display:none">🚫 حظر</button>
-      <button class="prof-btn" id="profEditBtn" style="display:none" onclick="openEditProfile()">✏️ تعديل بروفايلي</button>
+      <button class="prof-btn primary" id="profDmBtn" style="display:none">âœ‰ï¸ Ø±Ø³Ø§Ù„Ø© Ø®Ø§ØµØ©</button>
+      <button class="prof-btn danger" id="profBlockBtn" style="display:none">ðŸš« Ø­Ø¸Ø±</button>
+      <button class="prof-btn" id="profEditBtn" style="display:none" onclick="openEditProfile()">âœï¸ ØªØ¹Ø¯ÙŠÙ„ Ø¨Ø±ÙˆÙØ§ÙŠÙ„ÙŠ</button>
     </div>
     <div class="prof-admin-btns" id="profAdminBtns" style="display:none">
-      <button class="prof-btn danger" id="profBanChatBtn">حظر من الرسائل</button>
-      <button class="prof-btn danger" id="profBanFullBtn">حظر كامل</button>
+      <button class="prof-btn danger" id="profBanChatBtn">Ø­Ø¸Ø± Ù…Ù† Ø§Ù„Ø±Ø³Ø§Ø¦Ù„</button>
+      <button class="prof-btn danger" id="profBanFullBtn">Ø­Ø¸Ø± ÙƒØ§Ù…Ù„</button>
     </div>
   </div>
 </div>
@@ -1330,33 +1435,40 @@ window.saveInstName = () => { const v=document.getElementById('instInput').value
 <!-- EDIT PROFILE MODAL -->
 <div class="modal-overlay" id="editProfileModal" style="display:none" onclick="if(event.target===this)closeEditProfile()">
   <div class="modal-box">
-    <div class="modal-title">✏️ تعديل البروفايل <button class="modal-close" onclick="closeEditProfile()">✕</button></div>
-    <div class="form-field" style="margin-bottom:10px"><label>الاسم</label><input class="f-input" id="editName" placeholder="اسمك"></div>
-    <div class="form-field" style="margin-bottom:10px"><label>السيرة الذاتية</label><textarea class="f-input f-area" id="editBio" placeholder="عرف نفسك..."></textarea></div>
-    <div class="form-field" style="margin-bottom:10px"><label>الصورة الشخصية</label><input class="f-input" id="editPhoto" type="file" accept="image/*" style="padding:6px"></div>
-    <div class="form-field" style="margin-bottom:14px"><label>الرسائل الخاصة</label>
+    <div class="modal-title">âœï¸ ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø¨Ø±ÙˆÙØ§ÙŠÙ„ <button class="modal-close" onclick="closeEditProfile()">âœ•</button></div>
+    <div class="form-field" style="margin-bottom:10px"><label>Ø§Ù„Ø§Ø³Ù…</label><input class="f-input" id="editName" placeholder="Ø§Ø³Ù…Ùƒ"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>Ø§Ù„Ø³ÙŠØ±Ø© Ø§Ù„Ø°Ø§ØªÙŠØ©</label><textarea class="f-input f-area" id="editBio" placeholder="Ø¹Ø±Ù Ù†ÙØ³Ùƒ..."></textarea></div>
+    <div class="form-field" style="margin-bottom:10px"><label>Ø§Ù„ØµÙˆØ±Ø© Ø§Ù„Ø´Ø®ØµÙŠØ©</label><input class="f-input" id="editPhoto" type="file" accept="image/*" style="padding:6px"></div>
+    <div class="form-field" style="margin-bottom:14px"><label>Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ø®Ø§ØµØ©</label>
       <select class="f-input" id="editPrivacy">
-        <option value="open">مفتوح للجميع</option>
-        <option value="closed">مغلق</option>
+        <option value="open">Ù…ÙØªÙˆØ­ Ù„Ù„Ø¬Ù…ÙŠØ¹</option>
+        <option value="closed">Ù…ØºÙ„Ù‚</option>
       </select>
     </div>
-    <button class="save-btn" style="width:100%" onclick="saveProfile()">💾 حفظ التغييرات</button>
+    <button class="save-btn" style="width:100%" onclick="saveProfile()">ðŸ’¾ Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª</button>
   </div>
 </div>
 
 <!-- REPORT MODAL -->
 <div class="modal-overlay" id="reportModal" style="display:none" onclick="if(event.target===this)closeReport()">
   <div class="modal-box">
-    <div class="modal-title">⚑ بلاغ عن رسالة <button class="modal-close" onclick="closeReport()">✕</button></div>
+    <div class="modal-title">âš‘ Ø¨Ù„Ø§Øº Ø¹Ù† Ø±Ø³Ø§Ù„Ø© <button class="modal-close" onclick="closeReport()">âœ•</button></div>
     <input type="hidden" id="reportMsgId">
-    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">بلاغ عن: <span id="reportSenderName" style="color:var(--text)"></span></div>
-    <div class="form-field" style="margin-bottom:14px"><label>سبب البلاغ</label><textarea class="f-input f-area" id="reportReason" placeholder="اكتب سبب البلاغ..."></textarea></div>
-    <button class="save-btn" style="width:100%" onclick="submitReport()">ارسال البلاغ</button>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Ø¨Ù„Ø§Øº Ø¹Ù†: <span id="reportSenderName" style="color:var(--text)"></span></div>
+    <div class="form-field" style="margin-bottom:14px"><label>Ø³Ø¨Ø¨ Ø§Ù„Ø¨Ù„Ø§Øº</label><textarea class="f-input f-area" id="reportReason" placeholder="Ø§ÙƒØªØ¨ Ø³Ø¨Ø¨ Ø§Ù„Ø¨Ù„Ø§Øº..."></textarea></div>
+    <button class="save-btn" style="width:100%" onclick="submitReport()">Ø§Ø±Ø³Ø§Ù„ Ø§Ù„Ø¨Ù„Ø§Øº</button>
   </div>
 </div>
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+
+<script>
+window.addEventListener('resize',()=>{
+  document.body.style.height = window.innerHeight + 'px';
+});
+</script>
 
 </body>
 </html>
