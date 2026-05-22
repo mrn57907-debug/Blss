@@ -1,228 +1,32 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-
-<style>
-
-/* CSS */
-.auth-card{
-  width:100%;
-  max-width:400px;
-  margin:40px auto;
-  background:#111827;
-  border:1px solid #2b3548;
-  border-radius:20px;
-  padding:25px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-.auth-card h2{color:white;margin:0;}
-
-.auth-card input{
-  background:#0f172a;
-  border:1px solid #2b3548;
-  padding:14px;
-  border-radius:12px;
-  color:white;
-  outline:none;
-}
-
-.auth-card button{
-  background:#c9a96e;
-  color:black;
-  border:none;
-  padding:14px;
-  border-radius:12px;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-.top-user-bar{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:20px;
-  background:#111827;
-  border-bottom:1px solid #2b3548;
-}
-
-#adminBadge{
-  background:#ef4444;
-  color:white;
-  padding:4px 10px;
-  border-radius:999px;
-  font-size:12px;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <title>BISS</title>
 </head>
-
 <body>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-<div id="guestBox">
-  <div class="auth-card">
+        const firebaseConfig = {
+            apiKey: "AIzaSyAj0laBYTVJfRF96SAW6AM3_JphSNSf-kk",
+            authDomain: "biss-ca903.firebaseapp.com",
+            projectId: "biss-ca903",
+            storageBucket: "biss-ca903.firebasestorage.app",
+            messagingSenderId: "236071338575",
+            appId: "1:236071338575:web:e53ec4854b8bf1eee3603a",
+            measurementId: "G-NNH8XJWS99"
+        };
 
-    <h2>إنشاء حساب</h2>
-
-    <input id="registerName" placeholder="الاسم">
-    <input id="registerEmail" type="email" placeholder="الإيميل">
-    <input id="registerPassword" type="password" placeholder="كلمة السر">
-
-    <button onclick="registerUser()">إنشاء حساب</button>
-
-    <hr>
-
-    <h2>تسجيل الدخول</h2>
-
-    <input id="loginEmail" type="email" placeholder="الإيميل">
-    <input id="loginPassword" type="password" placeholder="كلمة السر">
-
-    <button onclick="loginUser()">دخول</button>
-
-  </div>
-</div>
-
-<div id="userBox" style="display:none">
-  <div class="top-user-bar">
-
-    <span id="userName"></span>
-    <span id="adminBadge" style="display:none">ADMIN</span>
-
-    <button onclick="logoutUser()">تسجيل خروج</button>
-
-  </div>
-</div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut,
-  updateProfile
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-
-// 🔥 هنا حطّينا Config بتاعك الحقيقي
-const firebaseConfig = {
-  apiKey: "AIzaSyAj0laBYTVJFRF96SAW6AM3_JphSNSf-kk",
-  authDomain: "biss-ca903.firebaseapp.com",
-  projectId: "biss-ca903",
-  storageBucket: "biss-ca903.firebasestorage.app",
-  messagingSenderId: "236071338575",
-  appId: "1:236071338575:web:e53ec4854b8bf1eee3603a",
-  measurementId: "G-NNH8XJWS99"
-};
-
-const ADMIN_UID = "LjQ83SsbQiZ12lFfvxqH2XOKdT62";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-let currentUser = null;
-
-function generateShortId(){
-  return Math.floor(1000000 + Math.random()*9000000).toString();
-}
-
-// REGISTER
-window.registerUser = async () => {
-  const name = registerName.value.trim();
-  const email = registerEmail.value.trim();
-  const pass = registerPassword.value;
-
-  if(!name || !email || !pass) return alert("اكمل البيانات");
-
-  try {
-    const cred = await createUserWithEmailAndPassword(auth,email,pass);
-
-    await updateProfile(cred.user,{displayName:name});
-
-    await setDoc(doc(db,"users",cred.user.uid),{
-      uid:cred.user.uid,
-      name,
-      email,
-      shortId: generateShortId(),
-      photoUrl:"",
-      bio:"",
-      isAdmin: cred.user.uid === ADMIN_UID,
-      isBanned:false,
-      isChatBanned:false,
-      createdAt: serverTimestamp()
-    });
-
-    alert("تم إنشاء الحساب");
-
-  } catch(e){
-    alert(e.message);
-  }
-};
-
-// LOGIN
-window.loginUser = async () => {
-  try{
-    await signInWithEmailAndPassword(
-      auth,
-      loginEmail.value,
-      loginPassword.value
-    );
-  }catch(e){
-    alert(e.message);
-  }
-};
-
-// LOGOUT
-window.logoutUser = () => signOut(auth);
-
-// STATE
-onAuthStateChanged(auth, async (user)=>{
-  if(user){
-    currentUser = user;
-
-    guestBox.style.display="none";
-    userBox.style.display="flex";
-
-    userName.innerText = user.displayName || "User";
-
-    const snap = await getDoc(doc(db,"users",user.uid));
-
-    if(snap.exists()){
-      const d = snap.data();
-
-      if(d.isAdmin){
-        adminBadge.style.display="inline-flex";
-      }
-
-      if(d.isBanned){
-        alert("تم حظر الحساب");
-        await signOut(auth);
-      }
-    }
-
-  } else {
-    currentUser = null;
-    guestBox.style.display="block";
-    userBox.style.display="none";
-  }
-});
-
-</script>
-
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        console.log("Firebase Connected Successfully!");
+        alert("Firebase Connected!");
+    </script>
 </body>
 </html>
+
