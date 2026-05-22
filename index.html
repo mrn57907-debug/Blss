@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Android Community</title>
+<title>Android Firebase App</title>
 
 <style>
 body{
@@ -13,27 +13,11 @@ body{
   color:white;
 }
 
-/* App Bar */
-.appbar{
-  background:#111827;
-  padding:14px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom:1px solid #1f2937;
-}
-
-.logo{
-  font-weight:bold;
-  color:#c9a96e;
-}
-
-/* Auth Card */
 .center{
   display:flex;
   justify-content:center;
   align-items:center;
-  height:90vh;
+  height:100vh;
   padding:15px;
 }
 
@@ -71,43 +55,25 @@ button{
   color:black;
 }
 
-/* Home */
-.home{
-  display:none;
-  padding:15px;
-}
+.hidden{display:none;}
 
-.userCard{
+.top{
   background:#111827;
-  padding:15px;
-  border-radius:15px;
-  border:1px solid #1f2937;
-  margin-top:10px;
-}
-
-.badge{
-  background:#ef4444;
-  padding:4px 10px;
-  border-radius:20px;
-  font-size:12px;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid #1f2937;
 }
 </style>
 </head>
 
 <body>
 
-<div class="appbar">
-  <div class="logo">ANDROID COMMUNITY</div>
-  <div>
-    <span id="adminBadge" class="badge" style="display:none">ADMIN</span>
-  </div>
-</div>
-
 <!-- AUTH -->
 <div id="auth" class="center">
   <div class="card">
 
-    <h3>إنشاء حساب</h3>
+    <h3>تسجيل حساب</h3>
     <input id="name" placeholder="الاسم">
     <input id="email" placeholder="الإيميل">
     <input id="pass" type="password" placeholder="كلمة السر">
@@ -123,20 +89,18 @@ button{
   </div>
 </div>
 
-<!-- HOME -->
-<div id="home" class="home">
+<!-- APP -->
+<div id="app" class="hidden">
 
-  <div class="userCard">
-    👤 مرحباً: <span id="userName"></span>
+  <div class="top">
+    <div>👤 <span id="userName"></span></div>
+    <button onclick="logout()">خروج</button>
   </div>
-
-  <button onclick="logout()" style="margin-top:15px;background:#ef4444;color:white;width:100%;">
-    تسجيل خروج
-  </button>
 
 </div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getAuth,
@@ -155,7 +119,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* 🔥 Firebase بتاعك */
+/* 🔥 Firebase Config (بتاعك) */
 const firebaseConfig = {
   apiKey: "AIzaSyAUkeqz4iGn4LwJf93EJa0JilIUoHHdVOs",
   authDomain: "ssss-27d97.firebaseapp.com",
@@ -172,61 +136,75 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ID */
 function shortId(){
   return Math.floor(1000000 + Math.random()*9000000);
 }
 
 /* تسجيل */
 window.register = async () => {
-  const cred = await createUserWithEmailAndPassword(
-    auth,
-    email.value,
-    pass.value
-  );
+  try{
+    const cred = await createUserWithEmailAndPassword(
+      auth,
+      email.value,
+      pass.value
+    );
 
-  await updateProfile(cred.user,{
-    displayName:name.value
-  });
+    await updateProfile(cred.user,{
+      displayName:name.value
+    });
 
-  await setDoc(doc(db,"users",cred.user.uid),{
-    uid:cred.user.uid,
-    name:name.value,
-    email:email.value,
-    shortId:shortId(),
-    isAdmin:cred.user.uid===ADMIN_UID,
-    isBanned:false,
-    createdAt:serverTimestamp()
-  });
+    await setDoc(doc(db,"users",cred.user.uid),{
+      uid:cred.user.uid,
+      name:name.value,
+      email:email.value,
+      shortId:shortId(),
+      isAdmin:cred.user.uid===ADMIN_UID,
+      isBanned:false,
+      createdAt:serverTimestamp()
+    });
+
+  }catch(e){
+    alert(e.message);
+  }
 };
 
 /* دخول */
-window.login = () => {
-  signInWithEmailAndPassword(auth,loginEmail.value,loginPass.value);
+window.login = async () => {
+  try{
+    await signInWithEmailAndPassword(
+      auth,
+      loginEmail.value,
+      loginPass.value
+    );
+  }catch(e){
+    alert(e.message);
+  }
 };
 
 /* خروج */
 window.logout = () => signOut(auth);
 
-/* حالة */
+/* حالة المستخدم */
 onAuthStateChanged(auth, async (user)=>{
   if(user){
     auth.style.display="none";
-    home.style.display="block";
+    app.style.display="block";
 
-    userName.innerText = user.displayName;
+    userName.innerText = user.displayName || "User";
 
     const snap = await getDoc(doc(db,"users",user.uid));
 
-    if(snap.exists() && snap.data().isAdmin){
-      adminBadge.style.display="inline-block";
+    if(snap.exists() && snap.data().isBanned){
+      alert("تم حظر الحساب");
+      await signOut(auth);
     }
 
-  }else{
+  } else {
     auth.style.display="flex";
-    home.style.display="none";
+    app.style.display="none";
   }
 });
+
 </script>
 
 </body>
