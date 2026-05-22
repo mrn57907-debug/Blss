@@ -3,127 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Community</title>
+<title>Android Community</title>
 
 <style>
 body{
   margin:0;
-  font-family:tahoma;
-  background:#0b1220;
+  font-family:system-ui;
+  background:#0f172a;
   color:white;
 }
 
-.container{
-  max-width:420px;
-  margin:60px auto;
+/* App Bar */
+.appbar{
+  background:#111827;
+  padding:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #1f2937;
+}
+
+.logo{
+  font-weight:bold;
+  color:#c9a96e;
+}
+
+/* Auth Card */
+.center{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:90vh;
+  padding:15px;
+}
+
+.card{
+  width:100%;
+  max-width:360px;
   background:#111827;
   padding:20px;
-  border-radius:15px;
+  border-radius:18px;
+  border:1px solid #1f2937;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
 
 input{
-  width:100%;
-  margin:8px 0;
-  padding:12px;
-  border:none;
+  padding:14px;
   border-radius:10px;
+  border:1px solid #2b3548;
   background:#0f172a;
   color:white;
   outline:none;
 }
 
 button{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
+  padding:14px;
   border:none;
   border-radius:10px;
-  background:#c9a96e;
-  font-weight:bold;
   cursor:pointer;
+  font-weight:bold;
 }
 
-.topbar{
-  display:flex;
-  justify-content:space-between;
+.primary{
+  background:#c9a96e;
+  color:black;
+}
+
+/* Home */
+.home{
+  display:none;
   padding:15px;
+}
+
+.userCard{
   background:#111827;
+  padding:15px;
+  border-radius:15px;
+  border:1px solid #1f2937;
+  margin-top:10px;
 }
 
 .badge{
-  background:red;
-  padding:4px 8px;
-  border-radius:8px;
+  background:#ef4444;
+  padding:4px 10px;
+  border-radius:20px;
   font-size:12px;
 }
 </style>
-
 </head>
 
 <body>
 
-<div id="auth" class="container">
-  <h2>تسجيل حساب</h2>
-  <input id="name" placeholder="الاسم">
-  <input id="email" placeholder="الإيميل">
-  <input id="pass" type="password" placeholder="كلمة السر">
-  <button onclick="register()">تسجيل</button>
-
-  <hr>
-
-  <h2>دخول</h2>
-  <input id="loginEmail" placeholder="الإيميل">
-  <input id="loginPass" type="password" placeholder="كلمة السر">
-  <button onclick="login()">دخول</button>
+<div class="appbar">
+  <div class="logo">ANDROID COMMUNITY</div>
+  <div>
+    <span id="adminBadge" class="badge" style="display:none">ADMIN</span>
+  </div>
 </div>
 
-<div id="app" style="display:none">
+<!-- AUTH -->
+<div id="auth" class="center">
+  <div class="card">
 
-  <div class="topbar">
-    <div>
-      <span id="username"></span>
-      <span id="admin" class="badge" style="display:none">ADMIN</span>
-    </div>
-    <button onclick="logout()">خروج</button>
+    <h3>إنشاء حساب</h3>
+    <input id="name" placeholder="الاسم">
+    <input id="email" placeholder="الإيميل">
+    <input id="pass" type="password" placeholder="كلمة السر">
+    <button class="primary" onclick="register()">تسجيل</button>
+
+    <hr>
+
+    <h3>دخول</h3>
+    <input id="loginEmail" placeholder="الإيميل">
+    <input id="loginPass" type="password" placeholder="كلمة السر">
+    <button class="primary" onclick="login()">دخول</button>
+
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="home">
+
+  <div class="userCard">
+    👤 مرحباً: <span id="userName"></span>
   </div>
 
-  <div class="container">
-    <h3>أهلاً بيك 👋</h3>
-    <p>تم تسجيل الدخول بنجاح</p>
-  </div>
+  <button onclick="logout()" style="margin-top:15px;background:#ef4444;color:white;width:100%;">
+    تسجيل خروج
+  </button>
 
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-getAuth,
-createUserWithEmailAndPassword,
-signInWithEmailAndPassword,
-onAuthStateChanged,
-signOut,
-updateProfile
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 import {
-getFirestore,
-doc,
-setDoc,
-getDoc,
-serverTimestamp
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-
-// 🔥 Firebase Config بتاعك
+/* 🔥 Firebase بتاعك */
 const firebaseConfig = {
-  apiKey: "AIzaSyAj0laBYTVJfRF96SAW6AM3_JphSNSf-kk",
-  authDomain: "biss-ca903.firebaseapp.com",
-  projectId: "biss-ca903",
-  storageBucket: "biss-ca903.appspot.com",
-  messagingSenderId: "236071338575",
-  appId: "1:236071338575:web:e53ec4854b8bf1eee3603a",
-  measurementId: "G-NNH8XJWS99"
+  apiKey: "AIzaSyAUkeqz4iGn4LwJf93EJa0JilIUoHHdVOs",
+  authDomain: "ssss-27d97.firebaseapp.com",
+  projectId: "ssss-27d97",
+  storageBucket: "ssss-27d97.firebasestorage.app",
+  messagingSenderId: "402050236451",
+  appId: "1:402050236451:web:5f8ad5ddcd6a7c63377196",
+  measurementId: "G-29ENC4J86D"
 };
 
 const ADMIN_UID = "LjQ83SsbQiZ12lFfvxqH2XOKdT62";
@@ -132,93 +172,61 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let currentUser = null;
-
-// ID بسيط
+/* ID */
 function shortId(){
   return Math.floor(1000000 + Math.random()*9000000);
 }
 
-// تسجيل
+/* تسجيل */
 window.register = async () => {
-  try {
-    const user = await createUserWithEmailAndPassword(
-      auth,
-      name.value + "@temp.com",
-      pass.value
-    );
+  const cred = await createUserWithEmailAndPassword(
+    auth,
+    email.value,
+    pass.value
+  );
 
-    await updateProfile(user.user,{
-      displayName:name.value
-    });
+  await updateProfile(cred.user,{
+    displayName:name.value
+  });
 
-    await setDoc(doc(db,"users",user.user.uid),{
-      uid:user.user.uid,
-      name:name.value,
-      email:user.user.email,
-      shortId: shortId(),
-      isAdmin: user.user.uid === ADMIN_UID,
-      isBanned:false,
-      createdAt:serverTimestamp()
-    });
-
-  } catch(e){
-    alert(e.message);
-  }
+  await setDoc(doc(db,"users",cred.user.uid),{
+    uid:cred.user.uid,
+    name:name.value,
+    email:email.value,
+    shortId:shortId(),
+    isAdmin:cred.user.uid===ADMIN_UID,
+    isBanned:false,
+    createdAt:serverTimestamp()
+  });
 };
 
-// دخول
-window.login = async () => {
-  try{
-    await signInWithEmailAndPassword(
-      auth,
-      loginEmail.value,
-      loginPass.value
-    );
-  }catch(e){
-    alert(e.message);
-  }
+/* دخول */
+window.login = () => {
+  signInWithEmailAndPassword(auth,loginEmail.value,loginPass.value);
 };
 
-// خروج
-window.logout = async () => {
-  await signOut(auth);
-};
+/* خروج */
+window.logout = () => signOut(auth);
 
-// حالة المستخدم
-onAuthStateChanged(auth, async (user) => {
-
+/* حالة */
+onAuthStateChanged(auth, async (user)=>{
   if(user){
-    currentUser = user;
-
     auth.style.display="none";
-    app.style.display="block";
+    home.style.display="block";
 
-    username.innerText = user.displayName || "User";
+    userName.innerText = user.displayName;
 
     const snap = await getDoc(doc(db,"users",user.uid));
 
-    if(snap.exists()){
-      const data = snap.data();
-
-      if(data.isAdmin){
-        admin.style.display="inline-block";
-      }
-
-      if(data.isBanned){
-        alert("تم حظرك");
-        await signOut(auth);
-      }
+    if(snap.exists() && snap.data().isAdmin){
+      adminBadge.style.display="inline-block";
     }
 
-  } else {
-    currentUser = null;
-    auth.style.display="block";
-    app.style.display="none";
+  }else{
+    auth.style.display="flex";
+    home.style.display="none";
   }
-
 });
-
 </script>
 
 </body>
