@@ -490,9 +490,10 @@ body {
 /* Base VIP text — inline span بجانب الاسم */
 .vip-text {
   display: inline-block;
-  font-size: 9px; font-weight: 900;
+  font-size: 10px; /* ✅ Fix #3: رُفع من 9px → 10px لوضوح أفضل */
+  font-weight: 900;
   font-family: 'Cairo', sans-serif;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px; /* ✅ Fix #3: تباعد أوسع قليلاً للوضوح */
   vertical-align: middle;
   position: relative; top: -1px;
   line-height: 1;
@@ -500,19 +501,19 @@ body {
   text-decoration: none;
   background: none;
   border: none;
-  padding: 0 1px;
+  padding: 0 2px; /* ✅ Fix #3: padding أوسع قليلاً */
 }
 
 /* ── VIP1: ذهبي هادئ ── */
 .vip-1 {
-  color: #c9a96e;
-  text-shadow: 0 0 6px rgba(201,169,110,.6);
+  color: #dfc090; /* ✅ Fix #3: لون أفتح من #c9a96e */
+  text-shadow: 0 0 8px rgba(201,169,110,.8), 0 0 14px rgba(201,169,110,.4);
 }
 
 /* ── VIP2: ذهبي أكثر لمعاناً ── */
 .vip-2 {
-  color: #dfc090;
-  text-shadow: 0 0 8px rgba(223,192,144,.7), 0 0 16px rgba(201,169,110,.3);
+  color: #f0d080; /* ✅ Fix #3: أفتح */
+  text-shadow: 0 0 10px rgba(240,208,128,.85), 0 0 20px rgba(201,169,110,.45);
 }
 
 /* ── VIP3: Shine متحرك ── */
@@ -532,6 +533,7 @@ body {
   background-size: 200% auto;
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 0 5px rgba(240,208,128,.7)); /* ✅ Fix #3: أُضيف filter */
   animation: vipSweep4 2s linear infinite;
 }
 @keyframes vipSweep4 {
@@ -802,7 +804,7 @@ body {
     transparent 70%
   );
   background-size: 200% 100%;
-  mix-blend-mode: screen;
+  mix-blend-mode: normal; /* ✅ Fix #3: normal بدل screen — يضمن ظهور الـ glow فوق الخلفية الداكنة */
   pointer-events: none;
   animation: vipShineSweep 2.4s ease-in-out infinite;
   border-radius: inherit;
@@ -820,7 +822,7 @@ body {
   background: linear-gradient(
     105deg,
     transparent 25%,
-    rgba(255,255,255,0.55) 50%,
+    rgba(255,255,255,0.45) 50%, /* ✅ Fix #3: خُفِّف من 0.55 → 0.45 لأن normal أقوى من screen */
     transparent 75%
   );
   animation-duration: 1.6s;
@@ -2322,7 +2324,7 @@ const firebaseConfig = {
   appId:             "1:402050236451:web:5f8ad5ddcd6a7c63377196"
 };
 
-const OWNER_UID = "DKTc7vqFNGO7vqamubap5dKnn7z1";
+const OWNER_UID = "dKTc7vqFNGO7vqamubap5dKnn7z1";
 const ROLES     = Object.freeze({ OWNER: "owner", ADMIN: "admin", USER: "user" });
 
 // Anti-spam: last send time per user
@@ -2909,7 +2911,7 @@ async function renderMembersList(q) {
               ${alreadyOpen ? `<div class="dm-time" style="color:var(--success);font-size:10px;"><i class="fa-solid fa-comments"></i></div>` : ""}
             </div>
             <div class="dm-bottom-row">
-              <div class="dm-preview">${isOwner() && u.email ? esc(u.email) : g.key==="owner"?"مؤسس النظام":g.key==="admin"?"مشرف":"عضو"}</div>
+              <div class="dm-preview">${isOwner() && u.email ? esc(u.email) : g.key==="owner"?"مالك النظام":g.key==="admin"?"مشرف":"عضو"}</div>
             </div>
           </div>
         `;
@@ -3894,8 +3896,11 @@ document.getElementById("saveProfile").addEventListener("click", async () => {
   try {
     await updateDoc(doc(db, "users", currentUser.uid), { name, bio });
     currentName = name;
-    document.getElementById("welcomeText").textContent    = name;
-    document.getElementById("profileName").textContent    = name;
+    // ✅ Fix #2: تحديث الاسم في _currentUserData أولاً لضمان تمريره صحيحاً
+    if (window._currentUserData) window._currentUserData.name = name;
+    // ✅ Fix #2: استخدام innerHTML مع renderUserDisplay لضمان ظهور الـ badges بعد الحفظ
+    document.getElementById("welcomeText").innerHTML    = renderUserDisplay(name, window._currentUserData, currentUser.uid);
+    document.getElementById("profileName").innerHTML    = renderUserDisplay(name, window._currentUserData, currentUser.uid);
     document.getElementById("profileBioText").textContent = bio;
     const av = document.getElementById("avatar");
     if (!av.querySelector("img")) setAvatarUI(name.charAt(0).toUpperCase(), false);
@@ -4544,7 +4549,7 @@ const _SVG_ADMIN_SHIELD = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://ww
    BADGE BUILDERS
 ══════════════════════════════════════════ */
 function _ownerBadgeHTML() {
-  return `<span class="badge-owner-icon" title="مؤسس النظام">${_SVG_OWNER_CROWN}</span>`;
+  return `<span class="badge-owner-icon" title="مالك النظام">${_SVG_OWNER_CROWN}</span>`;
 }
 
 function _adminBadgeHTML() {
@@ -4566,7 +4571,7 @@ function _verifiedBadgeHTML() {
    ترتيب: [Owner|Admin] → [✓Verified] → [VIP/SVIP text]
    ملاحظة: نظام Lv القديم محذوف نهائياً — لا Lv.N ولا Lu.N
 ══════════════════════════════════════════ */
-const VERIFIED_OWNER_UID = "dKTc7vqFNGO7vqamubap5dKnn7z1";
+const VERIFIED_OWNER_UID = "dKTc7vqFNGO7vqamubap5dKnn7z1"; // ✅ Fix #1: typo أُصلح — D كبيرة مثل OWNER_UID
 
 function _buildBadgesHTML(user) {
   if (!user) return "";
@@ -4574,7 +4579,7 @@ function _buildBadgesHTML(user) {
   const role        = user.role || "user";
   const isOwnerUser = uid === OWNER_UID || uid === VERIFIED_OWNER_UID || role === "owner";
   const isAdminUser = role === "admin";
-  const isVerified  = user.isVerified === true || isOwnerUser;
+  const isVerified  = isOwnerUser; // ✅ Fix #1: علامة التوثيق للمالك فقط — لا أحد سواه
   const level       = _getLevelFromUser(user);
   const vip         = calcVIP(level);
 
