@@ -11973,7 +11973,13 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
       ? "audio/webm;codecs=opus"
       : MediaRecorder.isTypeSupported("audio/webm")
       ? "audio/webm"
+      : MediaRecorder.isTypeSupported("audio/mp4")
+      ? "audio/mp4"
+      : MediaRecorder.isTypeSupported("audio/m4a")
+      ? "audio/m4a"
       : "audio/ogg";
+
+    console.log("[VoiceRec] Selected mimeType:", mimeType);
 
     _mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
 
@@ -11997,23 +12003,48 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
     voiceBtn.classList.remove("recording");
     _hideRecBar();
 
-    _mediaRecorder.stop();
+    // Capture mimeType BEFORE stopping (before _mediaRecorder is nulled)
+    const capturedMimeType = _mediaRecorder.mimeType || "audio/webm";
+    const capturedRecorder = _mediaRecorder;
+
+    capturedRecorder.stop();
 
     await new Promise(function(resolve) {
-      _mediaRecorder.addEventListener("stop", resolve, { once: true });
-      setTimeout(resolve, 600);
+      capturedRecorder.addEventListener("stop", resolve, { once: true });
+      setTimeout(resolve, 800);
     });
 
-    const mimeType = _mediaRecorder.mimeType || "audio/webm";
+    const mimeType = capturedMimeType;
     const blob = new Blob(_audioChunks, { type: mimeType });
     _audioChunks = [];
     _mediaRecorder = null;
 
+    // ── DEBUG: فحص الملف قبل الرفع ──
+    console.log("[VoiceRec] blob.type:", blob.type);
+    console.log("[VoiceRec] blob.size:", blob.size);
+
     if (blob.size < 500) { toast("التسجيل قصير جداً", "warn"); return; }
 
-    const ext = mimeType.includes("ogg") ? ".ogg" : ".webm";
+    const ext = mimeType.includes("ogg")
+      ? ".ogg"
+      : (mimeType.includes("mp4") || mimeType.includes("m4a"))
+      ? ".mp4"
+      : ".webm";
     const fileName = "voice_" + Date.now() + ext;
-    const file = new File([blob], fileName, { type: mimeType });
+
+    // تحويل Blob إلى File بشكل صحيح
+    const fileType = mimeType.includes("mp4") || mimeType.includes("m4a")
+      ? "audio/mp4"
+      : mimeType.includes("ogg")
+      ? "audio/ogg"
+      : mimeType;
+    const file = new File([blob], fileName, { type: fileType });
+
+    // ── DEBUG: فحص File قبل الرفع ──
+    console.log("[VoiceRec] file.name:", file.name);
+    console.log("[VoiceRec] file.type:", file.type);
+    console.log("[VoiceRec] file.size:", file.size);
+    console.log("[VoiceRec] file.size > 0:", file.size > 0);
 
     let upCard = null;
     try {
