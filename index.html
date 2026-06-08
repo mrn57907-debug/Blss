@@ -12015,10 +12015,11 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
     const fileName = "voice_" + Date.now() + ext;
     const file = new File([blob], fileName, { type: mimeType });
 
-    const upCard = window._buildUploadCard(file);
+    let upCard = null;
     try {
+      upCard = (typeof _buildUploadCard === "function" ? _buildUploadCard : window._buildUploadCard)(file);
       const result = await uploadToCloudinaryWithProgress(file, function(prog) {
-        upCard.update(prog);
+        if (upCard) upCard.update(prog);
       });
       const url = result.url;
 
@@ -12057,9 +12058,9 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
         }).catch(function() {});
       }
 
-      upCard.markDone();
+      if (upCard) upCard.markDone();
     } catch(e) {
-      upCard.markFailed();
+      if (upCard) upCard.markFailed();
       console.error("Voice upload error:", e);
     }
   };
