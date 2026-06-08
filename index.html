@@ -8870,14 +8870,14 @@ async function loadAuditLogs(containerId = 'auditLogsList') {
       promote_admin:    { label: '⬆️ ترقية أدمن',          color: '#fb923c' },
       demote_admin:     { label: '⬇️ تنزيل أدمن',          color: '#93c5fd' },
       assign_vip:       { label: '⭐ منح VIP',             color: '#fde080' },
-      remove_vip:       { label: '🗑️ إزالة VIP',           color: '#d1d5db' },
+      remove_vip:       { label: 'إزالة VIP',           color: '#d1d5db' },
       delete_message:   { label: '💬 حذف رسالة',           color: '#fca5a5' },
       delete_news:      { label: '📰 حذف خبر',             color: '#fca5a5' },
       delete_lecture:   { label: '📚 حذف محاضرة',          color: '#fca5a5' },
       delete_exam:      { label: '📅 حذف امتحان',          color: '#fca5a5' },
       delete_section:   { label: '🏫 حذف سكشن',            color: '#fca5a5' },
       create_room:      { label: '🏠 إنشاء غرفة',          color: '#86efac' },
-      delete_room:      { label: '🗑️ حذف غرفة',            color: '#fca5a5' },
+      delete_room:      { label: 'حذف غرفة',            color: '#fca5a5' },
       owner_self_unban: { label: '👑 فك حظر الأونر',       color: '#c9a96e' },
       admin_view_open:  { label: '👁 فتح حساب للمشاهدة',    color: '#f97316' },
       admin_view_close: { label: '🚪 إغلاق وضع المشاهدة',   color: '#9ca3af' },
@@ -9443,7 +9443,7 @@ function _avmRenderMsg(container, docId, d, viewedUid, prevDate, setDate) {
     : "";
 
   let bc = "";
-  if (d.deleted) bc = `<div class="bubble-text" style="color:var(--muted);font-style:italic;font-size:12px;">🗑 [محذوفة]</div>`;
+  if (d.deleted) bc = `<div class="bubble-text" style="color:var(--muted);font-style:italic;font-size:12px;">[محذوفة]</div>`;
   else if (d.pdf) {
     bc = `<div class="bubble-text"><a href="${esc(d.pdf)}" target="_blank" rel="noopener" style="color:var(--gold);display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-file-pdf"></i> ${esc(d.fileName||"ملف PDF")} <i class="fa-solid fa-arrow-up-right-from-square fa-xs"></i></a></div>`;
   } else if (d.audio) {
@@ -11464,7 +11464,7 @@ function appendChatMsg(container, docId, d, prevDate, setDate) {
     // الأدمن يرى placeholder
     d = {
       ...d,
-      text:  '🗑 [محذوفة] ' + (d.text || '').slice(0, 40),
+      text:  '[محذوفة] ' + (d.text || '').slice(0, 40),
       image: null,
     };
   }
@@ -11502,7 +11502,7 @@ function appendChatMsg(container, docId, d, prevDate, setDate) {
   // Bubble content
   let bubbleContent = "";
   if (d.deleted) {
-    bubbleContent = `<div class="bubble-text" style="color:var(--muted);font-style:italic;font-size:12px;">🗑 [محذوفة]</div>`;
+    bubbleContent = `<div class="bubble-text" style="color:var(--muted);font-style:italic;font-size:12px;">[محذوفة]</div>`;
   } else if (d.pdf) {
     bubbleContent = `<div class="bubble-text"><a href="${esc(d.pdf)}" target="_blank" rel="noopener" style="color:var(--gold);display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-file-pdf"></i> ${esc(d.fileName||"ملف PDF")} <i class="fa-solid fa-arrow-up-right-from-square fa-xs"></i></a></div>`;
   } else if (d.audio) {
@@ -11886,7 +11886,7 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
 
     if (isPrivate) {
       const roomRef = doc(db, "privateChats", privateChatId(_currentChatId));
-      const label = isPDF ? `📄 PDF` : cat === "audio" ? `🎵 صوت` : cat === "doc" ? `📎 ملف` : cat === "zip" ? `🗜 ملف مضغوط` : `📷 صورة`;
+      const label = isPDF ? `PDF` : cat === "audio" ? `صوت` : cat === "doc" ? `ملف` : cat === "zip" ? `ملف مضغوط` : `صورة`;
       await updateDoc(roomRef, {
         lastMessage:   label,
         lastMessageAt: serverTimestamp(),
@@ -11955,7 +11955,7 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
     if (_isRecording) return;
     if (window._isChatBanned) { toast("أنت محظور من إرسال الرسائل", "error"); return; }
     if (window._avm && window._avm.active) { toast("⛔ لا يمكن الإرسال في وضع المشاهدة", "error"); return; }
-    if (!currentUser) { toast("يجب تسجيل الدخول أولاً", "error"); return; }
+    if (!window.currentUser) { toast("يجب تسجيل الدخول أولاً", "error"); return; }
 
     let stream;
     try {
@@ -12051,7 +12051,7 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
       if (isPrivate) {
         const roomRef = doc(db, "privateChats", privateChatId(window._currentChatId));
         updateDoc(roomRef, {
-          lastMessage:   "🎤 صوت",
+          lastMessage:   "صوت",
           lastMessageAt: serverTimestamp(),
           lastSenderId:  window.currentUser.uid
         }).catch(function() {});
@@ -12122,7 +12122,7 @@ window.adminDeleteMsg = async function(docId) {
       if (bubbleEl) {
         bubbleEl.className = 'bubble-text';
         bubbleEl.style.cssText = 'color:var(--muted);font-style:italic;font-size:12px;';
-        bubbleEl.textContent = '🗑 تم حذف هذه الرسالة';
+        bubbleEl.textContent = 'تم حذف هذه الرسالة';
       }
     }
 
@@ -15589,10 +15589,10 @@ function setReply(data) {
   const text = document.getElementById("replyBarText");
   if (!bar) return;
   name.textContent = data.name || "مستخدم";
-  if (data.image)      text.textContent = "📷 صورة";
-  else if (data.audio) text.textContent = "🎤 تسجيل صوتي";
-  else if (data.pdf)   text.textContent = "📄 " + (data.fileName || "PDF");
-  else if (data.file)  text.textContent = "📎 " + (data.fileName || "ملف");
+  if (data.image)      text.textContent = "صورة";
+  else if (data.audio) text.textContent = "تسجيل صوتي";
+  else if (data.pdf)   text.textContent = (data.fileName || "PDF");
+  else if (data.file)  text.textContent = (data.fileName || "ملف");
   else                 text.textContent = (data.text || "").slice(0, 80);
   bar.classList.add("show");
   document.getElementById("chatInput")?.focus();
@@ -15728,16 +15728,16 @@ function openFwdModal(data) {
   // بناء نص المعاينة
   if (data.image) {
     if (previewIcon) previewIcon.className = "fa-solid fa-image";
-    if (previewText) previewText.textContent = "📷 صورة";
+    if (previewText) previewText.textContent = "صورة";
   } else if (data.audio) {
     if (previewIcon) previewIcon.className = "fa-solid fa-microphone";
-    if (previewText) previewText.textContent = "🎤 " + (data.fileName || "تسجيل صوتي");
+    if (previewText) previewText.textContent = (data.fileName || "تسجيل صوتي");
   } else if (data.pdf) {
     if (previewIcon) previewIcon.className = "fa-solid fa-file-pdf";
-    if (previewText) previewText.textContent = "📄 " + (data.fileName || "ملف PDF");
+    if (previewText) previewText.textContent = (data.fileName || "ملف PDF");
   } else if (data.file) {
     if (previewIcon) previewIcon.className = "fa-solid fa-file";
-    if (previewText) previewText.textContent = "📎 " + (data.fileName || "ملف");
+    if (previewText) previewText.textContent = (data.fileName || "ملف");
   } else {
     if (previewIcon) previewIcon.className = "fa-solid fa-quote-right";
     if (previewText) previewText.textContent = (data.text || "").slice(0, 120) || "رسالة";
@@ -15872,7 +15872,7 @@ async function forwardMsgTo(targetChatId, msgData) {
     // تحديث lastMessage في DM إن كانت خاصة
     if (isPrivate) {
       const roomRef = doc(db, "privateChats", privateChatId(targetChatId));
-      const preview = payload.image ? "📷 صورة" : payload.audio ? "🎤 صوت" : payload.pdf ? "📄 PDF" : payload.file ? "📎 ملف" : (payload.text || "").slice(0, 60);
+      const preview = payload.image ? "صورة" : payload.audio ? "صوت" : payload.pdf ? "PDF" : payload.file ? "ملف" : (payload.text || "").slice(0, 60);
       updateDoc(roomRef, {
         lastMessage:   preview,
         lastMessageAt: serverTimestamp(),
@@ -16934,10 +16934,10 @@ window._initDoubleTapReaction = _initDoubleTapReaction;
 function _buildReplyPreviewHTML(reply) {
   if (!reply) return "";
   let content = "";
-  if (reply.image)      content = `<img class="reply-preview-img" src="${esc(reply.image)}" alt=""><span class="reply-preview-text">📷 صورة</span>`;
-  else if (reply.audio) content = `<span class="reply-preview-text">🎤 تسجيل صوتي</span>`;
-  else if (reply.pdf)   content = `<span class="reply-preview-text">📄 ${esc(reply.fileName||"PDF")}</span>`;
-  else if (reply.file)  content = `<span class="reply-preview-text">📎 ${esc(reply.fileName||"ملف")}</span>`;
+  if (reply.image)      content = `<img class="reply-preview-img" src="${esc(reply.image)}" alt=""><span class="reply-preview-text">صورة</span>`;
+  else if (reply.audio) content = `<span class="reply-preview-text">تسجيل صوتي</span>`;
+  else if (reply.pdf)   content = `<span class="reply-preview-text">${esc(reply.fileName||"PDF")}</span>`;
+  else if (reply.file)  content = `<span class="reply-preview-text">${esc(reply.fileName||"ملف")}</span>`;
   else                  content = `<span class="reply-preview-text">${esc((reply.text||"").slice(0,80))}</span>`;
   return `<div class="reply-preview" onclick="jumpToMsg('${esc(reply.docId||"")}')">
     <div class="reply-preview-name">${esc(reply.name||"مستخدم")}</div>
@@ -17285,10 +17285,10 @@ function _renderPinnedBar(data) {
 
   // Preview text: truncate + indicate type
   let preview = data.text || "";
-  if (!preview && data.image) preview = "📷 صورة";
-  else if (!preview && data.audio) preview = "🎤 تسجيل صوتي";
-  else if (!preview && data.pdf) preview = "📄 ملف PDF";
-  else if (!preview && data.file) preview = "📎 ملف";
+  if (!preview && data.image) preview = "صورة";
+  else if (!preview && data.audio) preview = "تسجيل صوتي";
+  else if (!preview && data.pdf) preview = "ملف PDF";
+  else if (!preview && data.file) preview = "ملف";
   else if (!preview) preview = "رسالة مثبتة";
 
   txt.textContent = (data.senderName ? data.senderName + ": " : "") + preview;
@@ -17343,7 +17343,7 @@ function ctxPin() {
 
   const key = _pinDocId(_currentChatId);
   setDoc(_pinnedRef(), { [key]: pinData }, { merge: true })
-    .then(() => toast("📌 تم تثبيت الرسالة","success"))
+    .then(() => toast("تم تثبيت الرسالة","success"))
     .catch(() => toast("فشل تثبيت الرسالة","error"));
 }
 window.ctxPin = ctxPin;
@@ -17356,7 +17356,7 @@ function _unpinMsg() {
   // Use updateDoc with deleteField to remove the key
   import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(m => {
     m.updateDoc(_pinnedRef(), { [key]: m.deleteField() })
-      .then(() => toast("🗑 تم إلغاء التثبيت","success"))
+      .then(() => toast("تم إلغاء التثبيت","success"))
       .catch(() => toast("فشل إلغاء التثبيت","error"));
   });
 }
@@ -17973,7 +17973,6 @@ try { _listenPinnedMsg(); } catch(e) {}
     const pos = start + [...emoji].length;
     inp.focus();
     try { inp.setSelectionRange(pos, pos); } catch(e){}
-    inp.dispatchEvent(new Event("input", { bubbles: true }));
     if (window.innerWidth < 600) _close();
   }
 
