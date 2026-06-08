@@ -12078,15 +12078,15 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
       const colPath   = chatColPath(window._currentChatId);
 
       const msgData = {
-        uid:       window.currentUser.uid,
-        name:      window.currentName,
-        photo:     window.currentPhoto || "",
+        uid:       currentUser.uid,
+        name:      currentName,
+        photo:     currentPhoto || "",
         createdAt: serverTimestamp(),
         audio:     url,
         fileName:  fileName,
         fileSize:  blob.size,
         ...(isPrivate ? {
-          senderId:  window.currentUser.uid,
+          senderId:  currentUser.uid,
           delivered: false,
           seen:      false
         } : {
@@ -12119,7 +12119,7 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
       console.log("[VoiceRec] ── addDoc نجح ──");
 
       if (typeof window._awardXP === "function") {
-        window._awardXP(window.currentUser.uid, isPrivate ? window.XP_PER_DM_MSG : window.XP_PER_PUBLIC_MSG);
+        window._awardXP(currentUser.uid, isPrivate ? window.XP_PER_DM_MSG : window.XP_PER_PUBLIC_MSG);
       }
 
       if (isPrivate) {
@@ -12127,7 +12127,7 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
         updateDoc(roomRef, {
           lastMessage:   "🎤 صوت",
           lastMessageAt: serverTimestamp(),
-          lastSenderId:  window.currentUser.uid
+          lastSenderId:  currentUser.uid
         }).catch(function() {});
       }
 
