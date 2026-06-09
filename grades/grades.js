@@ -1,9 +1,14 @@
-
 /**
  * ══════════════════════════════════════════
  *   GRADES MODULE — درجاتي
- *   المرحلة 1: الواجهة الأساسية
+ *   المرحلة 2: ربط Firebase
  * ══════════════════════════════════════════
+ *
+ *  هيكل Firestore:
+ *  grades/{uid}/records/{yearKey_termKey}
+ *
+ *  مثال:
+ *  grades/ABC123/records/فرقة1_ترم1
  */
 
 (function () {
@@ -32,7 +37,7 @@
 
   const TERMS = ["الترم الأول", "الترم الثاني", "سمر كورس"];
 
-  const GRADES = [
+  const GRADES_LIST = [
     "A+", "A", "B+", "B", "C+", "C", "C-",
     "D+", "D", "D-", "F", "غ", "FX",
   ];
@@ -41,40 +46,212 @@
      الحالة الداخلية
   ───────────────────────────────────────── */
   let _state = {
-    step: "form",       // "form" | "subjects"
+    step: "form",
     fullName: "",
     specialization: "",
     year: "",
     term: "",
     subjectCount: 0,
-    subjects: [],       // [{ name, grade }]
+    subjects: [],
+    isSaving:   false,
+    isLoading:  false,
   };
+
+  /* ─────────────────────────────────────────
+     Firebase helpers
+     نستورد من CDN نفس النسخة الموجودة في index.html
+  ───────────────────────────────────────── */
+  const _FB_VER = "10.12.0";
+  const _FB_BASE = `https://www.gstatic.com/firebasejs/${_FB_VER}/firebase-firestore.js`;
+
+  async function _getFS() {
+    // نستخدم window.db الذي عرّضه index.html
+    const db = window.db;
+    if (!db) throw new Error("Firebase غير متاح");
+    const { doc, setDoc, getDoc } = await import(_FB_BASE);
+    return { db, doc, setDoc, getDoc };
+  }
+
+  /* مفتاح الوثيقة: يفصل كل فرقة+ترم بشكل مستقل */
+  function _recordKey(year, term) {
+    return (year + "__" + term)
+      .replace(/\s+/g, "_")
+      .replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, "");
+  }
+
+  /* ─────────────────────────────────────────
+     حفظ البيانات
+  ───────────────────────────────────────── */
+  async function _saveToFirebase() {
+    const user = window.currentUser;
+    if (!user || !user.uid) {
+      _toast("يجب تسجيل الدخول أولاً", "warn");
+      return;
+    }
+
+    if (_state.isSaving) return;
+    _state.isSaving = true;
+    _setSaveBtnState(true);
+
+    try {
+      const { db, doc, setDoc } = await _getFS();
+
+      const key = _recordKey(_state.year, _state.term);
+      const path = doc(db, "grades", user.uid, "records", key);
+
+      const payload = {
+        fullName:       _state.fullName,
+        specialization: _state.specialization,
+        year:           _state.year,
+        term:           _state.term,
+        subjectCount:   _state.subjectCount,
+        subjects:       _state.subjects.map(s => ({
+          name:  s.name  || "",
+          grade: s.grade || "",
+        })),
+        updatedAt: Date.now(),
+        uid:       user.uid,
+      };
+
+      await setDoc(path, payload, { merge: false });
+
+      _toast("تم الحفظ بنجاح ✓", "success");
+
+    } catch (e) {
+      console.error("[Grades] خطأ في الحفظ:", e);
+      _toast("فشل الحفظ — حاول مرة أخرى", "error");
+    } finally {
+      _state.isSaving = false;
+      _setSaveBtnState(false);
+    }
+  }
+
+  /* ─────────────────────────────────────────
+     استرجاع البيانات
+  ───────────────────────────────────────── */
+  async function _loadFromFirebase(year, term) {
+    const user = window.currentUser;
+    if (!user || !user.uid) return null;
+
+    try {
+      const { db, doc, getDoc } = await _getFS();
+      const key  = _recordKey(year, term);
+      const path = doc(db, "grades", user.uid, "records", key);
+      const snap = await getDoc(path);
+      if (snap.exists()) return snap.data();
+    } catch (e) {
+      console.error("[Grades] خطأ في الاسترجاع:", e);
+    }
+    return null;
+  }
+
+  /* استرجاع أحدث سجل محفوظ (أي فرقة/ترم) */
+  async function _loadLatest() {
+    const user = window.currentUser;
+    if (!user || !user.uid) return null;
+
+    try {
+      const { db } = await _getFS();
+      const { collection, query, orderBy, limit, getDocs } =
+        await import(_FB_BASE);
+
+      const colRef = collection(db, "grades", user.uid, "records");
+      const q = query(colRef, orderBy("updatedAt", "desc"), limit(1));
+      const snap = await getDocs(q);
+      if (!snap.empty) return snap.docs[0].data();
+    } catch (e) {
+      console.error("[Grades] خطأ في تحميل أحدث سجل:", e);
+    }
+    return null;
+  }
+
+  /* ─────────────────────────────────────────
+     تطبيق البيانات المسترجعة على الحالة
+  ───────────────────────────────────────── */
+  function _applyRecord(data) {
+    if (!data) return;
+    _state.fullName       = data.fullName       || "";
+    _state.specialization = data.specialization || "";
+    _state.year           = data.year           || "";
+    _state.term           = data.term           || "";
+    _state.subjectCount   = data.subjectCount   || 0;
+    _state.subjects       = Array.isArray(data.subjects)
+      ? data.subjects.map(s => ({ name: s.name || "", grade: s.grade || "" }))
+      : [];
+  }
+
+  /* ─────────────────────────────────────────
+     مساعدات UI
+  ───────────────────────────────────────── */
+  function _toast(msg, type) {
+    if (typeof window.toast === "function") window.toast(msg, type);
+  }
+
+  function _setSaveBtnState(loading) {
+    const btn = document.getElementById("gr-save-btn");
+    if (!btn) return;
+    if (loading) {
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جارٍ الحفظ...`;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> حفظ البيانات`;
+    }
+  }
+
+  function _showFormLoading(root) {
+    const body = root.querySelector(".grades-sheet-body");
+    if (!body) return;
+    body.innerHTML = `
+      <div class="grades-loading-state">
+        <div class="grades-spinner"></div>
+        <div class="grades-loading-text">جارٍ تحميل بياناتك...</div>
+      </div>
+    `;
+  }
 
   /* ─────────────────────────────────────────
      الوحدة الرئيسية
   ───────────────────────────────────────── */
   const GradesModule = {
-    version: "1.0.0",
+    version: "2.0.0",
 
-    open: function () {
+    open: async function () {
       const root = document.getElementById("grades-app-root");
       if (!root) return;
 
       const user = window.currentUser;
       if (!user || !user.uid) {
-        if (typeof window.toast === "function")
-          window.toast("يجب تسجيل الدخول أولاً", "warn");
+        _toast("يجب تسجيل الدخول أولاً", "warn");
         return;
       }
 
+      // إعادة تهيئة الحالة
       _state = {
         step: "form",
         fullName: "", specialization: "", year: "", term: "",
-        subjectCount: 0, subjects: [],
+        subjectCount: 0, subjects: [], isSaving: false, isLoading: true,
       };
 
       root.classList.add("grades-open");
       root.style.display = "flex";
+
+      // رندر الهيكل أولاً مع مؤشر التحميل
+      GradesModule._renderForm(root);
+      _showFormLoading(root);
+
+      // استرجاع آخر سجل محفوظ
+      try {
+        const data = await _loadLatest();
+        if (data) {
+          _applyRecord(data);
+          _toast("تم تحميل بياناتك المحفوظة", "success");
+        }
+      } catch (e) {
+        // لا يوجد سجل سابق — طبيعي
+      }
+
+      _state.isLoading = false;
       GradesModule._renderForm(root);
     },
 
@@ -127,7 +304,7 @@
                 ${SPECIALIZATIONS.map(s => `
                   <button
                     class="grades-chip${_state.specialization === s ? " active" : ""}"
-                    onclick="window.GradesModule._pick('specialization', '${_escHtml(s)}', this)"
+                    onclick="window.GradesModule._pick('specialization','${_escAttr(s)}',this)"
                   >${s}</button>
                 `).join("")}
               </div>
@@ -140,7 +317,7 @@
                 ${YEARS.map(y => `
                   <button
                     class="grades-chip${_state.year === y ? " active" : ""}"
-                    onclick="window.GradesModule._pick('year', '${_escHtml(y)}', this)"
+                    onclick="window.GradesModule._pick('year','${_escAttr(y)}',this)"
                   >${y}</button>
                 `).join("")}
               </div>
@@ -153,7 +330,7 @@
                 ${TERMS.map(t => `
                   <button
                     class="grades-chip${_state.term === t ? " active" : ""}"
-                    onclick="window.GradesModule._pick('term', '${_escHtml(t)}', this)"
+                    onclick="window.GradesModule._pick('term','${_escAttr(t)}',this)"
                   >${t}</button>
                 `).join("")}
               </div>
@@ -185,7 +362,6 @@
 
     /* ── رندر جدول المواد والتقديرات ── */
     _renderSubjects: function (root) {
-      // بناء قائمة المواد من الحالة
       const subjectsHtml = _state.subjects.map((s, i) => `
         <div class="grades-subject-card">
           <div class="grades-subject-num">${i + 1}</div>
@@ -196,14 +372,14 @@
               placeholder="اسم المادة"
               maxlength="60"
               value="${_escHtml(s.name)}"
-              oninput="window.GradesModule._updateSubject(${i}, 'name', this.value)"
+              oninput="window.GradesModule._updateSubject(${i},'name',this.value)"
             />
             <select
               class="grades-select"
-              onchange="window.GradesModule._updateSubject(${i}, 'grade', this.value)"
+              onchange="window.GradesModule._updateSubject(${i},'grade',this.value)"
             >
               <option value="">— التقدير —</option>
-              ${GRADES.map(g => `
+              ${GRADES_LIST.map(g => `
                 <option value="${g}"${s.grade === g ? " selected" : ""}>${g}</option>
               `).join("")}
             </select>
@@ -243,7 +419,11 @@
             </div>
 
             <!-- زر الحفظ -->
-            <button class="grades-btn-primary grades-btn-save" onclick="window.GradesModule._save()">
+            <button
+              id="gr-save-btn"
+              class="grades-btn-primary grades-btn-save"
+              onclick="window.GradesModule._save()"
+            >
               <i class="fa-solid fa-floppy-disk"></i> حفظ البيانات
             </button>
 
@@ -255,7 +435,6 @@
     /* ── اختيار chip ── */
     _pick: function (field, value, btn) {
       _state[field] = value;
-      // تحديث الـ chips بصرياً
       const group = btn.closest(".grades-chips");
       if (group) {
         group.querySelectorAll(".grades-chip").forEach(c => c.classList.remove("active"));
@@ -273,38 +452,19 @@
 
     /* ── الانتقال لصفحة المواد ── */
     _goToSubjects: function () {
-      // التحقق من البيانات
       const nameInp = document.getElementById("gr-fullName");
       if (nameInp) _state.fullName = nameInp.value.trim();
 
       if (!_state.fullName) {
         _shake("gr-fullName");
-        if (typeof window.toast === "function")
-          window.toast("أدخل الاسم الثلاثي", "warn");
+        _toast("أدخل الاسم الثلاثي", "warn");
         return;
       }
-      if (!_state.specialization) {
-        if (typeof window.toast === "function")
-          window.toast("اختر التخصص", "warn");
-        return;
-      }
-      if (!_state.year) {
-        if (typeof window.toast === "function")
-          window.toast("اختر الفرقة الدراسية", "warn");
-        return;
-      }
-      if (!_state.term) {
-        if (typeof window.toast === "function")
-          window.toast("اختر الترم", "warn");
-        return;
-      }
-      if (_state.subjectCount < 1) {
-        if (typeof window.toast === "function")
-          window.toast("حدد عدد المواد (1 على الأقل)", "warn");
-        return;
-      }
+      if (!_state.specialization) { _toast("اختر التخصص", "warn"); return; }
+      if (!_state.year)           { _toast("اختر الفرقة الدراسية", "warn"); return; }
+      if (!_state.term)           { _toast("اختر الترم", "warn"); return; }
+      if (_state.subjectCount < 1){ _toast("حدد عدد المواد (1 على الأقل)", "warn"); return; }
 
-      // بناء مصفوفة المواد مع الحفاظ على البيانات المدخلة مسبقاً
       const existing = _state.subjects;
       _state.subjects = Array.from({ length: _state.subjectCount }, (_, i) => ({
         name:  existing[i]?.name  || "",
@@ -325,26 +485,21 @@
 
     /* ── تحديث مادة ── */
     _updateSubject: function (index, field, value) {
-      if (_state.subjects[index]) {
-        _state.subjects[index][field] = value;
-      }
+      if (_state.subjects[index]) _state.subjects[index][field] = value;
     },
 
-    /* ── حفظ (المرحلة 1: رسالة فقط) ── */
-    _save: function () {
-      if (typeof window.toast === "function") {
-        window.toast("سيتم تفعيل الحفظ في المرحلة الثانية", "warn");
-      }
+    /* ── حفظ عبر Firebase ── */
+    _save: async function () {
+      await _saveToFirebase();
     },
 
     /* ── تهيئة ── */
     _init: function () {
-      const root = document.getElementById("grades-app-root");
-      if (!root) {
+      if (!document.getElementById("grades-app-root")) {
         console.error("[Grades] grades-app-root غير موجود");
         return;
       }
-      console.log("[Grades] ✓ المرحلة 1 جاهزة");
+      console.log("[Grades] ✓ المرحلة 2 جاهزة");
     },
   };
 
@@ -354,10 +509,14 @@
   function _escHtml(str) {
     if (!str) return "";
     return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // للاستخدام داخل onclick="" حيث نحتاج escaping مختلف
+  function _escAttr(str) {
+    if (!str) return "";
+    return String(str).replace(/'/g, "\\'");
   }
 
   function _shake(id) {
