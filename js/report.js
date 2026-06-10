@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, deleteField, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* ══════════════════════════════════════════
    REPORT SYSTEM — نظام التبليغات
