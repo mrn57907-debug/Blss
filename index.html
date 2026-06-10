@@ -2393,6 +2393,7 @@ document.addEventListener("DOMContentLoaded", function() {
 let currentUser   = null;
 let currentRole   = null;
 let currentName   = "";
+Object.defineProperty(window, 'currentName', { get: () => currentName, configurable: true });
 let currentPhoto  = "";
 let msgUnsub      = null;
 let _reactionsUnsub = null;
@@ -4346,6 +4347,7 @@ async function _ensurePublicId(uid) {
    NEW DM — SEARCH USERS & SEND REQUEST
 ══════════════════════════════════════════ */
 let _currentChatId   = "public";
+Object.defineProperty(window, '_currentChatId', { get: () => _currentChatId, configurable: true });
 let _currentChatName = "الشات العام";
 let _currentChatPhoto= "";
 
@@ -4991,7 +4993,7 @@ function appendChatMsg(container, docId, d, prevDate, setDate) {
       bubbleContent = `<div class="bubble-text" style="color:var(--muted);font-size:12px;"><i class="fa-solid fa-image"></i> صورة غير صالحة</div>`;
     }
   } else if (d.poll) {
-    bubbleContent = _buildPollHTML(docId, d.poll, currentUser?.uid);
+    bubbleContent = window._buildPollHTML(docId, d.poll, currentUser?.uid);
   } else {
     bubbleContent = `<div class="bubble-text">${esc(d.text||"")}</div>`;
   }
@@ -8430,6 +8432,7 @@ function esc(str) {
     .replace(/&/g,"&amp;").replace(/</g,"&lt;")
     .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
+window.esc = esc;
 
 /* ══════════════════════════════════════════
    ⚡ SPARK SYSTEM — Lightning Particles
@@ -9099,6 +9102,8 @@ window.cancelReply = cancelReply;
 // ── Context Menu ──
 let _ctxDocId = null;
 let _ctxData  = null;
+Object.defineProperty(window, '_ctxData',  { get: () => _ctxData,  configurable: true });
+Object.defineProperty(window, '_ctxDocId', { get: () => _ctxDocId, configurable: true });
 
 function _showCtxAt(x, y, docId, data) {
   _ctxDocId = docId; _ctxData = data;
@@ -9444,6 +9449,7 @@ function _buildPollHTML(docId, poll, myUid) {
     <div class="poll-footer"><i class="fa-solid fa-users"></i> ${total} مشارك${voted?"":' · اضغط للتصويت'}</div>
   </div>`;
 }
+window._buildPollHTML = _buildPollHTML;
 
 function _getPollMyVote(votes, myUid) {
   if (!myUid || !votes) return null;
