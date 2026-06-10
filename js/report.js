@@ -111,9 +111,10 @@ async function submitReport() {
     document.body.style.overflow = "";
     _rptContext = null; _rptSelectedReason = null;
   } catch(e) {
-    toast("فشل إرسال البلاغ، حاول مرة أخرى", "error");
-    if (submitBtn) submitBtn.disabled = false;
-  }
+  console.error("REPORT ERROR:", e);
+  toast("فشل إرسال البلاغ، حاول مرة أخرى", "error");
+  if (submitBtn) submitBtn.disabled = false;
+}
 }
 window.submitReport = submitReport;
 
