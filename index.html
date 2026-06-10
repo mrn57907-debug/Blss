@@ -1,3 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>نظام الجامعة — RBAC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="grades/grades.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN PAGE — Animated Lamp Edition
+══════════════════════════════════════════ -->
+<div id="page-login" class="page active">
+  <div class="lp-scene" id="lpScene">
+
+    <!-- ══ المصباح ══ -->
+    <div class="lp-lamp-wrap" id="lpLampWrap">
+      <div class="lp-beam"></div>
+      <div class="lp-halo"></div>
+
+      <div class="lp-shade">
+        <div class="lp-face">
+          <div class="lp-eyes">
+            <div class="lp-eye"></div>
+            <div class="lp-eye"></div>
+          </div>
+          <div class="lp-blushes">
+            <div class="lp-blush"></div>
+            <div class="lp-blush"></div>
+          </div>
+          <div class="lp-mouth"></div>
+        </div>
+      </div>
+
+      <div class="lp-neck">
+        <div class="lp-cord-wrap" id="lpCord">
+          <div class="lp-cord-line"></div>
+          <div class="lp-cord-knob"></div>
+        </div>
+      </div>
+
+      <div class="lp-base"></div>
+      <div class="lp-floor-glow"></div>
+
+      <span class="lp-hint" id="lpHint">اسحب الحبل 💡</span>
+    </div>
+
+    <!-- ══ صندوق تسجيل الدخول ══ -->
+    <div class="lp-box">
+      <div class="lp-box-title">نظام الجامعة</div>
+      <div class="lp-box-sub">سجّل دخولك أو أنشئ حساباً جديداً</div>
+
+      <!-- Toggle login / register — نفس IDs الأصلية -->
+      <div class="login-toggle">
+        <button id="toggleLogin" class="active" onclick="setAuthMode('login')">
+          <i class="fa-solid fa-key"></i> تسجيل الدخول
+        </button>
+        <button id="toggleReg" onclick="setAuthMode('register')">
+          <i class="fa-solid fa-star"></i> حساب جديد
+        </button>
+      </div>
+
+      <!-- حقل الاسم — يظهر عند التسجيل فقط -->
+      <div id="nameRow"><input class="inp" id="loginName" placeholder="الاسم الكامل"></div>
+
+      <!-- اختيار النوع — يظهر عند التسجيل فقط -->
+      <div id="genderRow" class="gender-row">
+        <div class="gender-seg-header">
+          <i class="fa-solid fa-user-circle" style="color:var(--gold);font-size:12px;"></i>
+          اختر نوع حسابك
+        </div>
+        <div class="gender-seg-track">
+          <div class="gender-seg-thumb male-active" id="genderThumb"></div>
+          <button type="button" class="gender-seg-opt active-male" id="genderMale" onclick="selectGender('male')">
+            <div class="gender-avatar-preview" id="genderMaleAvatarPreview"></div>
+            <div>
+              <div class="gender-type-label">طالب</div>
+              <div style="font-size:10px;opacity:.65;font-weight:600;">Male</div>
+            </div>
+          </button>
+          <button type="button" class="gender-seg-opt" id="genderFemale" onclick="selectGender('female')">
+            <div class="gender-avatar-preview" id="genderFemaleAvatarPreview"></div>
+            <div>
+              <div class="gender-type-label">طالبة</div>
+              <div style="font-size:10px;opacity:.65;font-weight:600;">Female</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- الحقول الأساسية — نفس IDs الأصلية تماماً -->
+      <input class="inp" id="loginEmail" placeholder="البريد الإلكتروني" type="email">
+      <input class="inp" id="loginPass"  placeholder="كلمة المرور (6+ أحرف)" type="password">
+      <button class="btn" id="mainAuthBtn"><i class="fa-solid fa-key"></i> تسجيل الدخول</button>
+      <div id="loginError" class="error-box"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     HOME PAGE (USER VIEW)
+══════════════════════════════════════════ -->
+<div id="page-home" class="page">
+  <div class="topbar">
+    <div class="topbar-left" id="topbarLeft">
+      <div class="avatar" id="avatar">U</div>
+      <div>
+        <div class="topbar-hello">أهلاً <i class="fa-solid fa-hand"></i> <span id="roleBadgeTop"></span></div>
+        <div class="topbar-name" id="welcomeText">المستخدم</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" id="ownerBtn" onclick="showPage('page-owner')"><i class="fa-solid fa-crown"></i> أونر</button>
+      <button class="icon-btn" id="adminBtn" onclick="showPage('page-admin')"><i class="fa-solid fa-gear"></i> أدمن</button>
+      <button class="icon-btn" id="logoutBtn">خروج</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="tab-home"><i class="fa-solid fa-house"></i> الرئيسية</div>
+    <div class="tab" data-tab="tab-forum"><i class="fa-solid fa-layer-group"></i> المنتدى</div>
+    <div class="tab" data-tab="tab-profile"><i class="fa-solid fa-circle-user"></i> بروفايلي</div>
+  </div>
+
+  <!-- HOME TAB -->
+  <div id="tab-home" class="tab-content active">
+    <div class="home-grid">
+      <div class="card" onclick="openChatPage()" style="cursor:pointer">
+        <div class="card-icon"><i class="fa-solid fa-comments"></i></div><div class="card-title">الشات العام</div>
+        <div class="card-sub">تواصل مع الطلاب</div>
+      </div>
+      <div class="card" onclick="goTab('tab-forum')" style="cursor:pointer">
+        <div class="card-icon"><i class="fa-solid fa-layer-group"></i></div><div class="card-title">المنتدى</div>
+        <div class="card-sub">محاضرات، امتحانات، اخبار</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORUM TAB -->
+  <div id="tab-forum" class="tab-content">
+    <!-- Forum landing grid -->
+    <div id="forum-landing" class="forum-grid">
+      <div class="forum-section-card" onclick="openForumSection('tab-news','tab-news-content')">
+        <div class="forum-card-icon"><i class="fa-solid fa-newspaper"></i></div>
+        <div class="forum-card-title">اخبار المعهد</div>
+        <div class="forum-card-sub">اخر الاخبار والاعلانات الرسمية</div>
+      </div>
+      <div class="forum-section-card" onclick="openForumSection('tab-lectures','tab-lectures-content')">
+        <div class="forum-card-icon"><i class="fa-solid fa-book-open"></i></div>
+        <div class="forum-card-title">المحاضرات</div>
+        <div class="forum-card-sub">روابط وملفات المحاضرات</div>
+      </div>
+      <div class="forum-section-card" onclick="openForumSection('tab-exams','tab-exams-content')">
+        <div class="forum-card-icon"><i class="fa-solid fa-calendar-days"></i></div>
+        <div class="forum-card-title">الامتحانات</div>
+        <div class="forum-card-sub">جدول الامتحانات والمواعيد</div>
+      </div>
+      <div class="forum-section-card" onclick="openForumSection('tab-sections','tab-sections-content')">
+        <div class="forum-card-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+        <div class="forum-card-title">السكاشن</div>
+        <div class="forum-card-sub">جداول السكاشن والمجموعات</div>
+      </div>
+      <div class="forum-section-card grades-forum-card" onclick="window.GradesModule && window.GradesModule.open()">
+        <div class="forum-card-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="forum-card-title">درجاتي</div>
+        <div class="forum-card-sub">سجلك الأكاديمي ونتائجك الدراسية</div>
+      </div>
+      <div class="forum-section-card forum-card-portal" onclick="openPortal()" style="grid-column:1/-1">
+        <div class="forum-card-icon forum-card-icon--logo"><img src="data:image/png;base64,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" alt="شعار معهد القاهرة العالي" class="forum-portal-logo"></div>
+        <div class="forum-card-title">البوابة الرسمية</div>
+        <div class="forum-card-sub">بوابة معهد القاهرة العالي الرسمية — يفتح في نافذة جديدة</div>
+      </div>
+    </div>
+    <!-- Academic sections rendered inside forum -->
+    <div id="tab-news-content"     class="forum-content-area" style="display:none">
+      <button class="forum-back-btn" onclick="closeForumSection('tab-news-content')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+      <div class="forum-section-hdr"><i class="fa-solid fa-newspaper"></i> اخبار المعهد</div>
+      <div id="newsList"></div>
+    </div>
+    <div id="tab-lectures-content" class="forum-content-area" style="display:none">
+      <button class="forum-back-btn" onclick="closeForumSection('tab-lectures-content')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+      <div class="forum-section-hdr"><i class="fa-solid fa-book-open"></i> مكتبة المحاضرات</div>
+
+      <!-- Library toolbar: search + favourites -->
+      <div class="lib-toolbar">
+        <div class="lib-search-wrap">
+          <i class="fa-solid fa-magnifying-glass lib-search-icon"></i>
+          <input class="lib-search-inp" id="libSearchInp" placeholder="بحث في المواد والمحاضرات..." autocomplete="off">
+          <button class="lib-search-clear" id="libSearchClear" style="display:none" onclick="_libClearSearch()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <button class="lib-fav-btn" id="libFavBtn" onclick="_libToggleFavView()" title="المفضلة">
+          <i class="fa-solid fa-bookmark"></i>
+          <span class="lib-fav-count" id="libFavCount" style="display:none">0</span>
+        </button>
+      </div>
+
+      <!-- Subject grid (library home) -->
+      <div id="libSubjectGrid" class="lib-subject-grid"></div>
+
+      <!-- Subject detail view -->
+      <div id="libSubjectDetail" style="display:none">
+        <div class="lib-detail-header">
+          <button class="lib-detail-back" onclick="_libBackToGrid()"><i class="fa-solid fa-arrow-right"></i></button>
+          <div class="lib-detail-title-wrap">
+            <div class="lib-detail-icon" id="libDetailIcon"></div>
+            <div>
+              <div class="lib-detail-name" id="libDetailName"></div>
+              <div class="lib-detail-count" id="libDetailCount"></div>
+            </div>
+          </div>
+          <button class="lib-fav-subject-btn" id="libFavSubjectBtn" onclick="_libToggleFavSubject()" title="حفظ في المفضلة">
+            <i class="fa-solid fa-bookmark"></i>
+          </button>
+        </div>
+        <div id="libItemsList" class="lib-items-list"></div>
+      </div>
+
+      <!-- Favourites view -->
+      <div id="libFavView" style="display:none">
+        <div class="lib-detail-header">
+          <button class="lib-detail-back" onclick="_libCloseFavView()"><i class="fa-solid fa-arrow-right"></i></button>
+          <div class="lib-detail-title-wrap">
+            <div class="lib-detail-icon" style="background:rgba(201,169,110,.15);border-color:rgba(201,169,110,.3);color:var(--gold)"><i class="fa-solid fa-bookmark"></i></div>
+            <div><div class="lib-detail-name">المفضلة</div></div>
+          </div>
+        </div>
+        <div id="libFavList" class="lib-items-list"></div>
+      </div>
+
+      <!-- Legacy container kept for compatibility -->
+      <div id="lecturesList" style="display:none"></div>
+    </div>
+    <div id="tab-exams-content"    class="forum-content-area" style="display:none">
+      <button class="forum-back-btn" onclick="closeForumSection('tab-exams-content')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+      <div class="forum-section-hdr"><i class="fa-solid fa-calendar-days"></i> الامتحانات</div>
+      <div id="examsList"></div>
+    </div>
+    <div id="tab-sections-content" class="forum-content-area" style="display:none">
+      <button class="forum-back-btn" onclick="closeForumSection('tab-sections-content')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+      <div class="forum-section-hdr"><i class="fa-solid fa-chalkboard-user"></i> السكاشن</div>
+      <div id="sectionsList"></div>
+    </div>
+  </div>
+
+  <!-- NEWS TAB (hidden — content moved to forum) -->
+  <div id="tab-news" class="tab-content" style="display:none!important"></div>
+  <!-- LECTURES TAB (hidden) -->
+  <div id="tab-lectures" class="tab-content" style="display:none!important"></div>
+  <!-- EXAMS TAB (hidden) -->
+  <div id="tab-exams" class="tab-content" style="display:none!important"></div>
+  <!-- SECTIONS TAB (hidden) -->
+  <div id="tab-sections" class="tab-content" style="display:none!important"></div>
 
   <!-- PROFILE TAB -->
   <div id="tab-profile" class="tab-content">
@@ -1308,47 +1566,7 @@
 <!-- ══════════════════════════════════════════
      LAMP TOGGLE SCRIPT (non-module — runs immediately)
 ══════════════════════════════════════════ -->
-<script>
-(function() {
-  var scene    = document.getElementById('lpScene');
-  var cord     = document.getElementById('lpCord');
-  var lampWrap = document.getElementById('lpLampWrap');
-  var hint     = document.getElementById('lpHint');
-  var isOn     = false;
-  var busy     = false;
-
-  function toggle() {
-    if (busy) return;
-    busy = true;
-
-    /* 1 — اهتزاز الحبل */
-    cord.classList.add('pulled');
-    setTimeout(function() { cord.classList.remove('pulled'); }, 220);
-
-    /* 2 — رجّة المصباح */
-    lampWrap.style.animation = 'none';
-    lampWrap.style.transform = 'rotate(-5deg)';
-    setTimeout(function() {
-      lampWrap.style.transform = 'rotate(4deg)';
-      setTimeout(function() {
-        lampWrap.style.transform = '';
-        lampWrap.style.animation = '';
-      }, 110);
-    }, 110);
-
-    /* 3 — تشغيل / إطفاء */
-    setTimeout(function() {
-      isOn = !isOn;
-      scene.classList.toggle('on', isOn);
-      hint.textContent = isOn ? 'اسحب لإطفاء 🌙' : 'اسحب الحبل 💡';
-      busy = false;
-    }, 200);
-  }
-
-  cord.addEventListener('click', function(e) { e.stopPropagation(); toggle(); });
-  lampWrap.addEventListener('click', toggle);
-})();
-</script>
+<script src="js/lamp-login.js"></script>
 
 <!-- ══════════════════════════════════════════
      ADMIN VIEW MODE BAR
@@ -2703,6 +2921,8 @@ document.getElementById("avmExitBtn")?.addEventListener("click", () => exitAdmin
 ══════════════════════════════════════════ */
 const isOwner = () => currentRole === ROLES.OWNER;
 const isAdmin = () => currentRole === ROLES.ADMIN || currentRole === ROLES.OWNER;
+window.isAdmin = isAdmin;
+window.isOwner = isOwner;
 
 // ── دالة مساعدة للخصوصية ──
 // تُعيد true إذا يجب إظهار حالة الاتصال لـ u في واجهة المستخدم.
@@ -8217,93 +8437,6 @@ function esc(str) {
    VIP7→10 + SVIP1→10
    ✦ No memory leak  ✦ No lag  ✦ GPU-only
 ══════════════════════════════════════════ */
-const SPARK_CFG = {
-    'vip-7':  {dot:'rgba(255,210,60,.85)',  streak:'rgba(255,195,40,.6)',  n:4, speed:1.8},
-  'vip-8':  {dot:'rgba(255,220,80,.88)',  streak:'rgba(255,205,50,.65)', n:5, speed:1.5},
-  'vip-9':  {dot:'rgba(255,235,100,.9)',  streak:'rgba(255,220,70,.7)',  n:5, speed:1.2},
-  'vip-10': {dot:'rgba(255,248,140,.92)', streak:'rgba(255,230,80,.72)', n:6, speed:1.0},
-  'svip-1': {dot:'rgba(255,245,180,.88)', streak:'rgba(255,235,140,.6)', n:4, speed:2.0},
-  'svip-2': {dot:'rgba(255,248,190,.9)',  streak:'rgba(255,240,150,.62)',n:4, speed:1.8},
-  'svip-3': {dot:'rgba(255,252,200,.9)',  streak:'rgba(255,244,160,.65)',n:5, speed:1.6},
-  'svip-4': {dot:'rgba(255,254,215,.92)', streak:'rgba(255,248,170,.68)',n:5, speed:1.5},
-  'svip-5': {dot:'rgba(255,255,225,.92)', streak:'rgba(255,252,180,.7)', n:5, speed:1.4},
-  'svip-6': {dot:'rgba(255,255,235,.93)', streak:'rgba(255,254,190,.72)',n:5, speed:1.2},
-  'svip-7': {dot:'rgba(255,255,245,.94)', streak:'rgba(255,255,200,.74)',n:6, speed:1.1},
-  'svip-8': {dot:'rgba(255,255,252,.95)', streak:'rgba(240,248,255,.76)',n:6, speed:0.95},
-  'svip-9': {dot:'rgba(255,255,255,.95)', streak:'rgba(220,235,255,.78)',n:6, speed:0.8},
-  'svip-10':{dot:'rgba(255,255,255,.96)', streak:'rgba(200,220,255,.8)', n:7, speed:0.65},
-};
-
-function _fireOneSpark(el, cfg) {
-  const isStreak = Math.random() > 0.55;
-  const sp = document.createElement('span');
-  sp.className = 'ltng-sp ' + (isStreak ? 'streak' : 'dot');
-  sp.style.background = isStreak ? cfg.streak : cfg.dot;
-  const angle = Math.random() * Math.PI * 2;
-  const r     = 6 + Math.random() * 10;
-  sp.style.setProperty('--tx', Math.round(Math.cos(angle)*r) + 'px');
-  sp.style.setProperty('--ty', Math.round(Math.sin(angle)*r) + 'px');
-  sp.style.left = (20 + Math.random() * 60) + '%';
-  sp.style.top  = (15 + Math.random() * 70) + '%';
-  const dur = (0.5 + Math.random() * 0.6) / cfg.speed;
-  sp.style.animation = (isStreak ? 'spkLine' : 'spkPop') + ' ' + dur.toFixed(2) + 's ease-out forwards';
-  el.appendChild(sp);
-  sp.addEventListener('animationend', () => sp.remove(), { once: true });
-}
-
-function _attachSparksToEl(el, cls) {
-  const cfg = SPARK_CFG[cls];
-  if (!cfg) return;
-  let tid = null;
-  function loop() {
-    for (let i = 0; i < cfg.n; i++) {
-      setTimeout(() => { if (el.isConnected) _fireOneSpark(el, cfg); }, i * (120 / cfg.n));
-    }
-    tid = setTimeout(loop, (800 + Math.random() * 600) * cfg.speed);
-  }
-  loop();
-  const obs = new MutationObserver(() => {
-    if (!el.isConnected) { clearTimeout(tid); obs.disconnect(); }
-  });
-  obs.observe(document.body, { childList: true, subtree: true });
-}
-
-function _initSparks() {
-  document.querySelectorAll('.vip-text').forEach(el => {
-    if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
-    el.style.overflow = 'visible';
-    for (const cls of Object.keys(SPARK_CFG)) {
-      if (el.classList.contains(cls)) { _attachSparksToEl(el, cls); break; }
-    }
-  });
-}
-
-/* مراقبة عناصر جديدة (رسائل شات جديدة) */
-(function _watchNewVipText() {
-  const _seen = new WeakSet();
-  let _pending = false;
-  new MutationObserver(() => {
-    if (_pending) return; _pending = true;
-    requestAnimationFrame(() => {
-      _pending = false;
-      document.querySelectorAll('.vip-text').forEach(el => {
-        if (_seen.has(el)) return; _seen.add(el);
-        if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
-        el.style.overflow = 'visible';
-        for (const cls of Object.keys(SPARK_CFG)) {
-          if (el.classList.contains(cls)) { _attachSparksToEl(el, cls); break; }
-        }
-      });
-    });
-  }).observe(document.body, { childList: true, subtree: true });
-})();
-
-/* تشغيل أولي */
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', _initSparks);
-} else {
-  setTimeout(_initSparks, 300);
-}
 
 /* ══════════════════════════════════════════
    ██████╗ ██████╗  ██████╗ ███████╗██╗██╗     ███████╗
@@ -8783,7 +8916,7 @@ function _renderProfileViewModal(uid, userData) {
 
   document.getElementById("pvmReportBtn")?.addEventListener("click", () => {
     document.getElementById("profileViewModal").classList.remove("show");
-    openReportModal({ type: "user", targetUid: uid, targetName: d.name || "مستخدم" });
+    window.openReportModal({ type: "user", targetUid: uid, targetName: d.name || "مستخدم" });
   });
 }
 
@@ -9274,416 +9407,6 @@ function ctxCopyLink() {
   navigator.clipboard?.writeText(url).then(() => toast("تم نسخ الرابط","success")).catch(() => toast("فشل نسخ الرابط","error"));
 }
 window.ctxCopyLink = ctxCopyLink;
-
-/* ══════════════════════════════════════════
-   REPORT SYSTEM — نظام التبليغات
-══════════════════════════════════════════ */
-let _rptContext = null; // { type: "message"|"user", targetUid, targetName, msgId, msgText, chatId }
-let _rptSelectedReason = null;
-const RPT_COOLDOWN_MS = 30000; // 30s بين بلاغين
-let _rptLastTime = 0;
-
-function openReportModal(ctx) {
-  if (!currentUser?.uid) { toast("يجب تسجيل الدخول أولاً", "error"); return; }
-  if (ctx.targetUid === currentUser.uid) { toast("لا يمكنك التبليغ عن نفسك", "warn"); return; }
-  _rptContext = ctx;
-  _rptSelectedReason = null;
-  // Reset UI
-  document.querySelectorAll(".rpt-reason-btn").forEach(b => b.classList.remove("selected"));
-  const otherWrap = document.getElementById("rptOtherWrap");
-  const otherTxt  = document.getElementById("rptOtherText");
-  const submitBtn = document.getElementById("rptSubmitBtn");
-  if (otherWrap) otherWrap.style.display = "none";
-  if (otherTxt)  otherTxt.value = "";
-  if (submitBtn) submitBtn.disabled = true;
-  // Target box
-  const tbox = document.getElementById("rptTargetBox");
-  if (tbox) {
-    tbox.classList.add("show");
-    if (ctx.type === "message") {
-      tbox.innerHTML = `<div class="rpt-target-name"><i class="fa-solid fa-message" style="color:var(--muted);margin-left:6px;"></i>${esc(ctx.targetName)}</div>${ctx.msgText ? `<div class="rpt-target-msg">${esc(ctx.msgText)}</div>` : ""}`;
-    } else {
-      tbox.innerHTML = `<div class="rpt-target-name"><i class="fa-solid fa-user" style="color:var(--muted);margin-left:6px;"></i>${esc(ctx.targetName)}</div>`;
-    }
-  }
-  const subEl = document.getElementById("rptSubtitle");
-  if (subEl) subEl.textContent = ctx.type === "message" ? "تبليغ عن رسالة" : "تبليغ عن مستخدم";
-  document.getElementById("reportModalBackdrop").classList.add("show");
-  document.body.style.overflow = "hidden";
-}
-window.openReportModal = openReportModal;
-
-function closeReportModal(e) {
-  if (e && e.target !== document.getElementById("reportModalBackdrop")) return;
-  document.getElementById("reportModalBackdrop").classList.remove("show");
-  document.body.style.overflow = "";
-  _rptContext = null;
-  _rptSelectedReason = null;
-}
-window.closeReportModal = closeReportModal;
-
-function selectReportReason(btn) {
-  document.querySelectorAll(".rpt-reason-btn").forEach(b => b.classList.remove("selected"));
-  btn.classList.add("selected");
-  _rptSelectedReason = btn.dataset.reason;
-  const otherWrap = document.getElementById("rptOtherWrap");
-  if (otherWrap) otherWrap.style.display = _rptSelectedReason === "other" ? "block" : "none";
-  const submitBtn = document.getElementById("rptSubmitBtn");
-  if (submitBtn) submitBtn.disabled = false;
-}
-window.selectReportReason = selectReportReason;
-
-async function submitReport() {
-  if (!currentUser?.uid || !_rptContext || !_rptSelectedReason) return;
-  // Anti-spam cooldown
-  const now = Date.now();
-  if (now - _rptLastTime < RPT_COOLDOWN_MS) {
-    toast("يرجى الانتظار قبل إرسال بلاغ آخر", "warn"); return;
-  }
-  const submitBtn = document.getElementById("rptSubmitBtn");
-  if (submitBtn) submitBtn.disabled = true;
-  let reason = _rptSelectedReason;
-  if (reason === "other") {
-    const txt = (document.getElementById("rptOtherText")?.value || "").trim();
-    if (!txt) { toast("يرجى كتابة سبب التبليغ", "warn"); if (submitBtn) submitBtn.disabled = false; return; }
-    reason = txt;
-  }
-  // Check duplicate report on same message
-  if (_rptContext.msgId) {
-    try {
-      const dupQ = query(
-        collection(db, "reports"),
-        where("reporterUid",  "==", currentUser.uid),
-        where("msgId",        "==", _rptContext.msgId),
-        limit(1)
-      );
-      const dupSnap = await getDocs(dupQ);
-      if (!dupSnap.empty) {
-        toast("لقد أرسلت بلاغاً على هذه الرسالة من قبل", "warn");
-        if (submitBtn) submitBtn.disabled = false;
-        return;
-      }
-    } catch(_) {}
-  }
-  try {
-    const reportData = {
-      reporterUid:    currentUser.uid,
-      reporterName:   currentName || currentUser.email || "مجهول",
-      targetUid:      _rptContext.targetUid,
-      targetName:     _rptContext.targetName || "مجهول",
-      msgId:          _rptContext.msgId    || null,
-      msgText:        _rptContext.msgText  || null,
-      chatId:         _rptContext.chatId   || _currentChatId || null,
-      reason:         reason,
-      type:           _rptContext.type || "message",
-      status:         "open",
-      createdAt:      serverTimestamp(),
-    };
-    await addDoc(collection(db, "reports"), reportData);
-    _rptLastTime = Date.now();
-    toast("تم إرسال البلاغ بنجاح", "success");
-    document.getElementById("reportModalBackdrop").classList.remove("show");
-    document.body.style.overflow = "";
-    _rptContext = null; _rptSelectedReason = null;
-  } catch(e) {
-    toast("فشل إرسال البلاغ، حاول مرة أخرى", "error");
-    if (submitBtn) submitBtn.disabled = false;
-  }
-}
-window.submitReport = submitReport;
-
-function ctxReport() {
-  hideMsgCtxMenu();
-  if (!_ctxData || !_ctxDocId) return;
-  const targetUid  = _ctxData.uid || _ctxData.senderId || null;
-  const targetName = _ctxData.name || _ctxData.senderName || "مستخدم";
-  const msgText    = _ctxData.text || null;
-  openReportModal({
-    type:       "message",
-    targetUid:  targetUid,
-    targetName: targetName,
-    msgId:      _ctxDocId,
-    msgText:    msgText,
-    chatId:     _currentChatId || null,
-  });
-}
-window.ctxReport = ctxReport;
-
-/* ── Owner: load & display reports ── */
-let _ownerReportsAll  = [];
-let _ownerReportsFilter = "all";
-
-async function loadOwnerReports() {
-  const listEl = document.getElementById("ownerReportsList");
-  if (!listEl) return;
-  listEl.innerHTML = `<div class="spinner" style="margin:24px auto;"></div>`;
-  try {
-    const q = query(collection(db, "reports"), orderBy("createdAt", "desc"), limit(100));
-    const snap = await getDocs(q);
-    _ownerReportsAll = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    // Count stats
-    let open = 0, resolved = 0, rejected = 0;
-    _ownerReportsAll.forEach(r => {
-      if (r.status === "open" || r.status === "reviewing") open++;
-      else if (r.status === "resolved") resolved++;
-      else if (r.status === "rejected") rejected++;
-    });
-    const oEl = document.getElementById("rptStatOpen");
-    const dEl = document.getElementById("rptStatDone");
-    const rEl = document.getElementById("rptStatRej");
-    if (oEl) oEl.textContent = open;
-    if (dEl) dEl.textContent = resolved;
-    if (rEl) rEl.textContent = rejected;
-    const subEl = document.getElementById("rptOwnerSub");
-    if (subEl) subEl.textContent = `${_ownerReportsAll.length} بلاغ · ${open} مفتوح`;
-    _renderOwnerReports();
-  } catch(e) {
-    listEl.innerHTML = `<div class="empty-state">فشل تحميل البلاغات</div>`;
-  }
-}
-window.loadOwnerReports = loadOwnerReports;
-
-function filterOwnerReports(btn) {
-  document.querySelectorAll(".rpt-admin-tab").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  _ownerReportsFilter = btn.dataset.filter;
-  _renderOwnerReports();
-}
-window.filterOwnerReports = filterOwnerReports;
-
-function _renderOwnerReports() {
-  const listEl = document.getElementById("ownerReportsList");
-  if (!listEl) return;
-  let data = _ownerReportsAll;
-  if (_ownerReportsFilter !== "all") {
-    if (_ownerReportsFilter === "open") data = data.filter(r => r.status === "open" || r.status === "reviewing");
-    else data = data.filter(r => r.status === _ownerReportsFilter);
-  }
-  if (!data.length) { listEl.innerHTML = `<div class="empty-state">لا توجد بلاغات</div>`; return; }
-  listEl.innerHTML = data.map(r => {
-    const statusLabel = { open: "مفتوح", reviewing: "قيد المراجعة", resolved: "معالج", rejected: "مرفوض" }[r.status] || r.status;
-    let date = "—";
-    try { const ts = r.createdAt?.toDate?.() || new Date(r.createdAt); date = ts.toLocaleDateString("ar-EG", { day:"numeric", month:"short", year:"numeric" }); } catch(_) {}
-    const msgBox = r.msgText ? `<div class="rpt-rc-msg-box"><i class="fa-solid fa-quote-right" style="color:var(--muted);margin-left:6px;"></i>${esc(r.msgText)}</div>` : "";
-    const hasMsgDelete = r.msgId && r.chatId;
-    const delBtnHtml = hasMsgDelete
-      ? `<button class="rpt-act-btn del-msg" onclick="ownerDeleteReportedMsg('${esc(r.id)}','${esc(r.chatId)}','${esc(r.msgId)}')"><i class="fa-solid fa-trash"></i> حذف الرسالة</button>`
-      : "";
-    return `
-    <div class="rpt-report-card status-${r.status}" id="rptCard-${r.id}">
-      <div class="rpt-rc-hdr">
-        <span class="rpt-rc-badge ${r.status}">${statusLabel}</span>
-        <span class="rpt-rc-reason">${esc(r.reason)}</span>
-        <span class="rpt-rc-date">${date}</span>
-      </div>
-      <div class="rpt-rc-row">
-        <div class="rpt-rc-person">
-          <div class="rpt-rc-person-lbl">المبلغ</div>
-          <div class="rpt-rc-person-name">${esc(r.reporterName || "—")}</div>
-          <div class="rpt-rc-person-uid">${esc(r.reporterUid || "")}</div>
-        </div>
-        <div class="rpt-rc-person">
-          <div class="rpt-rc-person-lbl">المبلغ عنه</div>
-          <div class="rpt-rc-person-name">${esc(r.targetName || "—")}</div>
-          <div class="rpt-rc-person-uid">${esc(r.targetUid || "")}</div>
-        </div>
-      </div>
-      ${msgBox}
-      <div class="rpt-rc-actions">
-        <button class="rpt-act-btn resolve"  onclick="updateReportStatus('${r.id}','resolved')"><i class="fa-solid fa-check"></i> قبول</button>
-        <button class="rpt-act-btn reject"   onclick="updateReportStatus('${r.id}','rejected')"><i class="fa-solid fa-xmark"></i> رفض</button>
-        <button class="rpt-act-btn review"   onclick="updateReportStatus('${r.id}','reviewing')"><i class="fa-solid fa-eye"></i> مراجعة</button>
-        ${delBtnHtml}
-        <button class="rpt-act-btn profile"  onclick="openProfileViewModal('${esc(r.targetUid)}')"><i class="fa-solid fa-id-card"></i> البروفايل</button>
-      </div>
-    </div>`;
-  }).join("");
-}
-
-async function updateReportStatus(reportId, status) {
-  try {
-    await updateDoc(doc(db, "reports", reportId), { status });
-    const idx = _ownerReportsAll.findIndex(r => r.id === reportId);
-    if (idx !== -1) _ownerReportsAll[idx].status = status;
-    _renderOwnerReports();
-    // refresh stats
-    let open = 0, resolved = 0, rejected = 0;
-    _ownerReportsAll.forEach(r => {
-      if (r.status === "open" || r.status === "reviewing") open++;
-      else if (r.status === "resolved") resolved++;
-      else if (r.status === "rejected") rejected++;
-    });
-    const oEl = document.getElementById("rptStatOpen");
-    const dEl = document.getElementById("rptStatDone");
-    const rEl = document.getElementById("rptStatRej");
-    if (oEl) oEl.textContent = open;
-    if (dEl) dEl.textContent = resolved;
-    if (rEl) rEl.textContent = rejected;
-    toast("تم تحديث حالة البلاغ", "success");
-  } catch(e) { toast("فشل تحديث الحالة", "error"); }
-}
-window.updateReportStatus = updateReportStatus;
-
-async function ownerDeleteReportedMsg(reportId, chatId, msgId) {
-  if (!chatId || !msgId) return;
-  try {
-    let msgRef;
-    if (chatId === "public") {
-      msgRef = doc(db, "messages", msgId);
-    } else if (chatId.includes("_")) {
-      msgRef = doc(db, "privateChats", chatId, "messages", msgId);
-    } else {
-      msgRef = doc(db, "rooms", chatId, "messages", msgId);
-    }
-    await updateDoc(msgRef, { deleted: true, text: "تم حذف هذه الرسالة", image: deleteField(), audio: deleteField(), pdf: deleteField(), fileUrl: deleteField() });
-    await updateDoc(doc(db, "reports", reportId), { status: "resolved" });
-    const idx = _ownerReportsAll.findIndex(r => r.id === reportId);
-    if (idx !== -1) _ownerReportsAll[idx].status = "resolved";
-    _renderOwnerReports();
-    toast("تم حذف الرسالة وإغلاق البلاغ", "success");
-  } catch(e) { toast("فشل حذف الرسالة", "error"); }
-}
-window.ownerDeleteReportedMsg = ownerDeleteReportedMsg;
-
-/* ══════════════════════════════════════════
-   ADMIN REPORTS — نظام التبليغات للأدمن
-   صلاحيات الأدمن فقط — بدون أدوات المالك
-══════════════════════════════════════════ */
-let _adminReportsAll    = [];
-let _adminReportsFilter = "all";
-
-async function loadAdminReports() {
-  if (!isAdmin()) return;
-  const listEl = document.getElementById("adminReportsList");
-  if (!listEl) return;
-  listEl.innerHTML = `<div class="spinner" style="margin:24px auto;"></div>`;
-  try {
-    const q = query(collection(db, "reports"), orderBy("createdAt", "desc"), limit(100));
-    const snap = await getDocs(q);
-    _adminReportsAll = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    let open = 0, resolved = 0, rejected = 0;
-    _adminReportsAll.forEach(r => {
-      if (r.status === "open" || r.status === "reviewing") open++;
-      else if (r.status === "resolved") resolved++;
-      else if (r.status === "rejected") rejected++;
-    });
-    const oEl = document.getElementById("rptAdminStatOpen");
-    const dEl = document.getElementById("rptAdminStatDone");
-    const rEl = document.getElementById("rptAdminStatRej");
-    if (oEl) oEl.textContent = open;
-    if (dEl) dEl.textContent = resolved;
-    if (rEl) rEl.textContent = rejected;
-    const subEl = document.getElementById("rptAdminSub");
-    if (subEl) subEl.textContent = `${_adminReportsAll.length} بلاغ · ${open} مفتوح`;
-    _renderAdminReports();
-  } catch(e) {
-    listEl.innerHTML = `<div class="empty-state">فشل تحميل البلاغات</div>`;
-  }
-}
-window.loadAdminReports = loadAdminReports;
-
-function filterAdminReports(btn) {
-  document.querySelectorAll("#page-admin .rpt-admin-tab").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  _adminReportsFilter = btn.dataset.filter;
-  _renderAdminReports();
-}
-window.filterAdminReports = filterAdminReports;
-
-function _renderAdminReports() {
-  const listEl = document.getElementById("adminReportsList");
-  if (!listEl) return;
-  let data = _adminReportsAll;
-  if (_adminReportsFilter !== "all") {
-    if (_adminReportsFilter === "open") data = data.filter(r => r.status === "open" || r.status === "reviewing");
-    else data = data.filter(r => r.status === _adminReportsFilter);
-  }
-  if (!data.length) { listEl.innerHTML = `<div class="empty-state">لا توجد بلاغات</div>`; return; }
-  listEl.innerHTML = data.map(r => {
-    const statusLabel = { open: "مفتوح", reviewing: "قيد المراجعة", resolved: "معالج", rejected: "مرفوض" }[r.status] || r.status;
-    let date = "—";
-    try { const ts = r.createdAt?.toDate?.() || new Date(r.createdAt); date = ts.toLocaleDateString("ar-EG", { day:"numeric", month:"short", year:"numeric" }); } catch(_) {}
-    const msgBox = r.msgText ? `<div class="rpt-rc-msg-box"><i class="fa-solid fa-quote-right" style="color:var(--muted);margin-left:6px;"></i>${esc(r.msgText)}</div>` : "";
-    // الأدمن يستطيع حذف الرسالة إذا كانت صلاحياته تسمح (isAdmin)
-    const hasMsgDelete = r.msgId && r.chatId;
-    const delBtnHtml = hasMsgDelete
-      ? `<button class="rpt-act-btn del-msg" onclick="adminDeleteReportedMsg('${esc(r.id)}','${esc(r.chatId)}','${esc(r.msgId)}')"><i class="fa-solid fa-trash"></i> حذف الرسالة</button>`
-      : "";
-    return `
-    <div class="rpt-report-card status-${r.status}" id="rptAdminCard-${r.id}">
-      <div class="rpt-rc-hdr">
-        <span class="rpt-rc-badge ${r.status}">${statusLabel}</span>
-        <span class="rpt-rc-reason">${esc(r.reason)}</span>
-        <span class="rpt-rc-date">${date}</span>
-      </div>
-      <div class="rpt-rc-row">
-        <div class="rpt-rc-person">
-          <div class="rpt-rc-person-lbl">المبلغ</div>
-          <div class="rpt-rc-person-name">${esc(r.reporterName || "—")}</div>
-          <div class="rpt-rc-person-uid">${esc(r.reporterUid || "")}</div>
-        </div>
-        <div class="rpt-rc-person">
-          <div class="rpt-rc-person-lbl">المبلغ عنه</div>
-          <div class="rpt-rc-person-name">${esc(r.targetName || "—")}</div>
-          <div class="rpt-rc-person-uid">${esc(r.targetUid || "")}</div>
-        </div>
-      </div>
-      ${msgBox}
-      <div class="rpt-rc-actions">
-        <button class="rpt-act-btn resolve"  onclick="adminUpdateReportStatus('${r.id}','resolved')"><i class="fa-solid fa-check"></i> قبول</button>
-        <button class="rpt-act-btn reject"   onclick="adminUpdateReportStatus('${r.id}','rejected')"><i class="fa-solid fa-xmark"></i> رفض</button>
-        <button class="rpt-act-btn review"   onclick="adminUpdateReportStatus('${r.id}','reviewing')"><i class="fa-solid fa-eye"></i> مراجعة</button>
-        ${delBtnHtml}
-        <button class="rpt-act-btn profile"  onclick="openProfileViewModal('${esc(r.targetUid)}')"><i class="fa-solid fa-id-card"></i> البروفايل</button>
-      </div>
-    </div>`;
-  }).join("");
-}
-
-async function adminUpdateReportStatus(reportId, status) {
-  if (!isAdmin()) return;
-  try {
-    await updateDoc(doc(db, "reports", reportId), { status });
-    const idx = _adminReportsAll.findIndex(r => r.id === reportId);
-    if (idx !== -1) _adminReportsAll[idx].status = status;
-    _renderAdminReports();
-    let open = 0, resolved = 0, rejected = 0;
-    _adminReportsAll.forEach(r => {
-      if (r.status === "open" || r.status === "reviewing") open++;
-      else if (r.status === "resolved") resolved++;
-      else if (r.status === "rejected") rejected++;
-    });
-    const oEl = document.getElementById("rptAdminStatOpen");
-    const dEl = document.getElementById("rptAdminStatDone");
-    const rEl = document.getElementById("rptAdminStatRej");
-    if (oEl) oEl.textContent = open;
-    if (dEl) dEl.textContent = resolved;
-    if (rEl) rEl.textContent = rejected;
-    toast("تم تحديث حالة البلاغ", "success");
-  } catch(e) { toast("فشل تحديث الحالة", "error"); }
-}
-window.adminUpdateReportStatus = adminUpdateReportStatus;
-
-async function adminDeleteReportedMsg(reportId, chatId, msgId) {
-  if (!isAdmin() || !chatId || !msgId) return;
-  try {
-    let msgRef;
-    if (chatId === "public") {
-      msgRef = doc(db, "messages", msgId);
-    } else if (chatId.includes("_")) {
-      msgRef = doc(db, "privateChats", chatId, "messages", msgId);
-    } else {
-      msgRef = doc(db, "rooms", chatId, "messages", msgId);
-    }
-    await updateDoc(msgRef, { deleted: true, text: "تم حذف هذه الرسالة", image: deleteField(), audio: deleteField(), pdf: deleteField(), fileUrl: deleteField() });
-    await updateDoc(doc(db, "reports", reportId), { status: "resolved" });
-    const idx = _adminReportsAll.findIndex(r => r.id === reportId);
-    if (idx !== -1) _adminReportsAll[idx].status = "resolved";
-    _renderAdminReports();
-    toast("تم حذف الرسالة وإغلاق البلاغ", "success");
-  } catch(e) { toast("فشل حذف الرسالة", "error"); }
-}
-window.adminDeleteReportedMsg = adminDeleteReportedMsg;
 
 /* ══════════════════════════════════════════
    POLL SYSTEM — نظام الاستطلاعات
@@ -10745,6 +10468,8 @@ window.selectChat = function(chatId, chatName, chatPhoto) {
 try { _listenPinnedMsg(); } catch(e) {}
 
 </script>
+<script type="module" src="js/report.js"></script>
+<script src="js/spark.js"></script>
 <!-- ══════════════════════════════════════════
      SETTINGS MODAL — Full Screen Sheet
 ══════════════════════════════════════════ -->
@@ -11153,6 +10878,8 @@ try { _listenPinnedMsg(); } catch(e) {}
 <div id="emojiPickerWrap" style="position:fixed;z-index:99999;"></div>
 
 
+<script src="js/emoji-picker.js"></script>
+<script src="js/chat-search.js"></script>
 <script src="js/notif-settings.js"></script>
 
 <script src="js/notif-panel.js"></script>
