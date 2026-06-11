@@ -1856,6 +1856,7 @@ function _ianTypeFromData(data) {
   if (data.type === "admin")       return "admin";
   return "default";
 }
+window._ianTypeFromData = _ianTypeFromData;
 function _ianNow() {
   const n = new Date();
   return n.getHours().toString().padStart(2,"0")+":"+n.getMinutes().toString().padStart(2,"0");
@@ -1951,6 +1952,7 @@ function _startNotifListener(uid) {
     }
   }, () => {});
 }
+window._startNotifListener = _startNotifListener;
 /* FCM END */
 
 async function uploadToCloudinary(file) {
@@ -3861,6 +3863,7 @@ function _loadPrivateChatsFromFirestore() {
     }
   });
 }
+window.buildDmList = buildDmList;
 
 /* ══════════════════════════════════════════
    OPEN DIRECT CHAT — Creates room if needed (no chatRequests)
@@ -4751,6 +4754,7 @@ async function _loadOlderMessages(chatId) {
 
   _loadingMore = false;
 }
+window.startChatListener = startChatListener;
 
 /* ══════════════════════════════════════════
    PRIVATE CHAT HELPERS
@@ -10886,16 +10890,16 @@ try { _listenPinnedMsg(); } catch(e) {}
 
 <script src="js/emoji-picker.js"></script>
 <script src="js/chat-search.js"></script>
-<script src="js/notif-settings.js"></script>
+<script type="module" src="js/notif-settings.js"></script>
 
-<script src="js/notif-panel.js"></script>
+<script type="module" src="js/notif-panel.js"></script>
 
 <!-- ══════════════════════════════════════════
      SETTINGS MODAL SYSTEM — Theme + Notifs + More
 ══════════════════════════════════════════ -->
-<script src="js/settings-modal.js"></script>
+<script type="module" src="js/settings-modal.js"></script>
 <script src="js/connectivity.js"></script>
-<script src="js/skeleton-loader.js"></script>
+<script type="module" src="js/skeleton-loader.js"></script>
 
 <!-- ══════════════════════════════════════════
      GRADES MODULE — درجاتي
