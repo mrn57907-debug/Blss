@@ -40,6 +40,7 @@
       if (el) { el.style.opacity = "0"; }
     }, 700);
   }
+  window._loadPrefs = _loadPrefs;
 
   function _syncToggles() {
     NS_KEYS.forEach(k => {
