@@ -8750,6 +8750,7 @@ function setReply(data) {
   bar.classList.add("show");
   document.getElementById("chatInput")?.focus();
 }
+window.setReply = setReply;
 
 function cancelReply() {
   _replyData = null;
