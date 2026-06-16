@@ -2428,6 +2428,7 @@ let currentPhoto  = "";
 let msgUnsub      = null;
 let _reactionsUnsub = null;
 let _isChatBanned = false;
+Object.defineProperty(window, '_isChatBanned', { get: () => _isChatBanned, configurable: true });
 let _ownerVipUnsub = null;   // ← Realtime VIP listener for owner
 
 /* ══════════════════════════════════════════
@@ -8828,8 +8829,8 @@ function _showCtxAt(x, y, docId, data) {
     menu.style.left = cx + "px"; menu.style.top = cy + "px";
     menu.style.opacity = "";
     menu.classList.add("show");
-    _ctxJustOpened = true;
-    setTimeout(() => { _ctxJustOpened = false; }, 350);
+    window._ctxJustOpened = true;
+    setTimeout(() => { window._ctxJustOpened = false; }, 350);
   });
 }
 
