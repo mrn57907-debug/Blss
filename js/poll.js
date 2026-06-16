@@ -353,6 +353,11 @@ async function _saveEdit() {
 
 // Close ctx menu on outside click/scroll/back
 let _ctxJustOpened = false;
+Object.defineProperty(window, '_ctxJustOpened', {
+  get: () => _ctxJustOpened,
+  set: v => { _ctxJustOpened = v; },
+  configurable: true
+});
 document.addEventListener("click", (e) => {
   if (_ctxJustOpened) { _ctxJustOpened = false; return; }
   const menu = document.getElementById("msgCtxMenu");
