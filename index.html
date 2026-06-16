@@ -8862,7 +8862,7 @@ window.ctxReply = ctxReply;
 function ctxDelete() {
   hideMsgCtxMenu();
   if (!_ctxDocId) return;
-  if (typeof adminDeleteMsg === "function") adminDeleteMsg(_ctxDocId);
+  if (typeof window.adminDeleteMsg === "function") window.adminDeleteMsg(_ctxDocId);
 }
 window.ctxDelete = ctxDelete;
 
