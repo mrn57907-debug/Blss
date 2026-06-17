@@ -114,8 +114,8 @@ const _origStartChat = typeof startChatListener === "function" ? startChatListen
 
 // ── Modal ──
 window.openPollModal = function() {
-  if (window._isChatBanned) { window.toast("أنت محظور من إرسال الرسائل","error"); return; }
-  if (window._avm?.active)  { window.toast("⛔ لا يمكن الإرسال في وضع المشاهدة","error"); return; }
+  if (_isChatBanned) { toast("أنت محظور من إرسال الرسائل","error"); return; }
+  if (_avm.active)   { toast("⛔ لا يمكن الإرسال في وضع المشاهدة","error"); return; }
   // Reset
   document.getElementById("pollQuestion").value = "";
   const list = document.getElementById("pollOptionsList");
@@ -153,38 +153,38 @@ window.pollRemoveOption = function(btn) {
 };
 
 window.pollSubmit = async function() {
-  if (!window.currentUser) return;
+  if (!currentUser) return;
   const question = document.getElementById("pollQuestion").value.trim();
-  if (!question) { window.toast("اكتب سؤال الاستطلاع","warn"); return; }
+  if (!question) { toast("اكتب سؤال الاستطلاع","warn"); return; }
   const inputs  = document.querySelectorAll("#pollOptionsList .poll-opt-inp");
   const options = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
-  if (options.length < 2) { window.toast("أضف خيارين على الأقل","warn"); return; }
-  if (new Set(options).size !== options.length) { window.toast("الخيارات يجب أن تكون مختلفة","warn"); return; }
+  if (options.length < 2) { toast("أضف خيارين على الأقل","warn"); return; }
+  if (new Set(options).size !== options.length) { toast("الخيارات يجب أن تكون مختلفة","warn"); return; }
 
   const btn = document.getElementById("pollSendBtn");
   btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
 
   try {
-    const colPath  = window.chatColPath(window._currentChatId);
-    const isPrivate = window._currentChatId !== "public";
+    const colPath  = chatColPath(_currentChatId);
+    const isPrivate = _currentChatId !== "public";
     const msgData = {
-      uid:       window.currentUser.uid,
-      name:      window.currentName,
-      photo:     window.currentUser.photoURL || "",
+      uid:       currentUser.uid,
+      name:      currentName,
+      photo:     currentPhoto,
       createdAt: serverTimestamp(),
       poll: {
         question,
         options,
         votes: {}   // { 0:[uid,...], 1:[uid,...] }
       },
-      ...(isPrivate ? { senderId: window.currentUser.uid, delivered: false, seen: false }
+      ...(isPrivate ? { senderId: currentUser.uid, delivered: false, seen: false }
                     : { time: new Date().toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"}) })
     };
-    await addDoc(collection(window.db, colPath), msgData);
-    window.closePollModal();
-    window.toast("✅ تم إرسال الاستطلاع","success");
+    await addDoc(collection(db, colPath), msgData);
+    closePollModal();
+    toast("✅ تم إرسال الاستطلاع","success");
   } catch(e) {
-    window.toast("فشل إرسال الاستطلاع","error");
+    toast("فشل إرسال الاستطلاع","error");
     console.error(e);
   } finally {
     btn.disabled = false;
@@ -375,11 +375,12 @@ function _attachLongPress(row, docId, data) {
   const start = (e) => {
     _fired = false; _moved = false;
     _sx = e.touches[0].clientX; _sy = e.touches[0].clientY;
-    _cx = _sx; _cy = _sy;
+    _cx = _sx; _cy = _sy; // حفظ الإحداثيات لاستخدامها لاحقاً
     _lpTimer = setTimeout(() => {
       if (_moved) return;
       _fired = true;
       navigator.vibrate?.(30);
+      // تمرير إحداثيات محفوظة بدل event منتهٍ
       _showCtxAt(_cx, _cy, docId, data);
     }, LP_DELAY);
   };
@@ -410,13 +411,16 @@ function _attachSwipeReply(row, docId, data) {
   const group = row.querySelector(".msg-bubble-group");
   if (!group) return;
 
+  // Prevent duplicate icons on re-renders
   if (group.querySelector(".swipe-reply-icon")) return;
 
+  // Append icon element (visual only — no listeners here)
   const icon = document.createElement("div");
   icon.className = "swipe-reply-icon";
   icon.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>`;
   group.appendChild(icon);
 
+  // Store reply metadata on the row — read by the delegated handler
   row.dataset.swipeDocId = docId;
   try {
     row.dataset.swipeData = JSON.stringify({
@@ -433,12 +437,14 @@ function _attachSwipeReply(row, docId, data) {
 window._attachSwipeReply = _attachSwipeReply;
 
 // ── Single delegated swipe handler — init once per container ──────────────
+// Handles ALL .msg-row elements inside the container, including future ones.
 function _initSwipeDelegation(container) {
   if (!container || container._swipeDelegated) return;
   container._swipeDelegated = true;
 
   const THRESHOLD = 65, TRIGGER = 52;
 
+  // Per-gesture state
   let _row = null, _group = null, _icon = null, _isMe = false;
   let _startX = 0, _startY = 0, _dirLocked = false, _isHoriz = false;
   let _dragging = false, _triggered = false;
@@ -466,6 +472,7 @@ function _initSwipeDelegation(container) {
   function _applyDist(dist) {
     if (!_group) return;
     const prog = Math.min(dist / TRIGGER, 1);
+    // WhatsApp: all messages slide RIGHT
     _group.style.transform = `translateX(${dist}px)`;
     if (_icon) {
       _icon.style.opacity   = prog;
@@ -493,6 +500,7 @@ function _initSwipeDelegation(container) {
     if (!_group) return;
     const rawDx = e.touches[0].clientX - _startX;
     const dy    = e.touches[0].clientY - _startY;
+    // WhatsApp: always swipe RIGHT to reply (RTL: drag right = positive rawDx)
     const dx = rawDx;
 
     if (!_dirLocked) {
@@ -526,7 +534,28 @@ function _initSwipeDelegation(container) {
 window._initSwipeDelegation = _initSwipeDelegation;
 
 // ── Cleanup hook for logout (called from core) ──
-window._pollCleanup = function() {
+window._cleanupPollListeners = () => {
   Object.values(_pollListeners).forEach(u => { try{u();}catch(e){} });
   Object.keys(_pollListeners).forEach(k => delete _pollListeners[k]);
 };
+
+// Intercept chatSendBtn click for edit mode
+(function() {
+  const btn = document.getElementById("chatSendBtn");
+  const input = document.getElementById("chatInput");
+  if (!btn || !input) return;
+  const _origClick = btn.onclick;
+  btn.addEventListener("click", async function(e) {
+    if (btn.getAttribute("data-mode") === "edit") {
+      e.stopImmediatePropagation();
+      await _saveEdit();
+    }
+  }, true); // capture phase — fires before other listeners
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey && _editDocId) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      _saveEdit();
+    }
+    if (e.key === "Escape" && _editDocId) { cancelEdit(); }
+  }, true);
+})();
