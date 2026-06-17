@@ -5664,19 +5664,21 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
    CHAT — ADMIN ACTIONS
 ══════════════════════════════════════════ */
 window.adminDeleteMsg = async function(docId) {
-  if (!isAdmin()) return;
+  const chatPath = chatColPath(_currentChatId);
+
+  // احفظ بيانات الرسالة قبل أي قرار — تُستخدم لفحص الملكية وللـ Audit Log
+  let msgData = {};
+  try {
+    const _msgSnap = await getDoc(doc(db, chatPath, docId));
+    if (_msgSnap.exists()) msgData = _msgSnap.data();
+  } catch(_e) {}
+
+  const _isOwnMsg = currentUser && msgData.uid === currentUser.uid;
+  if (!isAdmin() && !_isOwnMsg) return;
+
   const ok = await confirm("حذف الرسالة", "هل تريد حذف هذه الرسالة؟");
   if (!ok) return;
   try {
-    const chatPath = chatColPath(_currentChatId);
-
-    // احفظ بيانات الرسالة قبل الحذف للـ Audit Log
-    let msgData = {};
-    try {
-      const _msgSnap = await getDoc(doc(db, chatPath, docId));
-      if (_msgSnap.exists()) msgData = _msgSnap.data();
-    } catch(_e) {}
-
     // ✅ Soft Delete — deleted:true بدل deleteDoc
     // يحفظ الرسالة في Firestore للمراجعة، ويخفيها من الواجهة فقط
     await updateDoc(doc(db, chatPath, docId), {
