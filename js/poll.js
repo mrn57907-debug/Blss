@@ -240,7 +240,7 @@ async function toggleReaction(docId, emoji, chatId) {
       upd[`reactions.${emoji}`] = arrayUnion(uid);
     }
     await updateDoc(msgRef, upd);
-  } catch(e) { console.warn("reaction error:", e); }
+  } catch(e) { console.warn("reaction error:", e); toast("فشل التفاعل: " + (e.code || e.message || "خطأ غير معروف"), "error"); }
 }
 window.toggleReaction = toggleReaction;
 
@@ -281,6 +281,7 @@ function _updateReactionChips(row, docId, reactions) {
     grp.appendChild(newEl);
   }
 }
+window._updateReactionChips = _updateReactionChips;
 
 // ── Edit Message ──
 let _editDocId = null;
@@ -308,7 +309,7 @@ function _showEditBar(originalText) {
     bar = document.createElement("div");
     bar.id = "editModeBar";
     bar.style.cssText = "display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(201,169,110,.12);border-top:1.5px solid rgba(201,169,110,.3);font-size:13px;color:var(--gold);font-weight:600;";
-    bar.innerHTML = `<i class="fa-solid fa-pen" style="font-size:13px;"></i><span style="flex:1"> </span><button onclick="cancelEdit()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 4px;line-height:1;">&times;</button>`;
+    bar.innerHTML = `<i class="fa-solid fa-pen" style="font-size:13px;"></i><button onclick="cancelEdit()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 4px;line-height:1;margin-inline-start:auto;">&times;</button>`;
     const inputBar = document.querySelector(".chat-input-bar");
     if (inputBar) inputBar.insertBefore(bar, inputBar.firstChild);
   }
