@@ -108,39 +108,35 @@
 
   <!-- ══ واجهة الباندا ══ -->
   <div id="loginUI-panda" style="display:none;">
-    <div class="panda-container">
+    <div class="container">
 
-      <!-- نموذج تسجيل الدخول -->
+      <!-- ── نموذج تسجيل الدخول ── -->
       <form id="pandaLoginForm" class="login-form">
-        <label>البريد الإلكتروني:</label>
+        <label for="pandaEmail">البريد الإلكتروني:</label>
         <input type="email" id="pandaEmail" placeholder="أدخل بريدك الإلكتروني..."
-          oninput="document.getElementById('loginEmail').value=this.value">
-        <label>كلمة المرور:</label>
+          oninput="document.getElementById('loginEmail').value=this.value" />
+        <label for="pandaPass">كلمة المرور:</label>
         <input type="password" id="pandaPass" placeholder="أدخل كلمة المرور..."
-          oninput="document.getElementById('loginPass').value=this.value">
-        <button type="button" class="panda-submit-btn"
-          onclick="_pandaSubmit('login')">تسجيل الدخول</button>
-        <div class="panda-error" id="pandaError"></div>
-        <div class="panda-toggle-link">
+          oninput="document.getElementById('loginPass').value=this.value" />
+        <button type="button" class="submit-btn" onclick="_pandaSubmit('login')">تسجيل الدخول</button>
+        <div class="toggle-link">
           ليس لديك حساب؟ <span onclick="_pandaShowSignup()">إنشاء حساب جديد</span>
         </div>
       </form>
 
-      <!-- نموذج إنشاء الحساب -->
+      <!-- ── نموذج إنشاء الحساب ── -->
       <form id="pandaSignupForm" class="signup-form" style="display:none;">
-        <label>الاسم الكامل:</label>
+        <label for="pandaName">الاسم الكامل:</label>
         <input type="text" id="pandaName" placeholder="أدخل اسمك الكامل..."
-          oninput="document.getElementById('loginName').value=this.value">
-        <label>البريد الإلكتروني:</label>
+          oninput="document.getElementById('loginName').value=this.value" />
+        <label for="pandaEmail2">البريد الإلكتروني:</label>
         <input type="email" id="pandaEmail2" placeholder="أدخل بريدك الإلكتروني..."
-          oninput="document.getElementById('loginEmail').value=this.value">
-        <label>كلمة المرور:</label>
+          oninput="document.getElementById('loginEmail').value=this.value" />
+        <label for="pandaPass2">كلمة المرور:</label>
         <input type="password" id="pandaPass2" placeholder="٦ أحرف على الأقل..."
-          oninput="document.getElementById('loginPass').value=this.value">
-        <button type="button" class="panda-submit-btn"
-          onclick="_pandaSubmit('register')">إنشاء الحساب</button>
-        <div class="panda-error" id="pandaError2"></div>
-        <div class="panda-toggle-link">
+          oninput="document.getElementById('loginPass').value=this.value" />
+        <button type="button" class="submit-btn" onclick="_pandaSubmit('register')">إنشاء الحساب</button>
+        <div class="toggle-link">
           لديك حساب بالفعل؟ <span onclick="_pandaShowLogin()">تسجيل الدخول</span>
         </div>
       </form>
@@ -3176,22 +3172,40 @@ function _pandaInitEffects() {
   const handR = document.querySelector("#loginUI-panda .hand-r");
   if (!eyeL) return;
 
-  const normalEye  = () => { eyeL.style.cssText="left:.6em;top:.6em;"; eyeR.style.cssText="right:.6em;top:.6em;"; };
-  const normalHand = () => { handL.style.cssText="height:2.81em;top:8.4em;left:7.5em;transform:rotate(0deg);"; handR.style.cssText="height:2.81em;top:8.4em;right:7.5em;transform:rotate(0deg);"; };
-  const eyesDown   = () => { eyeL.style.cssText="left:.75em;top:1.12em;"; eyeR.style.cssText="right:.75em;top:1.12em;"; };
-  const handsUp    = () => { handL.style.cssText="height:6.56em;top:3.87em;left:11.75em;transform:rotate(-155deg);"; handR.style.cssText="height:6.56em;top:3.87em;right:11.75em;transform:rotate(155deg);"; };
+  const normalEyeStyle  = () => {
+    eyeL.style.cssText = "left:0.6em; top:0.6em;";
+    eyeR.style.cssText = "right:0.6em; top:0.6em;";
+  };
+  const normalHandStyle = () => {
+    handL.style.cssText = "height:2.81em; top:8.4em; left:7.5em; transform:rotate(0deg);";
+    handR.style.cssText = "height:2.81em; top:8.4em; right:7.5em; transform:rotate(0deg);";
+  };
+  const eyesDown = () => {
+    eyeL.style.cssText = "left:0.75em; top:1.12em;";
+    eyeR.style.cssText = "right:0.75em; top:1.12em;";
+  };
+  const handsUp = () => {
+    handL.style.cssText = "height:6.56em; top:3.87em; left:11.75em; transform:rotate(-155deg);";
+    handR.style.cssText = "height:6.56em; top:3.87em; right:11.75em; transform:rotate(155deg);";
+  };
 
-  const addEye  = id => { const el=document.getElementById(id); if(el) el.addEventListener("focus",()=>{eyesDown();normalHand();}); };
-  const addHand = id => { const el=document.getElementById(id); if(el) el.addEventListener("focus",()=>{handsUp();normalEye();}); };
-  addEye("pandaEmail"); addEye("pandaEmail2"); addEye("pandaName");
-  addHand("pandaPass"); addHand("pandaPass2");
+  const attachEyeEffect  = el => { if(el) el.addEventListener("focus", () => { eyesDown();  normalHandStyle(); }); };
+  const attachHandEffect = el => { if(el) el.addEventListener("focus", () => { handsUp();   normalEyeStyle(); }); };
+
+  attachEyeEffect(document.getElementById("pandaEmail"));
+  attachHandEffect(document.getElementById("pandaPass"));
+  attachEyeEffect(document.getElementById("pandaName"));
+  attachEyeEffect(document.getElementById("pandaEmail2"));
+  attachHandEffect(document.getElementById("pandaPass2"));
 
   document.addEventListener("click", e => {
-    const ids = ["pandaEmail","pandaPass","pandaEmail2","pandaPass2","pandaName"];
-    if (!ids.map(id=>document.getElementById(id)).includes(e.target)) { normalEye(); normalHand(); }
+    const ids = ["pandaEmail","pandaPass","pandaName","pandaEmail2","pandaPass2"];
+    if (!ids.map(id => document.getElementById(id)).includes(e.target)) {
+      normalEyeStyle();
+      normalHandStyle();
+    }
   });
 
-  // مزامنة رسائل الخطأ من loginError لعرضها في الباندا
   const errSrc = document.getElementById("loginError");
   const errL   = document.getElementById("pandaError");
   const errS   = document.getElementById("pandaError2");
