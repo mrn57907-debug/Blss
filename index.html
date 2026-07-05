@@ -16,9 +16,6 @@
      LOGIN PAGE — Animated Lamp Edition
 ══════════════════════════════════════════ -->
 <div id="page-login" class="page active">
-
-  <!-- ══ واجهة المصباح (الافتراضية) ══ -->
-  <div id="loginUI-lamp">
   <div class="lp-scene" id="lpScene">
 
     <!-- ══ المصباح ══ -->
@@ -58,7 +55,6 @@
       <div class="lp-box-title">نظام الجامعة</div>
       <div class="lp-box-sub">سجّل دخولك أو أنشئ حساباً جديداً</div>
 
-      <!-- Toggle login / register — نفس IDs الأصلية -->
       <div class="login-toggle">
         <button id="toggleLogin" class="active" onclick="setAuthMode('login')">
           <i class="fa-solid fa-key"></i> تسجيل الدخول
@@ -68,10 +64,8 @@
         </button>
       </div>
 
-      <!-- حقل الاسم — يظهر عند التسجيل فقط -->
       <div id="nameRow"><input class="inp" id="loginName" placeholder="الاسم الكامل"></div>
 
-      <!-- اختيار النوع — يظهر عند التسجيل فقط -->
       <div id="genderRow" class="gender-row">
         <div class="gender-seg-header">
           <i class="fa-solid fa-user-circle" style="color:var(--gold);font-size:12px;"></i>
@@ -96,7 +90,6 @@
         </div>
       </div>
 
-      <!-- الحقول الأساسية — نفس IDs الأصلية تماماً -->
       <input class="inp" id="loginEmail" placeholder="البريد الإلكتروني" type="email">
       <input class="inp" id="loginPass"  placeholder="كلمة المرور (6+ أحرف)" type="password">
       <button class="btn" id="mainAuthBtn"><i class="fa-solid fa-key"></i> تسجيل الدخول</button>
@@ -104,18 +97,6 @@
     </div>
 
   </div>
-  </div><!-- /loginUI-lamp -->
-
-  <!-- ══ واجهة الباندا ══ -->
-
-  <!-- ══ واجهة الباندا — iframe معزول ══ -->
-  <div id="loginUI-panda" style="display:none;width:100%;height:100vh;">
-    <iframe id="pandaFrame" src="panda.html"
-      style="width:100%;height:100%;border:none;display:block;"
-      scrolling="no"></iframe>
-  </div><!-- /loginUI-panda -->
-
-
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -1451,36 +1432,6 @@
         </div>
       </div>
 
-      <!-- ══ قسم: واجهة تسجيل الدخول ══ -->
-      <div class="owner-collapse-item" style="margin-top:10px;">
-        <div class="owner-collapse-header" onclick="ownerToggleSection(this)">
-          <div class="owner-collapse-icon-wrap" style="background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.3);color:#fbbf24;"><i class="fa-solid fa-palette"></i></div>
-          <div class="owner-collapse-body-text">
-            <div class="owner-collapse-title">واجهة تسجيل الدخول</div>
-            <div class="owner-collapse-sub" id="loginUISub">الحالية: المصباح 💡</div>
-          </div>
-          <i class="fa-solid fa-chevron-down owner-collapse-arrow"></i>
-        </div>
-        <div class="owner-collapse-panel">
-          <div class="owner-collapse-inner">
-            <div class="panel-sec">
-              <div class="panel-sec-title" style="color:#fbbf24;"><i class="fa-solid fa-palette"></i> اختر واجهة تسجيل الدخول</div>
-              <div style="display:flex;gap:8px;margin-top:10px;">
-                <button class="btn" id="loginUILampBtn" style="flex:1;" onclick="toggleLoginUI('lamp')">
-                  💡 واجهة المصباح
-                </button>
-                <button class="btn btn-dark" id="loginUIPandaBtn" style="flex:1;" onclick="toggleLoginUI('panda')">
-                  🐼 واجهة الباندا
-                </button>
-              </div>
-              <div style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6;">
-                التغيير يُطبَّق فوراً على جميع المستخدمين دون الحاجة لتسجيل خروج.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- ══ قسم 15: التبليغات ══ -->
       <div class="owner-collapse-item" style="margin-top:10px;">
         <div class="owner-collapse-header" onclick="ownerToggleSection(this)">
@@ -1739,27 +1690,6 @@ const auth    = getAuth(app);
 const db      = getFirestore(app);
 const storage = getStorage(app);
 window.db = db;
-
-/* ── Login UI Switcher — يبدأ قبل Auth ── */
-(function _initLoginUISwitcher() {
-  const lamp  = document.getElementById("loginUI-lamp");
-  const panda = document.getElementById("loginUI-panda");
-  const page  = document.getElementById("page-login");
-  if (!lamp || !panda) return;
-  onSnapshot(doc(db, "appSettings", "loginUI"), snap => {
-    const active = snap.exists() ? (snap.data().active || "lamp") : "lamp";
-    lamp.style.display  = active === "panda" ? "none" : "";
-    panda.style.display = active === "panda" ? ""     : "none";
-    if (active === "panda") {
-      page.classList.add("panda-active");
-      _pandaBridgeInit();
-    } else {
-      page.classList.remove("panda-active");
-    }
-    const sub = document.getElementById("loginUISub");
-    if (sub) sub.textContent = active === "panda" ? "الحالية: الباندا 🐼" : "الحالية: المصباح 💡";
-  }, () => {});
-})();
 
 /* FCM START */
 const FCM_VAPID = "LxeNAGikuTGV_F8cdINPwYTabqXKNyEFXSQtd57RmoU";
@@ -3114,75 +3044,6 @@ document.getElementById("modalCancel").addEventListener("click", () => {
 /* ══════════════════════════════════════════
    PAGE / TAB NAVIGATION
 ══════════════════════════════════════════ */
-
-/* ══════════════════════════════════════════
-   PANDA LOGIN SYSTEM — Bridge (iframe isolation)
-══════════════════════════════════════════ */
-let _pandaBridgeReady = false;
-
-function _pandaBridgeInit() {
-  if (_pandaBridgeReady) return;
-  const frame = document.getElementById("pandaFrame");
-  if (!frame) return;
-  _pandaBridgeReady = true;
-
-  frame.addEventListener("load", () => {
-    const doc = frame.contentDocument;
-    if (!doc) return;
-
-    // ── زر تسجيل الدخول ──
-    const lBtn = doc.querySelector("#loginForm .submit-btn");
-    if (lBtn) lBtn.addEventListener("click", () => {
-      document.getElementById("loginEmail").value = doc.getElementById("username")?.value || "";
-      document.getElementById("loginPass").value  = doc.getElementById("password")?.value || "";
-      if (window.setAuthMode) setAuthMode("login");
-      document.getElementById("mainAuthBtn")?.click();
-    });
-
-    // ── زر إنشاء الحساب ──
-    const sBtn = doc.querySelector("#signupForm .submit-btn");
-    if (sBtn) sBtn.addEventListener("click", () => {
-      document.getElementById("loginName").value  = doc.getElementById("su-username")?.value || "";
-      document.getElementById("loginEmail").value = doc.getElementById("su-email")?.value    || "";
-      document.getElementById("loginPass").value  = doc.getElementById("su-password")?.value || "";
-      if (window.setAuthMode) setAuthMode("register");
-      document.getElementById("mainAuthBtn")?.click();
-    });
-
-    // ── مزامنة رسائل الخطأ من Firebase ──
-    const errSrc = document.getElementById("loginError");
-    if (errSrc) {
-      const injectErr = (txt) => {
-        ["loginForm","signupForm"].forEach(fId => {
-          const f = doc.getElementById(fId);
-          if (!f) return;
-          let d = f.querySelector(".bridge-error");
-          if (!d) {
-            d = doc.createElement("div");
-            d.className = "bridge-error";
-            d.style.cssText = "text-align:center;color:#dc2626;font-size:0.8em;margin-top:0.5em;font-family:Poppins,sans-serif;";
-            f.appendChild(d);
-          }
-          d.textContent = txt;
-        });
-      };
-      new MutationObserver(() => injectErr(errSrc.textContent || ""))
-        .observe(errSrc, { childList:true, characterData:true, subtree:true });
-    }
-  });
-}
-
-window._pandaBridgeInit = _pandaBridgeInit;
-
-// تبديل واجهة تسجيل الدخول — للمالك فقط
-window.toggleLoginUI = async function(uiName) {
-  if (!isOwner()) return;
-  try {
-    await setDoc(doc(db, "appSettings", "loginUI"), { active: uiName });
-    const label = uiName === "panda" ? "الباندا 🐼" : "المصباح 💡";
-    toast(`تم التبديل إلى واجهة ${label}`);
-  } catch(e) { toast("فشل تغيير الواجهة", "error"); }
-};
 
 window.showPage = (id) => {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
