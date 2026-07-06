@@ -536,7 +536,7 @@
   <div class="bottom-nav">
     <div class="nav-item active" data-nav="tab-home"><i class="fa-solid fa-house"></i><span>الرئيسية</span></div>
     <div class="nav-item" onclick="openChatPage()"><i class="fa-solid fa-comments"></i><span>الشات</span></div>
-    <div class="nav-item" onclick="openDmsPanel()"><i class="fa-solid fa-message"></i><span>الدردشات</span></div>
+    <div class="nav-item" onclick="openDmsPanel()"><i class="fa-regular fa-comment-dots"></i><span>الدردشات</span></div>
     <div class="nav-item" data-nav="tab-forum"><i class="fa-solid fa-layer-group"></i><span>المنتدى</span></div>
     <div class="nav-item" data-nav="tab-profile"><i class="fa-solid fa-circle-user"></i><span>بروفايلي</span></div>
   </div>
@@ -629,6 +629,9 @@
       </div>
       <button class="reply-bar-close" onclick="cancelReply()"><i class="fa-solid fa-xmark"></i></button>
     </div>
+
+    <!-- Mention Dropdown -->
+    <div id="mentionDropdown" style="display:none;"></div>
 
     <div class="chat-input-bar" id="chatInputBar">
       <button class="chat-img-btn" id="chatImgBtn" title="إرفاق ملف (اضغط مطولاً للاستطلاع)"><i class="fa-solid fa-paperclip"></i></button>
@@ -9563,6 +9566,7 @@ try { _listenPinnedMsg(); } catch(e) {}
 <script type="module" src="js/report.js"></script>
 <script type="module" src="js/library.js"></script>
 <script type="module" src="js/poll.js"></script>
+<script type="module" src="js/mention.js"></script>
 <script src="js/spark.js"></script>
 <!-- ══════════════════════════════════════════
      SETTINGS MODAL — Full Screen Sheet
