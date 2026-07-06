@@ -114,8 +114,16 @@ function _closeDropdown() {
 // ── فتح الـ dropdown ──
 async function _openDropdown() {
   _mentionActive = true;
-  const el = document.getElementById("mentionDropdown");
+  const el  = document.getElementById("mentionDropdown");
+  const bar = document.getElementById("chatInputBar");
   if (!el) return;
+
+  // حساب الموضع بناءً على chatInputBar
+  if (bar) {
+    const rect = bar.getBoundingClientRect();
+    el.style.bottom = (window.innerHeight - rect.top + 6) + "px";
+  }
+
   el.style.display = "flex";
   await _fetchUsers();
   _renderDropdown(_filterUsers(_mentionQuery));
