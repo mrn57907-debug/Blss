@@ -6771,19 +6771,19 @@ html.theme-light .poll-opt-inp::placeholder   { color: rgba(80,100,130,.5) !impo
    MENTION SYSTEM — @mention dropdown
 ══════════════════════════════════════════ */
 #mentionDropdown {
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  left: 0;
+  position: fixed;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
   max-height: 260px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  z-index: 300;
-  box-shadow: 0 -4px 20px rgba(0,0,0,.18);
+  z-index: 9999;
+  box-shadow: 0 -4px 24px rgba(0,0,0,.25);
+  width: calc(100vw - 24px);
+  left: 12px;
+  right: 12px;
 }
 #mentionDropdown .mention-search-wrap {
   padding: 8px 12px;
@@ -6791,11 +6791,9 @@ html.theme-light .poll-opt-inp::placeholder   { color: rgba(80,100,130,.5) !impo
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
-#mentionDropdown .mention-search-wrap i {
-  color: var(--muted);
-  font-size: 13px;
-}
+#mentionDropdown .mention-search-wrap i { color: var(--muted); font-size: 13px; }
 #mentionDropdown .mention-search-inp {
   flex: 1;
   background: transparent;
@@ -6806,10 +6804,7 @@ html.theme-light .poll-opt-inp::placeholder   { color: rgba(80,100,130,.5) !impo
   font-family: inherit;
 }
 #mentionDropdown .mention-search-inp::placeholder { color: var(--muted); }
-#mentionDropdown .mention-list {
-  overflow-y: auto;
-  flex: 1;
-}
+#mentionDropdown .mention-list { overflow-y: auto; flex: 1; }
 #mentionDropdown .mention-item {
   display: flex;
   align-items: center;
@@ -6819,9 +6814,7 @@ html.theme-light .poll-opt-inp::placeholder   { color: rgba(80,100,130,.5) !impo
   transition: background .15s;
 }
 #mentionDropdown .mention-item:hover,
-#mentionDropdown .mention-item.active {
-  background: rgba(201,169,110,.1);
-}
+#mentionDropdown .mention-item.active { background: rgba(201,169,110,.1); }
 #mentionDropdown .mention-avatar {
   width: 32px;
   height: 32px;
@@ -6829,20 +6822,12 @@ html.theme-light .poll-opt-inp::placeholder   { color: rgba(80,100,130,.5) !impo
   object-fit: cover;
   flex-shrink: 0;
   background: var(--border);
-}
-#mentionDropdown .mention-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-#mentionDropdown .mention-id {
-  font-size: 11px;
   color: var(--muted);
-  margin-top: 1px;
 }
-#mentionDropdown .mention-empty {
-  padding: 16px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 13px;
-}
+#mentionDropdown .mention-name { font-size: 14px; font-weight: 600; color: var(--text); }
+#mentionDropdown .mention-id { font-size: 11px; color: var(--muted); margin-top: 1px; }
+#mentionDropdown .mention-empty { padding: 16px; text-align: center; color: var(--muted); font-size: 13px; }
