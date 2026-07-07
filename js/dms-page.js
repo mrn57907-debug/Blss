@@ -122,9 +122,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("dmsSearchToggle")?.addEventListener("click", () => {
     const bar = document.getElementById("dmsSearchBar");
     if (!bar) return;
-    const visible = bar.style.display !== "none";
-    bar.style.display = visible ? "none" : "flex";
-    if (!visible) document.getElementById("dmsSearchInp")?.focus();
+    bar.classList.toggle("open");
+    if (bar.classList.contains("open")) document.getElementById("dmsSearchInp")?.focus();
   });
 
   document.getElementById("dmsSearchInp")?.addEventListener("input", e => {
