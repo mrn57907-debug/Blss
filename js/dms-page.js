@@ -1,3 +1,4 @@
+
 import { collection, query, where, orderBy, onSnapshot, doc, getDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* ══════════════════════════════════════════
@@ -168,14 +169,28 @@ window._dmsStartListeners = function() {
     const items = [];
     for (const ds of snap.docs) {
       const d       = ds.data();
+      const roomId  = ds.id;
       const otherId = (d.participants||[]).find(p => p !== uid);
       if (!otherId) continue;
       const u = await _getUser(otherId);
+
+      // حساب الرسائل غير المقروءة (seen==false من الطرف الآخر)
+      let unread = 0;
+      try {
+        const { getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+        const uQ = query(
+          collection(window.db, `privateChats/${roomId}/messages`),
+          where("seen","==",false)
+        );
+        const uSnap = await getDocs(uQ);
+        unread = uSnap.docs.filter(m => m.data().uid !== uid).length;
+      } catch(e) {}
+
       items.push({
         id: otherId, name: u.name, photo: u.photo, cls: "",
         lastMsg:  d.lastMessage   || "",
         lastTime: d.lastMessageAt || null,
-        unread:   d.unread        || 0
+        unread
       });
     }
     items.sort((a,b) => (b.lastTime?.toMillis?.()??0) - (a.lastTime?.toMillis?.()??0));
