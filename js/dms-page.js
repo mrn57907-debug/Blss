@@ -106,6 +106,7 @@ function _buildItem(item) {
   // مؤشر الاتصال يظهر فقط في المحادثات الخاصة (ليس الشات العام ولا الغرف)
   const showDot = item.cls === "";
   const dotHTML = showDot ? `<span class="dms-online-dot${item.isOnline ? " show" : ""}"></span>` : "";
+  const extrasHTML = (showDot && typeof window._dmExtrasRender === "function") ? window._dmExtrasRender(item) : "";
   return `
     <div class="dms-conv-item" id="dms-item-${item.id}" ${showDot ? `data-other-id="${item.id}"` : ""} onclick="_dmsOpenChat('${item.id}','${safeName}','${safePhoto}')">
       <div class="dms-avatar-wrap">
@@ -115,6 +116,7 @@ function _buildItem(item) {
       <div class="dms-conv-body">
         <div class="dms-conv-row1">
           <span class="dms-conv-name">${item.name||"مستخدم"}</span>
+          ${extrasHTML}
           <span class="dms-conv-time">${_fmt(item.lastTime)}</span>
         </div>
         <div class="dms-conv-row2">
@@ -146,6 +148,7 @@ function _render(search) {
   if (!el) return;
   let items = [..._dmsItems];
   if (_dmsCurFilter === "unread") items = items.filter(i => i.unread > 0);
+  if (_dmsCurFilter === "fav") items = items.filter(i => typeof window._dmExtrasIsFav === "function" ? window._dmExtrasIsFav(i.id) : false);
   if (search) {
     const s = search.toLowerCase();
     items = items.filter(i => (i.name||"").toLowerCase().includes(s));
@@ -159,6 +162,11 @@ function _render(search) {
   // بعد كل رسم: أعد ربط مراقب الظهور بالعناصر الجديدة (تفعيل/إلغاء مستمعات الحضور حسب الظهور الفعلي)
   _dmsSetupPresenceObserver();
 }
+
+/* ── إعادة رسم فورية (تُستخدم من ملف الإضافات المستقل بعد تحديث حالة تثبيت/مفضلة/كتم) ── */
+window._dmsForceRerender = function() {
+  _render(document.getElementById("dmsSearchInp")?.value||"");
+};
 
 /* ── فتح محادثة ── */
 window._dmsOpenChat = function(id, name, photo) {
@@ -319,6 +327,7 @@ window._dmsStartListeners = function() {
     });
 
     items.sort((a,b) => (b.lastTime?.toMillis?.()??0) - (a.lastTime?.toMillis?.()??0));
+    if (typeof window._dmExtrasSort === "function") items = window._dmExtrasSort(items);
     const pub = _dmsItems.find(i => i.id==="public") || pubItem;
     _dmsItems = [pub, ...items];
     _render(document.getElementById("dmsSearchInp")?.value||"");
