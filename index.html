@@ -1838,6 +1838,7 @@ async function _sendNotification(recipientUid, title, body, data) {
 
 /* ── DM notification ── */
 async function _notifyPrivateMsg(peerUid, senderName, text) {
+  if (window._dmExtrasIsMuted && window._dmExtrasIsMuted(peerUid)) return;
   const preview = text.length > 80 ? text.slice(0, 80) + "…" : text;
   await _sendNotification(peerUid,
     `💬 رسالة خاصة من ${senderName}`,
@@ -3808,6 +3809,7 @@ onAuthStateChanged(auth, async (user) => {
   _initFCM(user.uid).catch(() => {});
   _startNotifListener(user.uid);
   window._dmsStartListeners?.();
+  window._dmExtrasStartListeners?.();
 
   loadNews();
   window.loadLectures();
@@ -4477,6 +4479,8 @@ function selectChat(chatId, chatName, chatPhoto) {
     }
     // تصفير فوري لعداد صفحة "المحادثات" وزر التنقل السفلي
     window._dmsMarkRead?.(chatId);
+    // تشغيل إضافات المحادثة (فاصل غير مقروء + مؤشر تسجيل صوتي) إن وُجد الملف المستقل
+    window._dmExtrasOnChatOpen?.(chatId);
     // إعادة تعيين onscroll سيتم داخل startChatListener
   }
 
@@ -5524,6 +5528,7 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
 
     _audioChunks = [];
     _isRecording = true;
+    window._dmExtrasSetRecording?.(true);
     voiceBtn.classList.add("recording");
 
     const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
@@ -5556,6 +5561,7 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
   window.stopAndSendVoice = async function() {
     if (!_isRecording || !_mediaRecorder) return;
     _isRecording = false;
+    window._dmExtrasSetRecording?.(false);
     _stopTimer();
     voiceBtn.classList.remove("recording");
     _hideRecBar();
@@ -5707,6 +5713,7 @@ document.getElementById("chatFileInput").addEventListener("change", async () => 
   window.cancelVoiceRecording = function() {
     if (!_isRecording) return;
     _isRecording = false;
+    window._dmExtrasSetRecording?.(false);
     _stopTimer();
     voiceBtn.classList.remove("recording");
     _hideRecBar();
@@ -9667,6 +9674,7 @@ try { _listenPinnedMsg(); } catch(e) {}
 <script type="module" src="js/poll.js"></script>
 <script type="module" src="js/mention.js"></script>
 <script type="module" src="js/dms-page.js"></script>
+<script type="module" src="js/dm-extras.js"></script>
 <script src="js/spark.js"></script>
 <!-- ══════════════════════════════════════════
      SETTINGS MODAL — Full Screen Sheet
