@@ -76,12 +76,16 @@ window._dmExtrasStartListeners = function () {
 /* ── كتابة حقل واحد على مستند المحادثة (نفس نمط typing_{uid} الموجود) ── */
 async function _exSetField(otherId, field, value) {
   const roomId = _exRoomId(otherId);
-  if (!roomId || !window.db) return;
+  if (!roomId || !window.db) { window.toast?.("تعذّر الحفظ — حاول مجددًا"); return false; }
   try {
     const upd = {};
     upd[field] = (value === undefined || value === null) ? deleteField() : value;
     await updateDoc(doc(window.db, "privateChats", roomId), upd);
-  } catch (e) {}
+    return true;
+  } catch (e) {
+    window.toast?.("تعذّر حفظ التغيير — تحقق من الاتصال");
+    return false;
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -90,6 +94,7 @@ async function _exSetField(otherId, field, value) {
 ══════════════════════════════════════════ */
 window._dmExtrasRender = function (item) {
   window._dmExtrasStartListeners?.(); // بدء كسول وآمن (idempotent)
+  window._dmExtrasBindLongPress?.();  // ربط الضغط المطول مرة واحدة فقط (idempotent)
   const c = _exCache[item.id] || {};
   const pinIcon  = c.pinnedAt        ? `<i class="fa-solid fa-thumbtack dms-ex-badge" title="مثبتة"></i>` : "";
   const favIcon  = c.fav             ? `<i class="fa-solid fa-star dms-ex-badge dms-ex-fav" title="مفضلة"></i>` : "";
@@ -97,6 +102,73 @@ window._dmExtrasRender = function (item) {
   // كل الشارات + الزر داخل عنصر flex واحد فقط — لتفادي أي تعارض مع justify-content
   // الموجودة أصلاً على .dms-conv-row1 (وإلا كانت ستوزَّع كعناصر منفصلة بمسافات غير متوقعة)
   return `<span class="dms-ex-inline">${pinIcon}${favIcon}${muteIcon}<button class="dms-ex-kebab" onclick="event.stopPropagation();window._dmExtrasOpenMenu('${item.id}')"><i class="fa-solid fa-ellipsis-vertical"></i></button></span>`;
+};
+
+/* ══════════════════════════════════════════
+   2b) الضغط المطول على أي محادثة يفتح القائمة الاحترافية
+      (بديل كامل لقائمة "نسخ الاسم" الافتراضية في المتصفح)
+══════════════════════════════════════════ */
+let _exPressTimer   = null;
+let _exPressStartXY = null;
+
+function _exFindItemEl(target) {
+  return target?.closest?.(".dms-conv-item[data-other-id]") || null;
+}
+
+window._dmExtrasBindLongPress = function () {
+  const container = document.getElementById("dmsConvList");
+  if (!container || container.dataset.exBound === "1") return;
+  container.dataset.exBound = "1";
+
+  const armTimer = (item) => {
+    clearTimeout(_exPressTimer);
+    _exPressTimer = setTimeout(() => {
+      _exPressTimer = null;
+      const otherId = item.dataset.otherId;
+      if (otherId) {
+        if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+        window._dmExtrasOpenMenu(otherId);
+      }
+    }, 480);
+  };
+  const cancelTimer = () => { clearTimeout(_exPressTimer); _exPressTimer = null; _exPressStartXY = null; };
+  const checkMove = (x, y) => {
+    if (!_exPressStartXY) return;
+    if (Math.abs(x - _exPressStartXY.x) > 10 || Math.abs(y - _exPressStartXY.y) > 10) cancelTimer();
+  };
+
+  container.addEventListener("touchstart", e => {
+    const item = _exFindItemEl(e.target);
+    if (!item) return;
+    const t = e.touches[0];
+    _exPressStartXY = { x: t.clientX, y: t.clientY };
+    armTimer(item);
+  }, { passive: true });
+  container.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    checkMove(t.clientX, t.clientY);
+  }, { passive: true });
+  container.addEventListener("touchend", cancelTimer);
+  container.addEventListener("touchcancel", cancelTimer);
+
+  container.addEventListener("mousedown", e => {
+    const item = _exFindItemEl(e.target);
+    if (!item) return;
+    _exPressStartXY = { x: e.clientX, y: e.clientY };
+    armTimer(item);
+  });
+  container.addEventListener("mousemove", e => checkMove(e.clientX, e.clientY));
+  container.addEventListener("mouseup", cancelTimer);
+  container.addEventListener("mouseleave", cancelTimer);
+
+  // الزر الأيمن / الضغط المطول الذي يستدعي قائمة المتصفح — نمنعه ونعرض قائمتنا بدلاً منه
+  container.addEventListener("contextmenu", e => {
+    const item = _exFindItemEl(e.target);
+    if (!item) return;
+    e.preventDefault();
+    const otherId = item.dataset.otherId;
+    if (otherId) window._dmExtrasOpenMenu(otherId);
+  });
 };
 
 /* ══════════════════════════════════════════
@@ -147,30 +219,40 @@ window._dmExtrasCloseMenu = function () {
 };
 
 /* ── دوال الكتابة الفعلية ── */
-window._dmExtrasTogglePin = function (otherId) {
+window._dmExtrasTogglePin = async function (otherId) {
   const uid = window.currentUser?.uid; if (!uid) return;
   const pinned = !!(_exCache[otherId] && _exCache[otherId].pinnedAt);
-  _exSetField(otherId, `pinnedAt_${uid}`, pinned ? null : serverTimestamp());
+  const ok = await _exSetField(otherId, `pinnedAt_${uid}`, pinned ? null : serverTimestamp());
+  if (ok) window.toast?.(pinned ? "تم إلغاء تثبيت المحادثة" : "تم تثبيت المحادثة");
   window._dmExtrasCloseMenu();
 };
 
-window._dmExtrasToggleFav = function (otherId) {
+window._dmExtrasToggleFav = async function (otherId) {
   const uid = window.currentUser?.uid; if (!uid) return;
   const fav = !!(_exCache[otherId] && _exCache[otherId].fav);
-  _exSetField(otherId, `fav_${uid}`, fav ? null : true);
+  const ok = await _exSetField(otherId, `fav_${uid}`, fav ? null : true);
+  if (ok) {
+    window.toast?.(fav ? "تمت الإزالة من المفضلة" : "تمت الإضافة إلى المفضلة");
+    // الانتقال مباشرة لقسم "مفضلة" عند الإضافة (وليس عند الإزالة) — بإعادة استخدام فلتر الواجهة الموجود أصلاً
+    if (!fav) {
+      const chip = document.querySelector('.dms-chip[data-filter="fav"]');
+      if (chip && typeof window._dmsFilter === "function") window._dmsFilter(chip, "fav");
+    }
+  }
   window._dmExtrasCloseMenu();
 };
 
 function _futureTs(ms) { return Timestamp.fromMillis(Date.now() + ms); }
 
-window._dmExtrasSetMute = function (otherId, dur) {
+window._dmExtrasSetMute = async function (otherId, dur) {
   const uid = window.currentUser?.uid; if (!uid) return;
-  let val = null;
-  if (dur === "forever") val = "forever";
-  else if (dur === "1h") val = _futureTs(60 * 60 * 1000);
-  else if (dur === "1d") val = _futureTs(24 * 60 * 60 * 1000);
-  else if (dur === "1w") val = _futureTs(7 * 24 * 60 * 60 * 1000);
-  _exSetField(otherId, `mutedUntil_${uid}`, val);
+  let val = null, label = "تم إلغاء كتم المحادثة";
+  if (dur === "forever") { val = "forever"; label = "تم كتم المحادثة بشكل دائم"; }
+  else if (dur === "1h") { val = _futureTs(60 * 60 * 1000); label = "تم كتم المحادثة لمدة ساعة"; }
+  else if (dur === "1d") { val = _futureTs(24 * 60 * 60 * 1000); label = "تم كتم المحادثة لمدة يوم"; }
+  else if (dur === "1w") { val = _futureTs(7 * 24 * 60 * 60 * 1000); label = "تم كتم المحادثة لمدة أسبوع"; }
+  const ok = await _exSetField(otherId, `mutedUntil_${uid}`, val);
+  if (ok) window.toast?.(label);
   window._dmExtrasCloseMenu();
 };
 
@@ -278,13 +360,10 @@ function _exWatchAndInsertDivider(chatId, roomId, anchorId) {
     });
     _exDividerObserver.observe(container, { childList: true });
   }
-
-  const uQ = query(collection(window.db, `privateChats/${roomId}/messages`), where("seen", "==", false));
-  _exDividerUnreadUnsub = onSnapshot(uQ, snap => {
-    if (window._currentChatId !== chatId) { _exDividerUnreadUnsub?.(); _exDividerUnreadUnsub = null; return; }
-    const stillUnread = snap.docs.some(d => d.data().uid !== window.currentUser?.uid);
-    if (!stillUnread) _exRemoveDivider();
-  }, () => {});
+  // ملاحظة: الفاصل يبقى ظاهرًا طوال مدة فتح هذه المحادثة، ويُزال تلقائيًا فقط
+  // عند مغادرتها (عبر _dmExtrasOnChatOpen عند فتح أي محادثة أخرى) — وليس لحظة
+  // انقلاب seen=true، لأن ذلك يحدث فوريًا عند الفتح أصلاً في هذا المشروع
+  // (قد لا يُلاحَظ الفاصل إطلاقًا لو اختفى خلال أجزاء من الثانية).
 }
 
 async function _exCaptureUnreadDivider(chatId) {
@@ -311,7 +390,38 @@ window._dmExtrasOnChatOpen = function (chatId) {
 };
 
 /* ══════════════════════════════════════════
-   7) الأنماط (CSS) — تُحقن مرة واحدة فقط، ذاتية الاحتواء بالكامل
+   9) منع التحديد/النسخ على مستوى الموقع بالكامل
+      استثناء: أي حقل كتابة (input/textarea/contenteditable) يبقى كما هو تمامًا
+      لا يؤثر على الأزرار أو الضغط المطول الخاص بقائمة المحادثات (click/touch لا علاقة له بـ selection)
+══════════════════════════════════════════ */
+function _exIsEditableTarget(el) {
+  if (!el) return false;
+  const sel = 'input, textarea, [contenteditable="true"], [contenteditable=""]';
+  return (el.matches && el.matches(sel)) || (el.closest && !!el.closest(sel));
+}
+
+document.addEventListener("contextmenu", e => {
+  if (_exIsEditableTarget(e.target)) return;
+  e.preventDefault();
+}, true);
+
+document.addEventListener("selectstart", e => {
+  if (_exIsEditableTarget(e.target)) return;
+  e.preventDefault();
+});
+
+document.addEventListener("copy", e => {
+  if (_exIsEditableTarget(e.target)) return;
+  e.preventDefault();
+});
+
+document.addEventListener("dragstart", e => {
+  if (_exIsEditableTarget(e.target)) return;
+  e.preventDefault();
+});
+
+/* ══════════════════════════════════════════
+   10) الأنماط (CSS) — تُحقن مرة واحدة فقط، ذاتية الاحتواء بالكامل
 ══════════════════════════════════════════ */
 (function _exInjectStyles() {
   if (document.getElementById("dmExtrasStyles")) return;
@@ -367,6 +477,20 @@ window._dmExtrasOnChatOpen = function (chatId) {
       content: ""; flex: 1; height: 1px; background: rgba(201,169,110,.35);
     }
     @keyframes dmexFadeIn { to { opacity: 1; } }
+
+    /* ── منع التحديد/النسخ على مستوى الموقع (باستثناء حقول الكتابة) ── */
+    body, body * {
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+    }
+    input, textarea, [contenteditable="true"], [contenteditable=""] {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      user-select: text !important;
+      -webkit-touch-callout: default !important;
+    }
   `;
   document.head.appendChild(style);
 })();
