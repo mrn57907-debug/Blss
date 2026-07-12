@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta charset="UTF-8" />
   <title>Interactive Panda Form</title>
@@ -363,19 +361,6 @@
         normalHandStyle();
       }
     });
-
-    function showSignup() {
-      document.getElementById("loginForm").style.display  = "none";
-      document.getElementById("signupForm").style.display = "flex";
-      normalEyeStyle();
-      normalHandStyle();
-    }
-    function showLogin() {
-      document.getElementById("signupForm").style.display = "none";
-      document.getElementById("loginForm").style.display  = "flex";
-      normalEyeStyle();
-      normalHandStyle();
-    }
   </script>
 </body>
 </html>
