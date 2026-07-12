@@ -1,3 +1,4 @@
+
 import { collection, query, where, orderBy, onSnapshot, doc, getDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* ── حالة عدّاد غير المقروء لكل محادثة (مستمعات فورية مستقلة — دائمة طوال الجلسة) ── */
@@ -106,7 +107,10 @@ function _buildItem(item) {
   // مؤشر الاتصال يظهر فقط في المحادثات الخاصة (ليس الشات العام ولا الغرف)
   const showDot = item.cls === "";
   const dotHTML = showDot ? `<span class="dms-online-dot${item.isOnline ? " show" : ""}"></span>` : "";
-  const extrasHTML = (showDot && typeof window._dmExtrasRender === "function") ? window._dmExtrasRender(item) : "";
+  let extrasHTML = "";
+  if (showDot && typeof window._dmExtrasRender === "function") {
+    try { extrasHTML = window._dmExtrasRender(item) || ""; } catch (e) { extrasHTML = ""; }
+  }
   return `
     <div class="dms-conv-item" id="dms-item-${item.id}" ${showDot ? `data-other-id="${item.id}"` : ""} onclick="_dmsOpenChat('${item.id}','${safeName}','${safePhoto}')">
       <div class="dms-avatar-wrap">
@@ -148,7 +152,12 @@ function _render(search) {
   if (!el) return;
   let items = [..._dmsItems];
   if (_dmsCurFilter === "unread") items = items.filter(i => i.unread > 0);
-  if (_dmsCurFilter === "fav") items = items.filter(i => typeof window._dmExtrasIsFav === "function" ? window._dmExtrasIsFav(i.id) : false);
+  if (_dmsCurFilter === "fav") {
+    items = items.filter(i => {
+      try { return typeof window._dmExtrasIsFav === "function" ? window._dmExtrasIsFav(i.id) : false; }
+      catch (e) { return false; }
+    });
+  }
   if (search) {
     const s = search.toLowerCase();
     items = items.filter(i => (i.name||"").toLowerCase().includes(s));
@@ -327,7 +336,9 @@ window._dmsStartListeners = function() {
     });
 
     items.sort((a,b) => (b.lastTime?.toMillis?.()??0) - (a.lastTime?.toMillis?.()??0));
-    if (typeof window._dmExtrasSort === "function") items = window._dmExtrasSort(items);
+    if (typeof window._dmExtrasSort === "function") {
+      try { items = window._dmExtrasSort(items) || items; } catch (e) {}
+    }
     const pub = _dmsItems.find(i => i.id==="public") || pubItem;
     _dmsItems = [pub, ...items];
     _render(document.getElementById("dmsSearchInp")?.value||"");
