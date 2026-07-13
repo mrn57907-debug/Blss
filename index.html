@@ -3622,6 +3622,15 @@ onAuthStateChanged(auth, async (user) => {
     showPage("page-login"); return;
   }
 
+  // ✅ إظهار الواجهة فورًا بمجرد تأكد Firebase من وجود جلسة صالحة —
+  // دون انتظار قراءة Firestore. تحميل بيانات المستخدم يستمر أدناه في الخلفية
+  // ويُحدّث العناصر تدريجيًا عند وصوله، بدون إعادة فتح الصفحة.
+  currentUser = user;
+  window.currentUser = user;
+  if (!window.db) window.db = db;
+  showPage("page-home");
+  goTab("tab-home");
+
   let userData = null;
   try {
     const snap = await getDoc(doc(db, "users", user.uid));
@@ -3829,8 +3838,7 @@ onAuthStateChanged(auth, async (user) => {
     _initOwnerRankPanel(userData);
   }
 
-  showPage("page-home");
-  goTab("tab-home");
+  // (تم نقل showPage("page-home") / goTab("tab-home") لأعلى الدالة لتظهر فورًا دون انتظار Firestore)
 
   // FCM init
   _initFCM(user.uid).catch(() => {});
