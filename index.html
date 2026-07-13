@@ -2,6 +2,48 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>
+/* ══════════════════════════════════════════════════════════════
+   🔍 STARTUP TRACE — أداة تشخيص مؤقتة (قراءة فقط، صفر تأثير وظيفي)
+   تُطبع تقرير كامل في Console بمجرد اكتمال تحميل الصفحة.
+   احذف هذا الـ <script> بعد انتهاء التشخيص.
+══════════════════════════════════════════════════════════════ */
+window.__trace = {};
+window.__trace.t0 = performance.now();
+performance.mark("html-head-start");
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    const nav = performance.getEntriesByType("navigation")[0];
+    const resources = performance.getEntriesByType("resource");
+
+    const interesting = resources.filter(r =>
+      /gstatic\.com|cdnjs\.cloudflare\.com|fonts\.googleapis|style\.css|dms-page\.css|back-nav\.js|lamp-login\.js/.test(r.name)
+    ).sort((a,b) => a.startTime - b.startTime);
+
+    console.log("%c=== 🔍 STARTUP TRACE REPORT ===", "font-weight:bold;font-size:14px;color:#c9a96e");
+    console.log("زمن التصفح الكامل (navigation → load):", nav ? nav.duration.toFixed(0) + "ms" : "غير متاح");
+
+    console.log("\n-- الموارد الشبكية المؤثرة (مرتبة زمنيًا) --");
+    console.table(interesting.map(r => ({
+      المورد: r.name.replace(/^https?:\/\//, "").slice(0, 70),
+      "بداية الجلب(ms)": r.startTime.toFixed(0),
+      "مدة الجلب(ms)": r.duration.toFixed(0),
+      "وقت الانتهاء(ms)": (r.startTime + r.duration).toFixed(0),
+    })));
+
+    console.log("\n-- العلامات الزمنية المخصصة (marks) --");
+    const marks = performance.getEntriesByType("mark").sort((a,b)=>a.startTime-b.startTime);
+    console.table(marks.map(m => ({ العلامة: m.name, "الزمن منذ بداية التنقل(ms)": m.startTime.toFixed(0) })));
+
+    console.log("\n-- القياسات بين النقاط (measures) --");
+    const measures = performance.getEntriesByType("measure");
+    console.table(measures.map(m => ({ من_إلى: m.name, "المدة(ms)": m.duration.toFixed(0) })));
+
+    console.log("\nانسخ هذا التقرير بالكامل والصقه في الرد.");
+  }, 6000); // ننتظر حتى تستقر كل القياسات (بعد ظهور الرئيسية فعليًا)
+});
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>نظام الجامعة — RBAC</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1707,6 +1749,12 @@ import {
 import {
   getMessaging, getToken, onMessage
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+
+// 🔍 TRACE: أول سطر تنفيذي فعلي بعد كل الاستيرادات — يقيس زمن انتظار الموديول
+// (تحميل SDK من CDN + انتظار انتهاء تحليل HTML) قبل أي كود تطبيقي
+performance.mark("module-body-start");
+performance.measure("⏱️ من بداية الصفحة حتى بدء تنفيذ الموديول (انتظار SDK+HTML)", "html-head-start", "module-body-start");
+console.log("%c[TRACE] الموديول الرئيسي بدأ التنفيذ عند:", "color:#c9a96e", performance.now().toFixed(0) + "ms");
 
 /* ══════════════════════════════════════════
    CONFIG & INIT
@@ -3600,6 +3648,11 @@ function avatarHTML(photo, name, size=38, gender) {
    AUTH STATE — Central controller
 ══════════════════════════════════════════ */
 onAuthStateChanged(auth, async (user) => {
+  // 🔍 TRACE
+  performance.mark("auth-callback-entry");
+  performance.measure("⏱️ من بداية الصفحة حتى دخول onAuthStateChanged", "html-head-start", "auth-callback-entry");
+  console.log("%c[TRACE] onAuthStateChanged دخل عند:", "color:#c9a96e", performance.now().toFixed(0) + "ms", "| user موجود:", !!user);
+
   // ✅ تجاهل الحدث أثناء إنشاء الحساب (نتجنب race condition)
   // Firebase يُطلق هذا الـ callback فور createUserWithEmailAndPassword
   // قبل أن يكتمل setDoc — لو اشتغل هنا سيجد doc غير موجود ويعمل signOut
@@ -3628,14 +3681,24 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   window.currentUser = user;
   if (!window.db) window.db = db;
+  // 🔍 TRACE
+  performance.mark("showPage-home-called");
+  performance.measure("⏱️ من بداية الصفحة حتى أول استدعاء showPage('page-home')", "html-head-start", "showPage-home-called");
+  console.log("%c[TRACE] ⭐ showPage('page-home') استُدعيت عند:", "color:#4ade80;font-weight:bold", performance.now().toFixed(0) + "ms");
   showPage("page-home");
   goTab("tab-home");
 
+  // 🔍 TRACE
+  performance.mark("before-getDoc");
   let userData = null;
   try {
     const snap = await getDoc(doc(db, "users", user.uid));
     if (snap.exists()) userData = snap.data();
   } catch(e) { console.error("Firestore read error:", e); }
+  // 🔍 TRACE
+  performance.mark("after-getDoc");
+  performance.measure("⏱️ مدة استعلام getDoc نفسه فقط", "before-getDoc", "after-getDoc");
+  console.log("%c[TRACE] getDoc انتهى عند:", "color:#c9a96e", performance.now().toFixed(0) + "ms");
 
   if (!userData) {
     toast("حساب غير مكتمل، حاول مجدداً", "error");
