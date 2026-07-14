@@ -1,0 +1,97 @@
+/* ══════════════════════════════════════════
+   MILITARY SERVICE MODULE — الخدمة العسكرية
+   (نفس الهوية البصرية لـ grades.css تمامًا)
+══════════════════════════════════════════ */
+
+#military-app-root { display:none; position:fixed; inset:0; z-index:1500; align-items:flex-end; }
+#military-app-root.military-open { display:flex; }
+
+.mil-overlay { position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); animation:mil-fade-in .22s ease; }
+
+.mil-sheet { position:relative; z-index:1; width:100%; max-height:94dvh; background:var(--bg2,#0c1528); border-radius:24px 24px 0 0; border-top:1.5px solid var(--border,#1a2d47); display:flex; flex-direction:column; overflow:hidden; animation:mil-slide-up .28s cubic-bezier(0.34,1.1,0.64,1); }
+
+/* ─── Header ─── */
+.mil-sheet-header { display:flex; align-items:center; gap:10px; padding:14px 16px 12px; border-bottom:1px solid var(--border,#1a2d47); flex-shrink:0; background:var(--bg2,#0c1528); }
+.mil-back-btn { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:12px; color:var(--muted,#5a7499); font-family:inherit; font-size:13px; font-weight:700; padding:8px 14px; cursor:pointer; transition:all .18s; display:inline-flex; align-items:center; gap:6px; flex-shrink:0; }
+.mil-back-btn:hover { background:rgba(255,255,255,.12); color:var(--text,#e8edf5); }
+.mil-sheet-title { font-size:16px; font-weight:900; color:var(--gold,#c9a96e); display:flex; align-items:center; gap:8px; flex:1; }
+.mil-add-btn { background:var(--gold,#c9a96e); border:none; border-radius:12px; color:#060d1a; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-size:15px; cursor:pointer; flex-shrink:0; transition:opacity .15s,transform .15s; }
+.mil-add-btn:hover { opacity:.88; }
+.mil-add-btn:active { transform:scale(.94); }
+
+/* ─── Body ─── */
+.mil-sheet-body-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.mil-toolbar { padding:12px 16px 0; display:flex; flex-direction:column; gap:10px; flex-shrink:0; }
+.mil-search-box { display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid var(--border,#1a2d47); color:var(--muted,#5a7499); }
+.mil-search-box input { flex:1; background:transparent; border:none; outline:none; color:var(--text,#e8edf5); font-family:inherit; font-size:13px; }
+.mil-search-box input::placeholder { color:var(--muted,#5a7499); }
+.mil-chips { display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; }
+.mil-chips::-webkit-scrollbar { display:none; }
+.mil-chip { flex-shrink:0; padding:7px 14px; border-radius:20px; background:rgba(255,255,255,.05); border:1px solid var(--border,#1a2d47); color:var(--muted,#5a7499); font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .15s; }
+.mil-chip.active { background:var(--gold,#c9a96e); border-color:var(--gold,#c9a96e); color:#060d1a; }
+.mil-sheet-body { flex:1; overflow-y:auto; overflow-x:hidden; padding:12px 16px 32px; display:flex; flex-direction:column; gap:12px; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+.mil-sheet-body::-webkit-scrollbar { width:3px; }
+.mil-sheet-body::-webkit-scrollbar-thumb { background:var(--border,#1a2d47); border-radius:3px; }
+
+/* ─── Empty / Loading ─── */
+.mil-empty-state { display:flex; flex-direction:column; align-items:center; gap:10px; padding:40px 20px; text-align:center; }
+.mil-empty-icon { width:64px; height:64px; border-radius:20px; background:rgba(201,169,110,.1); border:1.5px solid rgba(201,169,110,.2); display:flex; align-items:center; justify-content:center; font-size:26px; color:var(--gold,#c9a96e); }
+.mil-empty-title { font-size:16px; font-weight:800; color:var(--text,#e8edf5); }
+.mil-empty-sub { font-size:13px; color:var(--muted,#5a7499); }
+.mil-loading-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:60px 20px; }
+.mil-spinner { width:36px; height:36px; border:3px solid rgba(201,169,110,.2); border-top-color:var(--gold,#c9a96e); border-radius:50%; animation:mil-spin .7s linear infinite; }
+.mil-loading-text { font-size:13px; color:var(--muted,#5a7499); font-weight:600; }
+
+/* ─── بطاقة مادة ─── */
+.mil-card { border:1px solid var(--border,#1a2d47); border-radius:16px; padding:12px; background:rgba(255,255,255,.02); display:flex; flex-direction:column; gap:10px; }
+.mil-card-row { display:flex; align-items:center; gap:10px; }
+.mil-card-icon { width:44px; height:44px; border-radius:12px; background:rgba(201,169,110,.1); border:1px solid rgba(201,169,110,.2); display:flex; align-items:center; justify-content:center; font-size:18px; color:var(--gold,#c9a96e); flex-shrink:0; }
+.mil-card-info { flex:1; min-width:0; }
+.mil-card-title { font-size:14px; font-weight:800; color:var(--text,#e8edf5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mil-card-meta { font-size:12px; color:var(--muted,#5a7499); margin-top:2px; }
+.mil-card-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.mil-icon-btn { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:var(--text,#e8edf5); display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; text-decoration:none; transition:all .15s; }
+.mil-icon-btn:hover { background:rgba(255,255,255,.12); }
+.mil-icon-btn.mil-danger { color:#ef4444; border-color:rgba(239,68,68,.25); }
+.mil-icon-btn.mil-danger:hover { background:rgba(239,68,68,.12); }
+.mil-icon-btn:disabled { opacity:.3; cursor:not-allowed; }
+.mil-icon-btn:disabled:hover { background:rgba(255,255,255,.06); }
+.mil-inline-media { width:100%; border-radius:12px; max-height:220px; background:#000; }
+.mil-inline-audio { width:100%; }
+.mil-inline-pdf { width:100%; height:340px; border:1px solid var(--border,#1a2d47); border-radius:12px; background:#fff; }
+.mil-card-desc { font-size:12px; color:var(--muted,#5a7499); margin-top:4px; line-height:1.4; }
+.mil-card-player { display:flex; }
+.mil-play-btn { width:100%; padding:10px; border-radius:12px; background:rgba(201,169,110,.1); border:1px solid rgba(201,169,110,.25); color:var(--gold,#c9a96e); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background .15s; }
+.mil-play-btn:hover { background:rgba(201,169,110,.18); }
+.mil-pin-badge { align-self:flex-start; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:800; color:#060d1a; background:var(--gold,#c9a96e); padding:3px 9px; border-radius:8px; }
+.mil-card.pinned { border-color:rgba(201,169,110,.4); }
+.mil-textarea { resize:vertical; min-height:44px; font-family:inherit; }
+.mil-edit-card { margin-top:2px; }
+
+/* ─── نموذج الرفع ─── */
+.mil-upload-card { border:1.5px solid rgba(201,169,110,.3); border-radius:16px; padding:14px; background:rgba(201,169,110,.05); display:flex; flex-direction:column; gap:10px; }
+.mil-upload-title { font-size:14px; font-weight:800; color:var(--gold,#c9a96e); display:flex; align-items:center; gap:7px; }
+.mil-input { width:100%; padding:11px 12px; border-radius:12px; border:1px solid var(--border,#1a2d47); background:rgba(255,255,255,.04); color:var(--text,#e8edf5); font-family:inherit; font-size:13px; }
+.mil-input:focus { outline:none; border-color:var(--gold,#c9a96e); }
+.mil-file-label { display:flex; align-items:center; gap:8px; padding:11px 12px; border-radius:12px; border:1.5px dashed var(--border,#1a2d47); color:var(--muted,#5a7499); font-size:13px; cursor:pointer; transition:border-color .15s; }
+.mil-file-label:hover { border-color:var(--gold,#c9a96e); }
+.mil-file-inp-hidden { display:none; }
+.mil-progress { width:100%; height:6px; border-radius:6px; background:rgba(255,255,255,.08); overflow:hidden; }
+.mil-progress-bar { height:100%; width:0%; background:var(--gold,#c9a96e); transition:width .2s ease; }
+.mil-upload-actions { display:flex; gap:10px; }
+.mil-btn-primary { flex:1; padding:12px; border:none; border-radius:14px; background:var(--gold,#c9a96e); color:#060d1a; font-family:inherit; font-size:14px; font-weight:800; cursor:pointer; transition:opacity .15s; }
+.mil-btn-primary:hover { opacity:.88; }
+.mil-btn-primary:disabled { opacity:.55; cursor:not-allowed; }
+.mil-btn-cancel { padding:12px 16px; border-radius:14px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:var(--muted,#5a7499); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+.mil-btn-cancel:hover { background:rgba(255,255,255,.12); }
+
+/* ─── بطاقة أيقونة المنتدى (تحافظ على أبعاد وألوان الصورة كما هي — بدون تشويه أو اقتصاص) ─── */
+.forum-card-icon--military img {
+  width:44px; height:44px; object-fit:contain; display:block;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.35));
+}
+
+/* ─── Animations ─── */
+@keyframes mil-fade-in  { from { opacity:0; } to { opacity:1; } }
+@keyframes mil-slide-up { from { transform:translateY(100%); } to { transform:translateY(0); } }
+@keyframes mil-spin     { to { transform:rotate(360deg); } }
