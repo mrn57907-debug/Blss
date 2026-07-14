@@ -104,6 +104,7 @@
     "pollModal":            { openClass: "open",        close: () => window.closePollModal?.() },
     "settingsModal":        { openClass: "open",        close: () => window.closeSettingsModal?.() },
     "grades-app-root":      { openClass: "grades-open", close: () => window.GradesModule?.close?.() },
+    "military-app-root":    { openClass: "military-open", close: () => window.MilitaryModule?.close?.() },
   };
 
   let _modalVisible = {};
