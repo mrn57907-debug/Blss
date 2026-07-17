@@ -19,7 +19,7 @@ import {
 /* ══════════════════════════════════════════
    1) حالة عامة (Cache) لكل محادثة: تثبيت / مفضلة / كتم
 ══════════════════════════════════════════ */
-let _exCache   = {};      // otherId → { pinnedAt, fav, mutedUntil }
+let _exCache   = {};      // otherId → { pinnedAt, archived, mutedUntil }
 let _exStarted = false;
 
 function _exRoomId(otherId) {
@@ -34,8 +34,8 @@ function _isMutedNow(entry) {
 }
 
 /* ── قراءة الحالة (تُستخدم من dms-page.js و index.html) ── */
-window._dmExtrasIsFav = function (otherId) {
-  return !!(_exCache[otherId] && _exCache[otherId].fav);
+window._dmExtrasIsArchived = function (otherId) {
+  return !!(_exCache[otherId] && _exCache[otherId].archived);
 };
 window._dmExtrasIsMuted = function (otherId) {
   return _isMutedNow(_exCache[otherId]);
@@ -65,7 +65,8 @@ window._dmExtrasStartListeners = function () {
       if (ch.type === "removed") { delete _exCache[otherId]; return; }
       _exCache[otherId] = {
         pinnedAt:   d[`pinnedAt_${uid}`]   || null,
-        fav:        !!d[`fav_${uid}`],
+        // ⚠️ الحقل بـ Firestore بقي fav_{uid} كما هو (لم يُنشأ حقل جديد) — تغيّر الاسم بالواجهة فقط لـ"الأرشيف"
+        archived:   !!d[`fav_${uid}`],
         mutedUntil: d[`mutedUntil_${uid}`] || null,
       };
     });
@@ -97,7 +98,7 @@ window._dmExtrasRender = function (item) {
   window._dmExtrasBindLongPress?.();  // ربط الضغط المطول مرة واحدة فقط (idempotent)
   const c = _exCache[item.id] || {};
   const pinIcon  = c.pinnedAt        ? `<i class="fa-solid fa-thumbtack dms-ex-badge" title="مثبتة"></i>` : "";
-  const favIcon  = c.fav             ? `<i class="fa-solid fa-star dms-ex-badge dms-ex-fav" title="مفضلة"></i>` : "";
+  const favIcon  = c.archived         ? `<i class="fa-solid fa-box-archive dms-ex-badge dms-ex-archived" title="مؤرشفة"></i>` : "";
   const muteIcon = _isMutedNow(c)    ? `<i class="fa-solid fa-bell-slash dms-ex-badge dms-ex-mute" title="مكتومة"></i>` : "";
   // كل الشارات + الزر داخل عنصر flex واحد فقط — لتفادي أي تعارض مع justify-content
   // الموجودة أصلاً على .dms-conv-row1 (وإلا كانت ستوزَّع كعناصر منفصلة بمسافات غير متوقعة)
@@ -190,17 +191,17 @@ function _exEnsureMenuEl() {
 
 window._dmExtrasOpenMenu = function (otherId) {
   _exEnsureMenuEl();
-  const c      = _exCache[otherId] || {};
-  const pinned = !!c.pinnedAt;
-  const fav    = !!c.fav;
-  const muted  = _isMutedNow(c);
+  const c        = _exCache[otherId] || {};
+  const pinned   = !!c.pinnedAt;
+  const archived = !!c.archived;
+  const muted    = _isMutedNow(c);
   const menu   = document.getElementById("dmExtrasMenu");
   menu.querySelector(".dmex-body").innerHTML = `
     <button class="dmex-item" onclick="window._dmExtrasTogglePin('${otherId}')">
       <i class="fa-solid fa-thumbtack"></i> ${pinned ? "إلغاء تثبيت المحادثة" : "تثبيت المحادثة"}
     </button>
-    <button class="dmex-item" onclick="window._dmExtrasToggleFav('${otherId}')">
-      <i class="fa-solid fa-star"></i> ${fav ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
+    <button class="dmex-item" onclick="window._dmExtrasToggleArchive('${otherId}')">
+      <i class="fa-solid fa-box-archive"></i> ${archived ? "إلغاء الأرشفة" : "أرشفة المحادثة"}
     </button>
     ${muted ? `
     <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}', null)">
@@ -227,17 +228,14 @@ window._dmExtrasTogglePin = async function (otherId) {
   window._dmExtrasCloseMenu();
 };
 
-window._dmExtrasToggleFav = async function (otherId) {
+window._dmExtrasToggleArchive = async function (otherId) {
   const uid = window.currentUser?.uid; if (!uid) return;
-  const fav = !!(_exCache[otherId] && _exCache[otherId].fav);
-  const ok = await _exSetField(otherId, `fav_${uid}`, fav ? null : true);
+  const archived = !!(_exCache[otherId] && _exCache[otherId].archived);
+  const ok = await _exSetField(otherId, `fav_${uid}`, archived ? null : true);
   if (ok) {
-    window.toast?.(fav ? "تمت الإزالة من المفضلة" : "تمت الإضافة إلى المفضلة");
-    // الانتقال مباشرة لقسم "مفضلة" عند الإضافة (وليس عند الإزالة) — بإعادة استخدام فلتر الواجهة الموجود أصلاً
-    if (!fav) {
-      const chip = document.querySelector('.dms-chip[data-filter="fav"]');
-      if (chip && typeof window._dmsFilter === "function") window._dmsFilter(chip, "fav");
-    }
+    window.toast?.(archived ? "تم إلغاء الأرشفة" : "تمت أرشفة المحادثة");
+    // إعادة رسم القائمة فورًا لإخفاء/إظهار المحادثة حسب فلتر "الأرشيف" الحالي
+    window._dmsForceRerender?.();
   }
   window._dmExtrasCloseMenu();
 };
@@ -429,7 +427,7 @@ document.addEventListener("dragstart", e => {
   style.id = "dmExtrasStyles";
   style.textContent = `
     .dms-ex-badge { font-size: 12px; opacity: .85; }
-    .dms-ex-badge.dms-ex-fav  { color: #ffc94d; }
+    .dms-ex-badge.dms-ex-archived { color: #9aa3b2; }
     .dms-ex-badge.dms-ex-mute { color: #9aa0aa; }
     .dms-ex-inline {
       display: flex; align-items: center; gap: 4px;
