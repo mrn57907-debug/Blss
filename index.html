@@ -7394,12 +7394,52 @@ function _adminBadgeHTML() {
   return `<span class="badge-admin-icon" title="مشرف النظام">${_SVG_ADMIN_SHIELD}</span>`;
 }
 
-function _verifiedBadgeHTML() {
-  return `<svg class="badge-verified-icon" viewBox="0 0 24 24" aria-label="موثق" title="حساب موثق">
-    <circle cx="12" cy="12" r="12" fill="#1D9BF0"/>
-    <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+function _verifiedBadgeHTML(uid) {
+  const _mid = "vbmask-" + (uid || Math.random().toString(36).slice(2));
+  return `<svg class="badge-verified-icon" viewBox="0 0 40 40" aria-label="موثق" title="حساب موثق">
+    <mask id="${_mid}">
+      <path fill="#fff" d="M36.794,23.502 Q37.387,24.659 36.295,25.364 L34.082,26.794 Q32.990,27.500 32.925,28.798 L32.793,31.430 Q32.728,32.728 31.430,32.793 L28.798,32.925 Q27.500,32.990 26.794,34.082 L25.364,36.295 Q24.659,37.387 23.502,36.794 L21.157,35.593 Q20.000,35.000 18.843,35.593 L16.498,36.794 Q15.341,37.387 14.636,36.295 L13.206,34.082 Q12.500,32.990 11.202,32.925 L8.570,32.793 Q7.272,32.728 7.207,31.430 L7.075,28.798 Q7.010,27.500 5.918,26.794 L3.705,25.364 Q2.613,24.659 3.206,23.502 L4.407,21.157 Q5.000,20.000 4.407,18.843 L3.206,16.498 Q2.613,15.341 3.705,14.636 L5.918,13.206 Q7.010,12.500 7.075,11.202 L7.207,8.570 Q7.272,7.272 8.570,7.207 L11.202,7.075 Q12.500,7.010 13.206,5.918 L14.636,3.705 Q15.341,2.613 16.498,3.206 L18.843,4.407 Q20.000,5.000 21.157,4.407 L23.502,3.206 Q24.659,2.613 25.364,3.705 L26.794,5.918 Q27.500,7.010 28.798,7.075 L31.430,7.207 Q32.728,7.272 32.793,8.570 L32.925,11.202 Q32.990,12.500 34.082,13.206 L36.295,14.636 Q37.387,15.341 36.794,16.498 L35.593,18.843 Q35.000,20.000 35.593,21.157 L36.794,23.502 Z"/>
+      <path d="M11.6,19.7 L17,25.5 L28.5,15.7" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="bevel"/>
+    </mask>
+    <path fill="#0866ff" mask="url(#${_mid})" d="M36.794,23.502 Q37.387,24.659 36.295,25.364 L34.082,26.794 Q32.990,27.500 32.925,28.798 L32.793,31.430 Q32.728,32.728 31.430,32.793 L28.798,32.925 Q27.500,32.990 26.794,34.082 L25.364,36.295 Q24.659,37.387 23.502,36.794 L21.157,35.593 Q20.000,35.000 18.843,35.593 L16.498,36.794 Q15.341,37.387 14.636,36.295 L13.206,34.082 Q12.500,32.990 11.202,32.925 L8.570,32.793 Q7.272,32.728 7.207,31.430 L7.075,28.798 Q7.010,27.500 5.918,26.794 L3.705,25.364 Q2.613,24.659 3.206,23.502 L4.407,21.157 Q5.000,20.000 4.407,18.843 L3.206,16.498 Q2.613,15.341 3.705,14.636 L5.918,13.206 Q7.010,12.500 7.075,11.202 L7.207,8.570 Q7.272,7.272 8.570,7.207 L11.202,7.075 Q12.500,7.010 13.206,5.918 L14.636,3.705 Q15.341,2.613 16.498,3.206 L18.843,4.407 Q20.000,5.000 21.157,4.407 L23.502,3.206 Q24.659,2.613 25.364,3.705 L26.794,5.918 Q27.500,7.010 28.798,7.075 L31.430,7.207 Q32.728,7.272 32.793,8.570 L32.925,11.202 Q32.990,12.500 34.082,13.206 L36.295,14.636 Q37.387,15.341 36.794,16.498 L35.593,18.843 Q35.000,20.000 35.593,21.157 L36.794,23.502 Z"/>
   </svg>`;
 }
+
+function _buildBadgesHTML(user) {
+  if (!user) return "";
+  const uid         = user.uid || user.id || "";
+  const role        = user.role || "user";
+  const isOwnerUser = uid === OWNER_UID || uid === VERIFIED_OWNER_UID || role === "owner";
+  const isAdminUser = role === "admin";
+  const isVerified  = isOwnerUser;
+  const level       = _getLevelFromUser(user);
+
+  let vip;
+  if (typeof user.vipType === "string" && typeof user.vipLevel === "number") {
+    vip = { type: user.vipType, n: Math.max(1, Math.min(10, user.vipLevel)) };
+  } else {
+    vip = calcVIP(level);
+  }
+
+  let html = "";
+
+  if (isOwnerUser)                 html += _ownerBadgeHTML();
+  if (isAdminUser && !isOwnerUser) html += _adminBadgeHTML();
+
+  if (isVerified) html += _verifiedBadgeHTML(uid);   // ← الشارة بعد الاسم مباشرة، قبل Lv/VIP
+
+  if (level >= 1) html += `<span class="user-lv-badge" title="المستوى ${level}"> Lv.${level}</span>`;
+  if (level >= 1 || (user.vipType && user.vipLevel)) html += renderVIPText(vip.n, vip.type);
+
+  return html;
+}
+
+function renderUserDisplay(name, user, uid) {
+  if (uid && user && !user.uid && !user.id) user = { ...user, uid };
+  const safeName = esc(name || user?.name || "مستخدم");
+  const badges   = _buildBadgesHTML(user || {});
+  return `<span class="user-display"><span class="user-display-name">${safeName}</span>${badges}</span>`;
+   }
 
 /* ── _levelBadgeHTML — REMOVED (نظام Lv القديم محذوف نهائياً) ── */
 // لا تُعاد هذه الدالة — Lv.N و Lu.N لن تظهر أبداً
@@ -7435,7 +7475,7 @@ function _buildBadgesHTML(user) {
   if (isAdminUser && !isOwnerUser) html += _adminBadgeHTML();
 
   // 2. Verified
-  if (isVerified) html += _verifiedBadgeHTML();
+if (isVerified) html += _verifiedBadgeHTML(uid);
 
   // 3. Lv.N
   if (level >= 1) html += `<span class="user-lv-badge" title="المستوى ${level}"> Lv.${level}</span>`;
