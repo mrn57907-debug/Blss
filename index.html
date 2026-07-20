@@ -612,19 +612,32 @@ window.addEventListener("load", () => {
   <!-- Main Chat -->
   <div class="chat-main">
     <!-- Header -->
-    <div class="chat-topbar">
-      <button class="chat-back-btn" onclick="closeChatPage()" title="رجوع" style="display:none;">←</button>
-      <button class="menu-toggle-btn" id="menuToggleBtn" onclick="openSidebar()" style="display:none;"><i class="fa-solid fa-bars"></i></button>
-      <div class="chat-topbar-info">
-        <div class="chat-topbar-avatar" id="chatTopAvatar"><i class="fa-solid fa-graduation-cap"></i></div>
-        <div>
-          <div class="chat-topbar-name" id="chatTopName">الشات العام</div>
-          <div class="chat-topbar-status"><div class="status-dot"></div><span id="chatTopOnline">مباشر</span></div>
+    <div class="chat-header">
+
+      <button class="chat-back-btn" onclick="closeChatPage()" title="رجوع" style="display:none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+
+      <button class="menu-toggle-btn" id="menuToggleBtn" onclick="openSidebar()" style="display:none;">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <div class="avatar-wrap">
+        <div class="avatar-ring" id="chatTopAvatar"><i class="fa-solid fa-graduation-cap"></i></div>
+      </div>
+
+      <div class="chat-header-info">
+        <div class="name" id="chatTopName">الشات العام</div>
+        <div class="status">
+          <span class="dot"></span>
+          <span id="chatTopOnline">مباشر</span>
         </div>
       </div>
-      <div class="chat-topbar-actions">
-        <button class="chat-action-btn" id="chatSearchToggleBtn" title="بحث في الرسائل" onclick="toggleChatSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
-      </div>
+
+      <button class="header-icon-btn" id="chatSearchToggleBtn" title="بحث في الرسائل" onclick="toggleChatSearch()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+
     </div>
 
     <!-- Search Bar -->
@@ -659,9 +672,7 @@ window.addEventListener("load", () => {
     </div>
 
     <!-- Messages -->
-    <div class="messages-area" id="chatMessages">
-      <div class="empty-state" style="margin:auto;">لا توجد رسائل بعد <i class="fa-solid fa-comments"></i></div>
-    </div>
+    <div class="chat-body" id="chatMessages"></div>
 
     <!-- Banned bar (shown if isChatBanned) -->
     <div class="chat-banned-bar" id="chatBannedBar" style="display:none">
@@ -692,12 +703,26 @@ window.addEventListener("load", () => {
     <!-- Mention Dropdown -->
     <div id="mentionDropdown" style="display:none;"></div>
 
-    <div class="chat-input-bar" id="chatInputBar">
-      <button class="chat-img-btn" id="chatImgBtn" title="إرفاق ملف (اضغط مطولاً للاستطلاع)"><i class="fa-solid fa-paperclip"></i></button>
-      <button class="chat-img-btn" id="chatEmojiBtn" title="إيموجي" style="font-size:20px;">😊</button>
-      <input class="inp" id="chatInput" placeholder="اكتب رسالة..." autocomplete="off" maxlength="2000">
-      <button class="chat-img-btn chat-voice-send-btn" id="chatVoiceBtn" title="تسجيل صوتي"><i class="fa-solid fa-microphone"></i></button>
-      <button class="chat-send-btn chat-voice-send-btn" id="chatSendBtn" title="إرسال" style="display:none;"><i class="fa-solid fa-angle-right"></i></button>
+    <div class="chat-input chat-input-bar" id="chatInputBar">
+
+      <button class="plus-btn" id="chatImgBtn" title="إرفاق ملف (اضغط مطولاً للاستطلاع)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+
+      <div class="input-pill">
+        <button class="emoji-btn" id="chatEmojiBtn" title="إيموجي">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.5 2 3.5 2 3.5-2 3.5-2"/><circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <input class="inp" type="text" id="chatInput" placeholder="اكتب رسالة..." autocomplete="off" maxlength="2000">
+        <button class="mic-btn" id="chatVoiceBtn" title="تسجيل صوتي">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 00-3 3v6a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M19 10v1a7 7 0 01-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
+        </button>
+      </div>
+
+      <button class="send-btn" id="chatSendBtn" title="إرسال" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="transform:scaleX(-1)"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+
     </div>
 
     <!-- Voice Recording UI Bar -->
@@ -755,20 +780,21 @@ window.addEventListener("load", () => {
   <div class="dms-header">
     <button class="dms-back-btn" onclick="if(!window._navGoBackIfMatches?.('page:page-dms')) showPage('page-home')"><i class="fa-solid fa-arrow-right"></i></button>
     <span class="dms-header-title">المحادثات</span>
-    <button class="dms-profile-btn" onclick="showPage('page-home'); goTab('tab-profile')" title="البروفايل"><i class="fa-solid fa-circle-user"></i></button>
+    <button class="dms-search-toggle" id="dmsSearchToggle"><i class="fa-solid fa-magnifying-glass"></i></button>
   </div>
 
-  <!-- الأرشيف — صف مستقل بالأعلى (بدل شريحة فلتر مدفونة) مع عداد حي -->
-  <div class="dms-archived-row" id="dmsArchivedRow" onclick="_dmsOpenArchived()" style="display:none;">
-    <span class="dms-archived-badge" id="dmsArchivedBadge">0</span>
-    <span class="dms-archived-label">محادثات مؤرشفة</span>
-    <span class="dms-archived-icon"><i class="fa-solid fa-box-archive"></i></span>
+  <!-- Search Bar -->
+  <div class="dms-search-bar" id="dmsSearchBar" style="display:none;">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" id="dmsSearchInp" placeholder="ابحث في المحادثات..." autocomplete="off">
+    <button onclick="document.getElementById('dmsSearchInp').value='';_dmsSearch('')"><i class="fa-solid fa-xmark"></i></button>
   </div>
 
   <!-- Filter Chips — تظهر فقط في تبويب المحادثات -->
   <div class="dms-filters" id="dmsFilters">
     <button class="dms-chip active" data-filter="all" onclick="_dmsFilter(this,'all')">الكل</button>
     <button class="dms-chip" data-filter="unread" onclick="_dmsFilter(this,'unread')">غير مقروءة</button>
+    <button class="dms-chip" data-filter="fav" onclick="_dmsFilter(this,'fav')">مفضلة</button>
   </div>
 
   <!-- Content Panels -->
@@ -811,19 +837,19 @@ window.addEventListener("load", () => {
 
   <!-- Inner Bottom Tabs -->
   <div class="dms-tabs">
-    <button class="dms-tab active" data-panel="chats" title="المحادثات" onclick="_dmsSwitchTab(this,'chats')">
+    <button class="dms-tab active" data-panel="chats" onclick="_dmsSwitchTab(this,'chats')">
       <i class="fa-solid fa-message"></i>
       <span>المحادثات</span>
     </button>
-    <button class="dms-tab" data-panel="members" title="الأعضاء" onclick="openSidebar(); switchSidebarTab('members')">
-      <i class="fa-solid fa-address-book"></i>
-      <span>الأعضاء</span>
+    <button class="dms-tab" data-panel="rooms" onclick="_dmsSwitchTab(this,'rooms')">
+      <i class="fa-solid fa-users"></i>
+      <span>المجتمعات</span>
     </button>
-    <button class="dms-tab" data-panel="calls" title="المكالمات" onclick="_dmsSwitchTab(this,'calls')">
+    <button class="dms-tab" data-panel="calls" onclick="_dmsSwitchTab(this,'calls')">
       <i class="fa-solid fa-phone"></i>
       <span>المكالمات</span>
     </button>
-    <button class="dms-tab" data-panel="status" title="الحالات" onclick="_dmsSwitchTab(this,'status')">
+    <button class="dms-tab" data-panel="status" onclick="_dmsSwitchTab(this,'status')">
       <i class="fa-solid fa-circle-half-stroke"></i>
       <span>الحالات</span>
     </button>
@@ -4583,6 +4609,39 @@ Object.defineProperty(window, '_currentChatId', { get: () => _currentChatId, con
 let _currentChatName = "الشات العام";
 let _currentChatPhoto= "";
 
+// تحديث نص + نقطة الحضور (Online/Offline) في هيدر الشات — يعيد استخدام
+// نفس نظام الحضور الموجود فعلاً (_isOnlineVisible + _userCache + _ensureVipListener)
+function _updateChatHeaderPresence(chatId) {
+  const statusText  = document.getElementById("chatTopOnline");
+  const avatarRing   = document.getElementById("chatTopAvatar");
+  const statusWrap   = document.querySelector(".chat-header-info .status");
+
+  if (chatId === "public" || chatId.startsWith("room:")) {
+    if (statusText) statusText.textContent = chatId === "public" ? "مباشر — الجميع" : "غرفة عامة";
+    avatarRing?.classList.remove("online", "offline");
+    statusWrap?.classList.remove("online");
+    return;
+  }
+
+  // خاص (DM) — نفس القيمة النصية القديمة "خاص"، بدون تغيير
+  if (statusText) statusText.textContent = "خاص";
+
+  // إعادة استخدام نفس الكاش والدالة المستخدمين فعليًا في _updateDmItemUI
+  const cached = _userCache[chatId];
+  const u = cached?.data || cached || {};
+  const isOnline = _isOnlineVisible(u);
+
+  if (avatarRing) {
+    avatarRing.classList.toggle("online", isOnline);
+    avatarRing.classList.toggle("offline", !isOnline);
+  }
+  if (statusWrap) statusWrap.classList.toggle("online", isOnline);
+
+  // ضمان وجود Listener حي لنفس المستخدم — نفس الآلية المستخدمة أصلاً
+  // لأسماء المرسلين وقائمة المحادثات (Dedup-safe، لا يُنشئ Listener مكرر)
+  _ensureVipListener(chatId);
+}
+
 function selectChat(chatId, chatName, chatPhoto) {
   // ── حفظ مسودة المحادثة الحالية قبل التبديل ──
   _draftSave(_currentChatId);
@@ -4606,9 +4665,8 @@ function selectChat(chatId, chatName, chatPhoto) {
   if (_currentChatPhoto) topAvatar.innerHTML = `<img src="${esc(_currentChatPhoto)}" alt="">`;
   else topAvatar.innerHTML = chatId === "public" ? "<i class=\"fa-solid fa-graduation-cap\"></i>" : esc(_currentChatName.charAt(0));
 
-  // تحديث الحالة في الهيدر
-  const statusText = document.getElementById("chatTopOnline");
-  if (statusText) statusText.textContent = chatId === "public" ? "مباشر — الجميع" : "خاص";
+  // تحديث الحالة في الهيدر (نص + نقطة الحضور Online/Offline)
+  _updateChatHeaderPresence(chatId);
 
   // تحديث active في قائمة DM
   document.querySelectorAll(".dm-item").forEach(el => el.classList.remove("active"));
@@ -5126,9 +5184,11 @@ function _refreshMsgTick(msgId, data) {
   if (!row) return;
   const tickEl = row.querySelector(".bubble-status");
   if (!tickEl) return;
-  if (data.seen)      { tickEl.textContent = "✓✓"; tickEl.style.color = "#60a5fa"; }
-  else if (data.delivered) { tickEl.textContent = "✓✓"; tickEl.style.color = ""; }
-  else                { tickEl.textContent = "✓";  tickEl.style.color = ""; }
+  const _checkSvg2 = `<svg width="14" height="10" viewBox="0 0 16 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 5l3 3 5-7"/><path d="M6 5l3 3 6-7"/></svg>`;
+  const _checkSvg1 = `<svg width="12" height="10" viewBox="0 0 16 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 5l3 3 8-9"/></svg>`;
+  if (data.seen)           { tickEl.innerHTML = _checkSvg2; tickEl.classList.add("seen"); }
+  else if (data.delivered) { tickEl.innerHTML = _checkSvg2; tickEl.classList.remove("seen"); }
+  else                      { tickEl.innerHTML = _checkSvg1; tickEl.classList.remove("seen"); }
 }
 
 /* ══════════════════════════════════════════
@@ -5175,7 +5235,7 @@ function appendChatMsg(container, docId, d, prevDate, setDate) {
   const msgTs = d.createdAt?.toDate?.() || new Date();
   const dateStr = msgTs.toLocaleDateString("ar-EG", {weekday:"long", day:"numeric", month:"long"});
 
-  // Date divider
+  // Date divider — بدون أي تغيير
   if (prevDate !== dateStr) {
     setDate(dateStr);
     const divider = document.createElement("div");
@@ -5190,7 +5250,7 @@ function appendChatMsg(container, docId, d, prevDate, setDate) {
   row.className = `msg-row ${isMe ? "me" : "other"}`;
   row.id = `msg-${docId}`;
 
-  // Avatar (only for "other")
+  // Avatar (only for "other") — نفس المنطق، فقط المقاس اتغيّر لـ 18 ليطابق التصميم
   let avatarHtml = "";
   if (!isMe) {
     const _msgGender = (() => {
@@ -5199,10 +5259,10 @@ function appendChatMsg(container, docId, d, prevDate, setDate) {
       }
       return d.gender;
     })();
-    avatarHtml = `<div class="msg-avatar-sm" data-avatar-uid="${esc(d.uid)}">${d.photo ? `<img src="${esc(d.photo)}" alt="">` : _defaultAvatarHTML(_msgGender, 32)}</div>`;
+    avatarHtml = `<div class="msg-avatar-sm" data-avatar-uid="${esc(d.uid)}">${d.photo ? `<img src="${esc(d.photo)}" alt="">` : _defaultAvatarHTML(_msgGender, 18)}</div>`;
   }
 
-  // Bubble content
+  // Bubble content — بدون أي تغيير (كل الفروع: نص/صورة/صوت/ملف/PDF/استطلاع)
   let bubbleContent = "";
   if (d.deleted) {
     bubbleContent = `<div class="bubble-text" style="color:var(--muted);font-style:italic;font-size:12px;">🗑 [محذوفة]</div>`;
@@ -5252,20 +5312,22 @@ function appendChatMsg(container, docId, d, prevDate, setDate) {
     bubbleContent = `<div class="bubble-text">${esc(d.text||"")}</div>`;
   }
 
-  // Seen/Delivered tick (only for sender, only in private chats)
+  // ═══ تغيير 3: أيقونات SVG بدل يونيكود، نفس الشروط بالظبط ═══
+  const _checkSvg2 = `<svg width="14" height="10" viewBox="0 0 16 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 5l3 3 5-7"/><path d="M6 5l3 3 6-7"/></svg>`;
+  const _checkSvg1 = `<svg width="12" height="10" viewBox="0 0 16 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 5l3 3 8-9"/></svg>`;
+
   let statusTick = "";
   if (isMe && _currentChatId !== "public") {
-    if (d.seen)           statusTick = `<span class="bubble-status" style="color:#60a5fa">✓✓</span>`;
-    else if (d.delivered) statusTick = `<span class="bubble-status">✓✓</span>`;
-    else                  statusTick = `<span class="bubble-status">✓</span>`;
+    if (d.seen)           statusTick = `<span class="bubble-status seen">${_checkSvg2}</span>`;
+    else if (d.delivered) statusTick = `<span class="bubble-status">${_checkSvg2}</span>`;
+    else                  statusTick = `<span class="bubble-status">${_checkSvg1}</span>`;
   } else if (isMe) {
-    statusTick = `<span class="bubble-status">✓✓</span>`;
+    statusTick = `<span class="bubble-status seen">${_checkSvg2}</span>`;
   }
 
-  // Admin action buttons — wrapped in group for smooth hover animation
+  // Admin action buttons — بدون أي تغيير
   let adminBtns = "";
   if (isAdmin() && !isMe) {
-    // Only show chat-ban button if target is NOT owner
     const targetIsOwner = d.uid === OWNER_UID;
     const banBtnHtml = (!targetIsOwner)
       ? `<button class="msg-ban-btn" title="حظر من الشات" onclick="adminChatBan('${esc(d.uid)}','${esc(d.name||"")}')"><i class="fa-solid fa-ban"></i></button>`
@@ -5284,27 +5346,28 @@ function appendChatMsg(container, docId, d, prevDate, setDate) {
     `;
   }
 
-  // Sender name with badges — نبني user object من بيانات الرسالة + cache
+  // Sender name with badges — بدون أي تغيير
   const _msgUser = (() => {
     if (d.uid && _userCache[d.uid]) {
       const cached = _userCache[d.uid];
       return cached?.data || cached;
     }
-    // fallback: build from message data (role/isVerified قد تكون موجودة)
     return { uid: d.uid, name: d.name, photo: d.photo, role: d.role, isVerified: d.isVerified, level: d.level, xp: d.xp };
   })();
 
+  // ═══ تغيير 1 + 2: إعادة توزيع نفس العناصر داخل الهيكل الجديد ═══
   row.innerHTML = `
-    ${!isMe ? avatarHtml : ""}
+    ${!isMe ? `<div class="msg-sender">${avatarHtml}<div class="msg-sender-name" data-sender-uid="${esc(d.uid)}">${renderUserDisplay(d.name||"", _msgUser, d.uid)}</div></div>` : ""}
     <div class="msg-bubble-group">
-      ${!isMe ? `<div class="msg-sender-name" data-sender-uid="${esc(d.uid)}">${renderUserDisplay(d.name||"", _msgUser, d.uid)}</div>` : ""}
-      <div class="bubble ${isMe ? "me" : "other"}">
-        ${bubbleContent}
-        <div class="bubble-meta ${isMe ? "" : "other"}">
-          <span class="bubble-time">${timeStr}</span>
-          ${d.edited ? `<span style="font-size:10px;color:var(--muted);font-style:italic;margin-inline-start:3px;">تم التعديل</span>` : ""}
-          ${statusTick}
+      <div class="msg-line">
+        <div class="bubble ${isMe ? "me" : "other"}">
+          ${bubbleContent}
         </div>
+      </div>
+      <div class="bubble-meta ${isMe ? "" : "other"}">
+        <span class="bubble-time">${timeStr}</span>
+        ${d.edited ? `<span class="edited-label" style="font-size:10px;color:var(--muted);font-style:italic;margin-inline-start:3px;">تم التعديل</span>` : ""}
+        ${statusTick}
       </div>
     </div>
     ${adminBtns}
@@ -5312,53 +5375,51 @@ function appendChatMsg(container, docId, d, prevDate, setDate) {
 
   container.appendChild(row);
 
-  // ── Poll: start realtime listener for vote updates ──
+  // ── Poll: بدون أي تغيير ──
   if (d.poll && typeof window._ensurePollListener === "function") window._ensurePollListener(docId);
 
-  // ── Render reaction chips if any ──
+  // ── Reaction chips: بدون أي تغيير ──
   if (d.reactions && Object.keys(d.reactions).length) {
     if (typeof _updateReactionChips === "function") _updateReactionChips(row, docId, d.reactions);
   }
 
-  // ── Ensure VIP listener is active for this sender ──
+  // ── VIP listener: بدون أي تغيير ──
   if (d.uid && d.uid !== currentUser?.uid) _ensureVipListener(d.uid);
 
-  // ── Inject reply preview if exists ──
+  // ── Reply preview: بدون أي تغيير (row.querySelector(".bubble") لسه بيلاقيها) ──
   if (d.reply) {
     const bubble = row.querySelector(".bubble");
     if (bubble) bubble.insertAdjacentHTML("afterbegin", _buildReplyPreviewHTML ? _buildReplyPreviewHTML(d.reply) : "");
   }
 
-  // ── Inject forwarded label if exists ──
+  // ── Forwarded label: بدون أي تغيير ──
   if (d.forwarded) {
     const bubble = row.querySelector(".bubble");
     if (bubble) bubble.insertAdjacentHTML("afterbegin", `<div class="fwd-label"><i class="fa-solid fa-share"></i> تمت إعادة التوجيه</div>`);
   }
 
-  // ── Long-press handler ──
+  // ── Long-press / Swipe-to-reply: بدون أي تغيير ──
   if (typeof _attachLongPress === "function") _attachLongPress(row, docId, d);
-
-  // ── Swipe-to-reply: inject icon + dataset (no per-row touch listeners) ──
   if (typeof _attachSwipeReply === "function") _attachSwipeReply(row, docId, d);
 
-  // ── Permanent reply button ──
+  // ── زر الرد الدائم — التعديل الوحيد على الـ IIFE: المكان بقى .msg-line ──
   (function() {
-    const _grp = row.querySelector(".msg-bubble-group");
-    const _bub = _grp && _grp.querySelector(".bubble");
-    if (_grp && _bub && !_grp.querySelector(".msg-reply-btn")) {
+    const _line = row.querySelector(".msg-line");
+    const _bub  = _line && _line.querySelector(".bubble");
+    if (_line && _bub && !_line.querySelector(".msg-reply-btn")) {
       const _btn = document.createElement("button");
       _btn.className = "msg-reply-btn";
       _btn.title = "رد";
-      _btn.innerHTML = `<i class="fa-solid fa-reply"></i>`;
+      _btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 015 5v2"/></svg>`;
       _btn.addEventListener("click", function(e) {
         e.stopPropagation();
         setReply({ docId: docId, name: d.name||"", text: d.text||"", image: d.image||"", audio: d.audio||false, pdf: d.pdf||false, file: d.file||false, fileName: d.fileName||"" });
       });
-      _grp.insertBefore(_btn, _bub);
+      _line.appendChild(_btn);
     }
   })();
 
-  // ── Ensure single delegated swipe handler on container ──
+  // ── Swipe delegation / double-tap reaction: بدون أي تغيير ──
   const _realCont = document.getElementById("chatMessages");
   if (_realCont && typeof _initSwipeDelegation === "function") _initSwipeDelegation(_realCont);
   if (_realCont && typeof _initDoubleTapReaction === "function") _initDoubleTapReaction(_realCont);
@@ -8232,6 +8293,18 @@ function _applyFullUserUpdateToDOM(uid, data) {
   if (membersPanel && membersPanel.classList.contains("active")) {
     _allUsersCache = null;
     renderMembersList(document.getElementById("sidebarHeaderSearchInp")?.value || "");
+  }
+
+  // 6. تحديث نقطة الحضور في هيدر الشات المفتوح — فقط لو نفس الشخص المفتوحة معاه المحادثة
+  if (typeof _currentChatId !== "undefined" && uid === _currentChatId) {
+    const avatarRing = document.getElementById("chatTopAvatar");
+    const statusWrap  = document.querySelector(".chat-header-info .status");
+    const isOnline = _isOnlineVisible(d);
+    if (avatarRing) {
+      avatarRing.classList.toggle("online", isOnline);
+      avatarRing.classList.toggle("offline", !isOnline);
+    }
+    if (statusWrap) statusWrap.classList.toggle("online", isOnline);
   }
 }
 
