@@ -1,17 +1,28 @@
 /* ══════════════════════════════════════════
-   DMS PAGE — التصميم المعتمد (بديل كامل للتصميم القديم)
-   ملف مستقل للدردشات — بدون رينغ ألوان عشوائية (أخضر/رمادي فقط لحالة الاتصال)
+   DMS PAGE — التصميم الجديد (مطابق لـ chats-interface.html المرجعي)
+   كل الـ id/class هنا هي نفسها المستخدمة في js/dms-page.js و js/dm-extras.js
+   بدون أي تغيير — فقط القيم البصرية تغيّرت.
+   المتغيرات Scoped على #page-dms فقط، عشان متأثرش على باقي الموقع.
 ══════════════════════════════════════════ */
 
-/* ── الصفحة الكاملة ── */
 #page-dms {
+  --bg: #141416;
+  --panel-border: rgba(255,255,255,0.07);
+  --text: #f2f2f4;
+  --muted: #8d8d94;
+  --gold: #e0b23c;
+  --online: #3ecf6e;
+  --offline: #5a5a5e;
+  --seen-blue: #4a90e2;
+
   display: none;
   flex-direction: column;
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: #07090d;
-  font-family: 'Cairo', -apple-system, sans-serif;
+  background: var(--bg);
+  font-family: 'Cairo', system-ui, sans-serif;
+  color: var(--text);
 }
 #page-dms.active { display: flex !important; }
 
@@ -19,74 +30,76 @@
 .dms-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  padding: 18px 16px 10px;
+  padding: 8px 16px 14px;
   flex-shrink: 0;
 }
 .dms-back-btn {
-  background: none; border: none;
-  color: #c9a96e; font-size: 20px;
-  cursor: pointer; padding: 0;
-  line-height: 1; flex-shrink: 0;
+  background: rgba(255,255,255,0.06); border: none;
+  width: 32px; height: 32px; border-radius: 50%;
+  color: var(--text); font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  transition: background .15s ease;
 }
+.dms-back-btn:active { background: rgba(255,255,255,.12); }
 .dms-header-title {
-  font-size: 24px; font-weight: 900;
-  color: #fff; flex: 1;
-  text-align: right;
+  font-size: 26px; font-weight: 800; letter-spacing: -0.5px;
+  color: var(--text); flex: 1;
 }
-.dms-profile-btn {
-  background: none; border: none;
-  color: #e8e8e8; font-size: 19px; cursor: pointer;
-  padding: 0; line-height: 1; flex-shrink: 0;
+.dms-search-toggle {
+  background: rgba(255,255,255,0.06); border: none;
+  width: 32px; height: 32px; border-radius: 50%;
+  color: var(--muted); font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
 }
 
-/* ── الشريط الجانبي (الأعضاء/الغرف) يجب أن يظهر فوق صفحة المحادثات (z-index:200) عند فتحه من هنا ── */
-#chatSidebar { z-index: 300 !important; }
-#sidebarOverlay { z-index: 299 !important; }
+/* ── Search Bar ── */
+.dms-search-bar {
+  display: none;
+  align-items: center; gap: 10px;
+  margin: 0 20px 14px;
+  padding: 11px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+.dms-search-bar.open { display: flex; }
+.dms-search-bar i { color: var(--muted); font-size: 14px; flex-shrink: 0; }
+.dms-search-bar input {
+  flex: 1; background: none; border: none;
+  outline: none; color: var(--text);
+  font-size: 15px; font-family: inherit;
+}
+.dms-search-bar input::placeholder { color: var(--muted); }
+.dms-search-bar button {
+  background: none; border: none;
+  color: var(--muted); font-size: 15px; cursor: pointer; flex-shrink: 0;
+}
 
 /* ── Filter Chips ── */
 .dms-filters {
   display: flex; gap: 8px;
-  padding: 6px 16px 10px; flex-shrink: 0;
+  padding: 0 20px 12px; flex-shrink: 0;
   overflow-x: auto; scrollbar-width: none;
 }
 .dms-filters::-webkit-scrollbar { display: none; }
 .dms-chip {
-  padding: 6px 18px; border-radius: 20px;
+  padding: 6px 16px; border-radius: 20px;
   font-size: 13px; font-weight: 600;
-  border: 1.5px solid rgba(255,255,255,.15);
+  border: 1px solid var(--panel-border);
   background: rgba(255,255,255,.05);
-  color: rgba(255,255,255,.6);
+  color: var(--muted);
   cursor: pointer; font-family: inherit;
   transition: all .2s; white-space: nowrap;
   flex-shrink: 0;
 }
 .dms-chip.active {
-  background: #c9a96e; color: #1a1200;
-  border-color: #c9a96e;
-}
-
-/* ── صف "محادثات مؤرشفة" ── */
-.dms-archived-row {
-  display: none;
-  align-items: center; gap: 12px;
-  padding: 4px 16px 14px;
-  cursor: pointer; flex-shrink: 0;
-}
-.dms-archived-badge {
-  background: #c9a96e; color: #1a1200;
-  font-size: 11px; font-weight: 800;
-  width: 20px; height: 20px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.dms-archived-label { font-size: 13.5px; font-weight: 600; color: #d1d5db; flex: 1; }
-.dms-archived-icon {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: #171a21;
-  color: #c9a96e; font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  background: var(--gold); color: #1a1a1a;
+  border-color: var(--gold);
 }
 
 /* ── Content Area ── */
@@ -103,54 +116,61 @@
   inset: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 100px; /* مساحة للشريط السفلي العائم */
+  padding-bottom: 100px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 18px, black calc(100% - 90px), transparent calc(100% - 4px));
+  mask-image: linear-gradient(to bottom, transparent 0px, black 18px, black calc(100% - 90px), transparent calc(100% - 4px));
 }
 .dms-panel.active { display: flex; }
 
-.dms-section-label {
-  padding: 14px 16px 6px;
-  font-size: 12px; font-weight: 600;
-  color: rgba(255,255,255,.35);
-  letter-spacing: .06em; text-transform: uppercase;
-}
-
 /* ── Conv Item ── */
 .dms-conv-item {
-  display: flex; align-items: center; gap: 13px;
-  padding: 11px 16px; cursor: pointer;
+  display: flex; align-items: center; gap: 14px;
+  padding: 11px 20px; cursor: pointer;
   position: relative;
-  transition: background .1s;
+  transition: background .2s ease, transform .15s ease;
 }
-.dms-conv-item::after {
-  content: "";
-  position: absolute;
-  bottom: 0; left: 79px; right: 16px;
-  height: 1px;
-  background: rgba(255,255,255,.06);
-}
-.dms-conv-item:active { background: rgba(255,255,255,.03); }
+.dms-conv-item:active { background: rgba(255,255,255,.05); transform: scale(0.985); }
 
 /* ── Avatar ── */
 .dms-conv-avatar {
-  width: 54px; height: 54px;
+  width: 52px; height: 52px;
   border-radius: 50%; object-fit: cover;
   flex-shrink: 0;
+  border: 2.5px solid var(--bg); background:#2a2a2e;
 }
 .dms-conv-avatar-public,
 .dms-conv-avatar-letter,
 .dms-conv-avatar-room {
   display: flex; align-items: center; justify-content: center;
-  font-size: 21px; font-weight: 700;
-  background: #241d10;
-  color: #dfc090;
+  font-size: 20px; font-weight: 700;
+  background: rgba(224,178,60,.18);
+  color: var(--gold);
   border-radius: 50%;
 }
 
-/* ── Avatar Wrap + حلقة الاتصال ── */
+/* ── Avatar Wrap = الحلقة (Ring) — نفس آلية التصميم المرجعي بالحرف ── */
 .dms-avatar-wrap {
-  position: relative;
-  width: 54px; height: 54px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+}
+.dms-avatar-wrap.online,
+.dms-avatar-wrap.offline,
+.dms-avatar-wrap.ai-ring { padding: 2px; }
+.dms-avatar-wrap.online  { background: var(--online); }
+.dms-avatar-wrap.offline { background: var(--offline); }
+.dms-avatar-wrap.ai-ring { background: linear-gradient(135deg,#8b5cf6,#3b82f6); }
+.ai-avatar {
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 45%, rgba(167,139,250,0.35), #1c1c1e 72%);
+  color: #a78bfa;
+}
+.ai-badge {
+  display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: .3px;
+  color: #fff; background: linear-gradient(135deg,#8b5cf6,#3b82f6);
+  padding: 1px 6px; border-radius: 6px; margin-inline-start: 4px; vertical-align: middle;
 }
 .dms-avatar-wrap .dms-conv-avatar,
 .dms-avatar-wrap .dms-conv-avatar-public,
@@ -159,136 +179,148 @@
   width: 100%; height: 100%;
 }
 
-/* حلقة أونلاين/أوف لاين حول الافاتار — أخضر بنبض خفيف جدًا = متصل / رمادي بدون نبض = غير متصل
-   (نفس نظام الاتصال الحالي بدون أي تعديل منطقي — تعديل شكل فقط) */
-.dms-avatar-wrap.ring-online  .dms-conv-avatar,
-.dms-avatar-wrap.ring-online  .dms-conv-avatar-letter {
-  box-shadow: 0 0 0 2.5px #2ed573;
-  animation: dmsOnlinePulse 2.6s ease-in-out infinite;
-}
-.dms-avatar-wrap.ring-offline .dms-conv-avatar,
-.dms-avatar-wrap.ring-offline .dms-conv-avatar-letter {
-  box-shadow: 0 0 0 2.5px #5a6070;
-}
-@keyframes dmsOnlinePulse {
-  0%, 100% { box-shadow: 0 0 0 2.5px #2ed573, 0 0 3px 0px rgba(46,213,115,.35); }
-  50%      { box-shadow: 0 0 0 2.5px #2ed573, 0 0 5px 1px rgba(46,213,115,.6);  }
-}
-
 /* ── Conv Body ── */
-.dms-conv-body { flex: 1; min-width: 0; }
+.dms-conv-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .dms-conv-row1 {
   display: flex; align-items: baseline;
-  justify-content: space-between; margin-bottom: 5px;
+  justify-content: space-between; gap: 8px;
 }
 .dms-conv-name {
-  font-size: 15.5px; font-weight: 700; color: #fff;
+  font-size: 15.5px; font-weight: 700; color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   max-width: 65%;
 }
 .dms-conv-time {
-  font-size: 11.5px; color: #6b7280;
-  font-weight: 500; flex-shrink: 0;
+  font-size: 12px; color: var(--muted);
+  flex-shrink: 0;
 }
 .dms-conv-row2 {
-  display: flex; align-items: center; gap: 5px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
 .dms-conv-last {
-  font-size: 13px; color: #8a919e; font-weight: 500;
+  font-size: 13.5px; color: var(--muted);
   white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis; flex: 1;
+  display: flex; align-items: center; gap: 5px;
 }
 .dms-conv-badges {
   display: flex; align-items: center;
   gap: 5px; flex-shrink: 0;
 }
 .dms-unread-badge {
-  background: #c9a96e; color: #1a1200;
+  background: var(--gold); color: #1a1a1a;
   font-size: 11px; font-weight: 800;
-  min-width: 20px; height: 20px;
-  border-radius: 20px; padding: 0 6px;
+  min-width: 19px; height: 19px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+  padding: 0 5px;
 }
-.dms-fav-star { color: #c9a96e; font-size: 13px; }
+/* ملاحظة: أيقونات التثبيت/المفضلة/الكتم (.dms-ex-*) بيحقنها js/dm-extras.js
+   بستايل خاص بيه ومستقل بالكامل (self-contained) — مش محتاجة أي قاعدة هنا،
+   وبتاخد لون --gold الجديد تلقائيًا لأنها بتتحط جوه #page-dms أصلًا. */
 
 /* ── Empty / Loading ── */
 .dms-empty, .dms-loading {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 12px; padding: 80px 20px;
-  color: rgba(255,255,255,.3); font-size: 14px; flex: 1;
+  color: var(--muted); font-size: 14px; flex: 1;
 }
 .dms-empty i, .dms-loading i { font-size: 40px; opacity: .3; }
 
-/* ── Under Development ── */
+/* ── Under Development (المكالمات / الحالات) ── */
 .dms-under-dev {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 14px; flex: 1; padding: 60px 20px;
 }
-.dms-under-dev i { font-size: 52px; color: rgba(255,255,255,.15); }
-.dms-ud-title { font-size: 20px; font-weight: 700; color: #fff; }
-.dms-ud-sub { font-size: 14px; color: rgba(255,255,255,.4); }
+.dms-under-dev i { font-size: 52px; color: var(--muted); opacity: .4; }
+.dms-ud-title { font-size: 20px; font-weight: 700; color: var(--text); }
+.dms-ud-sub { font-size: 14px; color: var(--muted); }
 
-/* ── Bottom Tabs — شريط عائم (نفس أسماء الكلاسات الأصلية، شكل جديد بالكامل) ── */
+/* ── Inner Bottom Tabs — نفس شكل .bottom-nav العائم في التصميم الجديد ── */
 .dms-tabs {
-  position: absolute;
-  bottom: 16px; left: 0; right: 0;
-  z-index: 5;
-  display: flex; justify-content: center;
-  padding: 0 16px;
-  pointer-events: none; /* الحاوية شفافة، فقط الشريط الداخلي قابل للنقر */
+  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  width: calc(100% - 40px);
+  background: rgba(28,28,30,0.55);
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 10px;
+  flex-shrink: 0;
+  z-index: 6;
 }
 .dms-tab {
-  pointer-events: auto;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  width: 56px; height: 52px;
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px;
+  padding: 8px 0;
   background: none; border: none;
-  color: #8a919e;
+  color: var(--muted); font-size: 10px;
   cursor: pointer; font-family: inherit;
-  transition: color .2s;
+  font-weight: 600;
 }
-.dms-tab span { display: none; } /* النص يظهر فقط بالتلميح عبر title */
-.dms-tab i { font-size: 19px; }
+.dms-tab i { font-size: 20px; }
 .dms-tab.active {
-  color: #1a1200;
-  background: linear-gradient(135deg,#c9a96e,#e8cd97);
-  border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(201,169,110,.18);
-  width: 44px; height: 44px; margin: 4px;
+  color: var(--gold);
+  background: rgba(224,178,60,0.16);
+  border-radius: 16px;
 }
 
-/* الطبقة الخلفية الموحّدة للشريط العائم (خلف كل الأزرار) */
-.dms-tabs::after {
-  content: "";
-  position: absolute;
-  inset: 0 16px;
-  margin: 0 auto;
-  max-width: 280px;
-  background: rgba(23,26,33,.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 28px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.5);
-  z-index: -1;
+/* ══════════════════════════════════════════
+   تبويب "الأعضاء" — بيستخدم renderMembersList() الموجودة فعليًا (.dm-item...)
+   بدون أي تعديل على الدالة نفسها. القواعد هنا Scoped على #page-dms بس، عشان
+   الشكل الجديد يطبّق هنا بس ومايأثرش على استخدام .dm-item الأصلي في أي مكان
+   تاني بالموقع (سايدبار الأعضاء داخل الشات مثلاً).
+══════════════════════════════════════════ */
+#page-dms .dm-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 11px 20px; cursor: pointer;
+  transition: background .2s ease, transform .15s ease;
+}
+#page-dms .dm-item:active { background: rgba(255,255,255,.05); transform: scale(0.985); }
+#page-dms .dm-avatar-wrap { width: 52px; height: 52px; flex-shrink: 0; }
+#page-dms .dm-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  border: 2.5px solid var(--bg); background: #2a2a2e;
+  font-weight: 700; font-size: 18px;
+}
+#page-dms .dm-avatar img { width: 100%; height: 100%; object-fit: cover; }
+#page-dms .dm-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+#page-dms .dm-top-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+#page-dms .dm-name {
+  font-size: 15.5px; font-weight: 700; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#page-dms .dm-bottom-row { display: flex; align-items: center; gap: 8px; }
+#page-dms .dm-preview {
+  font-size: 13.5px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#page-dms .dm-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 20px; color: var(--muted); font-size: 14px;
 }
 
 /* ── Light Theme ── */
-html.theme-light #page-dms { background: #f2f2f7; }
+html.theme-light #page-dms { background: #f2f2f7; --text:#000; --muted:rgba(0,0,0,.45); }
 html.theme-light .dms-header-title { color: #000; }
-html.theme-light .dms-back-btn { color: #c9a96e; }
+html.theme-light .dms-back-btn,
+html.theme-light .dms-search-toggle { background: rgba(0,0,0,.06); }
 html.theme-light .dms-chip {
   border-color: rgba(0,0,0,.12);
   background: rgba(0,0,0,.04);
   color: rgba(0,0,0,.5);
 }
 html.theme-light .dms-conv-item:active { background: rgba(0,0,0,.04); }
-html.theme-light .dms-conv-item::after { background: rgba(0,0,0,.08); }
 html.theme-light .dms-conv-name { color: #000; }
 html.theme-light .dms-conv-last { color: rgba(0,0,0,.45); }
 html.theme-light .dms-conv-time { color: rgba(0,0,0,.35); }
-html.theme-light .dms-section-label { color: rgba(0,0,0,.35); }
+html.theme-light .dms-search-bar { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.1); }
+html.theme-light .dms-search-bar input { color: #000; }
 html.theme-light .dms-ud-title { color: #000; }
-html.theme-light .dms-archived-label { color: rgba(0,0,0,.6); }
+html.theme-light .dms-tabs { background: rgba(255,255,255,.6); border-color: rgba(0,0,0,.1); }
+html.theme-light .dms-tab { color: rgba(0,0,0,.4); }
+html.theme-light .dms-tab.active { color: var(--gold); }
