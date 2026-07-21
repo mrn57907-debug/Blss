@@ -1,4 +1,3 @@
-
 import { collection, query, where, orderBy, onSnapshot, doc, getDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* ── حالة عدّاد غير المقروء لكل محادثة (مستمعات فورية مستقلة — دائمة طوال الجلسة) ── */
@@ -16,10 +15,10 @@ function _dmsSetOnlineDot(otherId, isOnline) {
   const item = _dmsItems.find(i => i.id === otherId);
   if (item) item.isOnline = isOnline;
   const el = document.getElementById(`dms-item-${otherId}`);
-  const wrap = el?.querySelector(".dms-avatar-wrap");
-  if (wrap) {
-    wrap.classList.toggle("ring-online", isOnline);
-    wrap.classList.toggle("ring-offline", !isOnline);
+  const ring = el?.querySelector(".dms-avatar-wrap");
+  if (ring) {
+    ring.classList.toggle("online", isOnline);
+    ring.classList.toggle("offline", !isOnline);
   }
 }
 
@@ -98,6 +97,7 @@ function _fmt(ts) {
 function _av(photo, name, cls) {
   if (cls==="public") return `<div class="dms-conv-avatar dms-conv-avatar-public"><i class="fa-solid fa-graduation-cap"></i></div>`;
   if (cls==="room")   return `<div class="dms-conv-avatar dms-conv-avatar-room"><i class="fa-solid fa-users"></i></div>`;
+  if (cls==="ai")     return `<div class="dms-conv-avatar ai-avatar"><i class="fa-solid fa-sparkles"></i></div>`;
   if (photo) return `<img class="dms-conv-avatar" src="${photo}" alt="">`;
   return `<div class="dms-conv-avatar dms-conv-avatar-letter">${(name||"?").charAt(0).toUpperCase()}</div>`;
 }
@@ -107,22 +107,21 @@ function _buildItem(item) {
   const badge = item.unread > 0 ? `<span class="dms-unread-badge">${item.unread>99?"99+":item.unread}</span>` : "";
   const safeName = (item.name||"").replace(/'/g,"\\'").replace(/"/g,"&quot;");
   const safePhoto = (item.photo||"").replace(/'/g,"\\'");
-  // مؤشر الاتصال (حلقة حول الافاتار) يظهر فقط في المحادثات الخاصة (ليس الشات العام ولا الغرف)
-  // نفس قيمة isOnline الموجودة أصلاً — تغيير شكل العرض فقط، بدون أي منطق جديد
-  const showPresence = item.cls === "";
-  const ringClass = showPresence ? (item.isOnline ? " ring-online" : " ring-offline") : "";
+  // مؤشر الاتصال يظهر فقط في المحادثات الخاصة (ليس الشات العام ولا الغرف)
+  const showDot = item.cls === "";
+  const ringCls = item.cls === "ai" ? " ai-ring" : (showDot ? (item.isOnline ? " online" : " offline") : "");
   let extrasHTML = "";
-  if (showPresence && typeof window._dmExtrasRender === "function") {
+  if (showDot && typeof window._dmExtrasRender === "function") {
     try { extrasHTML = window._dmExtrasRender(item) || ""; } catch (e) { extrasHTML = ""; }
   }
   return `
-    <div class="dms-conv-item" id="dms-item-${item.id}" ${showPresence ? `data-other-id="${item.id}"` : ""} onclick="_dmsOpenChat('${item.id}','${safeName}','${safePhoto}')">
-      <div class="dms-avatar-wrap${ringClass}">
+    <div class="dms-conv-item" id="dms-item-${item.id}" ${showDot ? `data-other-id="${item.id}"` : ""} onclick="_dmsOpenChat('${item.id}','${safeName}','${safePhoto}')">
+      <div class="dms-avatar-wrap${ringCls}">
         ${_av(item.photo, item.name, item.cls)}
       </div>
       <div class="dms-conv-body">
         <div class="dms-conv-row1">
-          <span class="dms-conv-name">${item.name||"مستخدم"}</span>
+          <span class="dms-conv-name">${item.name||"مستخدم"}${item.cls==="ai" ? ' <span class="ai-badge">AI</span>' : ""}</span>
           ${extrasHTML}
           <span class="dms-conv-time">${_fmt(item.lastTime)}</span>
         </div>
@@ -149,82 +148,77 @@ function _updateNavBadge() {
   }
 }
 
-/* ── عرض القائمة ── */
+/* ── عرض القائمة (تشمل الدردشات والغرف مدموجة معًا، مرتبة حسب آخر نشاط) ── */
 function _render(search) {
   const el = document.getElementById("dmsConvList");
   if (!el) return;
-  let items = [..._dmsItems];
-  // المحادثات المؤرشفة تُستثنى من كل الفلاتر الأخرى، وتظهر فقط داخل فلتر "الأرشيف"
+  let items = [..._dmsItems, ..._dmsRooms.map(_roomToItem)];
+  if (typeof window._aiListItem === "function") {
+    const ai = window._aiListItem();
+    if (ai) items.push(ai);
+  }
+  // إبقاء الشات العام في الأعلى دائمًا. الباقي (دردشات + غرف) يُرتَّب حسب آخر
+  // نشاط، مع الحفاظ على أولوية التثبيت/المفضلة (window._dmExtrasSort) لو متاحة
+  // — نفس المنطق الموجود أصلاً، بس مطبَّق على القائمة المدموجة بالكامل.
+  const pub = items.filter(i => i.id === "public");
+  let rest = items.filter(i => i.id !== "public")
+    .sort((a,b) => (b.lastTime?.toMillis?.()??0) - (a.lastTime?.toMillis?.()??0));
+  if (typeof window._dmExtrasSort === "function") {
+    try { rest = window._dmExtrasSort(rest) || rest; } catch (e) {}
+  }
+  items = [...pub, ...rest];
+
+  // الأرشيف — ميزة جديدة (الوحيدة المضافة فعليًا). المحادثة العامة لا تُؤرشف أبدًا.
   const isArchived = (id) => {
+    if (id === "public") return false;
     try { return typeof window._dmExtrasIsArchived === "function" ? window._dmExtrasIsArchived(id) : false; }
     catch (e) { return false; }
   };
-  if (_dmsCurFilter === "archived") {
+  if (_dmsCurFilter === "archive") {
     items = items.filter(i => isArchived(i.id));
   } else {
     items = items.filter(i => !isArchived(i.id));
-    if (_dmsCurFilter === "unread") items = items.filter(i => i.unread > 0);
+  }
+
+  if (_dmsCurFilter === "unread") items = items.filter(i => i.unread > 0);
+  if (_dmsCurFilter === "fav") {
+    items = items.filter(i => {
+      try { return typeof window._dmExtrasIsFav === "function" ? window._dmExtrasIsFav(i.id) : false; }
+      catch (e) { return false; }
+    });
   }
   if (search) {
     const s = search.toLowerCase();
     items = items.filter(i => (i.name||"").toLowerCase().includes(s));
   }
   if (!items.length) {
-    el.innerHTML = `<div class="dms-empty"><i class="fa-regular fa-comment-dots"></i><p>لا توجد محادثات</p></div>`;
+    const emptyMsg = _dmsCurFilter === "archive" ? "لا توجد محادثات مؤرشفة" : "لا توجد محادثات";
+    el.innerHTML = `<div class="dms-empty"><i class="fa-regular fa-comment-dots"></i><p>${emptyMsg}</p></div>`;
     if (_dmsPresenceObserver) { _dmsPresenceObserver.disconnect(); }
     return;
   }
   el.innerHTML = items.map(_buildItem).join("");
   // بعد كل رسم: أعد ربط مراقب الظهور بالعناصر الجديدة (تفعيل/إلغاء مستمعات الحضور حسب الظهور الفعلي)
   _dmsSetupPresenceObserver();
-  _updateArchivedRow();
 }
-
-/* ── صف "محادثات مؤرشفة" أعلى القائمة: عداد حي + تبديل بين حالة الدخول/الرجوع ── */
-function _updateArchivedRow() {
-  const row = document.getElementById("dmsArchivedRow");
-  if (!row) return;
-  const isArchived = (id) => {
-    try { return typeof window._dmExtrasIsArchived === "function" ? window._dmExtrasIsArchived(id) : false; }
-    catch (e) { return false; }
-  };
-  const count = _dmsItems.filter(i => isArchived(i.id)).length;
-  const badge = document.getElementById("dmsArchivedBadge");
-  const label = row.querySelector(".dms-archived-label");
-  const icon  = row.querySelector(".dms-archived-icon i");
-  if (_dmsCurFilter === "archived") {
-    row.style.display = "flex";
-    if (badge) badge.style.display = "none";
-    if (label) label.textContent = "الرجوع إلى المحادثات";
-    if (icon)  icon.className = "fa-solid fa-arrow-right";
-  } else {
-    row.style.display = count > 0 ? "flex" : "none";
-    if (badge) { badge.style.display = ""; badge.textContent = count > 99 ? "99+" : count; }
-    if (label) label.textContent = "محادثات مؤرشفة";
-    if (icon)  icon.className = "fa-solid fa-box-archive";
-  }
-}
-
-/* ── فتح/إغلاق عرض الأرشيف من الصف المخصص أعلى القائمة ── */
-window._dmsOpenArchived = function() {
-  if (_dmsCurFilter === "archived") {
-    _dmsCurFilter = "all";
-    document.querySelectorAll(".dms-chip").forEach((c,i) => c.classList.toggle("active", i===0));
-  } else {
-    _dmsCurFilter = "archived";
-    document.querySelectorAll(".dms-chip").forEach(c => c.classList.remove("active"));
-  }
-  _render("");
-};
 
 /* ── إعادة رسم فورية (تُستخدم من ملف الإضافات المستقل بعد تحديث حالة تثبيت/مفضلة/كتم) ── */
 window._dmsForceRerender = function() {
-  _render("");
+  _render(document.getElementById("dmsSearchInp")?.value||"");
 };
 
 /* ── فتح محادثة ── */
 window._dmsOpenChat = function(id, name, photo) {
+  if (id === "ai") {
+    if (typeof window._openAiChat === "function") window._openAiChat();
+    return;
+  }
   window.selectChat(id, name, photo);
+};
+
+/* ── إعادة رسم القائمة من مصدر خارجي (مثلاً ai-assistant.js لما تتحدث آخر رسالة) ── */
+window._dmsRerender = function() {
+  _render(document.getElementById("dmsSearchInp")?.value || "");
 };
 
 /* ── تصفير فوري لعداد شخص معيّن عند فتح محادثته (يُستدعى من selectChat) ── */
@@ -232,7 +226,7 @@ window._dmsMarkRead = function(otherId) {
   const item = _dmsItems.find(i => i.id === otherId);
   if (item && item.unread) {
     item.unread = 0;
-    _render("");
+    _render(document.getElementById("dmsSearchInp")?.value||"");
     _updateNavBadge();
   }
   // إبقاء مستمع حالة الاتصال فعالاً دائماً طالما المحادثة مفتوحة (حتى لو خرج العنصر من الشاشة)
@@ -244,7 +238,7 @@ window._dmsFilter = function(btn, filter) {
   _dmsCurFilter = filter;
   document.querySelectorAll(".dms-chip").forEach(c => c.classList.remove("active"));
   btn.classList.add("active");
-  _render("");
+  _render(document.getElementById("dmsSearchInp")?.value || "");
 };
 
 /* ── تبويبات ── */
@@ -256,22 +250,27 @@ window._dmsSwitchTab = function(btn, panel) {
   document.getElementById("dmspanel-" + panel)?.classList.add("active");
   const filters = document.getElementById("dmsFilters");
   if (filters) filters.style.display = panel === "chats" ? "" : "none";
-  if (panel === "rooms") _renderRooms();
+  if (panel === "members" && typeof window.renderMembersList === "function") {
+    window.renderMembersList("", "dmsMembersList");
+  }
 };
 
-/* ── الغرف ── */
-function _renderRooms() {
-  const el = document.getElementById("dmsRoomsList");
-  if (!el) return;
-  if (!_dmsRooms.length) { el.innerHTML = `<div class="dms-empty"><i class="fa-solid fa-users"></i><p>لا توجد غرف</p></div>`; return; }
-  el.innerHTML = _dmsRooms.map(r => `
-    <div class="dms-conv-item" onclick="_dmsOpenChat('room:${r.id}','${(r.name||"غرفة").replace(/'/g,"\\'")}','${r.photo||""}')">
-      ${r.photo ? `<img class="dms-conv-avatar" src="${r.photo}" alt="">` : `<div class="dms-conv-avatar dms-conv-avatar-room"><i class="fa-solid fa-users"></i></div>`}
-      <div class="dms-conv-body">
-        <div class="dms-conv-row1"><span class="dms-conv-name">${r.name||"غرفة"}</span></div>
-        <div class="dms-conv-row2"><span class="dms-conv-last">${r.desc||"غرفة نقاش"}</span></div>
-      </div>
-    </div>`).join("");
+/* ── بحث ── */
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("dmsSearchToggle")?.addEventListener("click", () => {
+    const bar = document.getElementById("dmsSearchBar");
+    if (bar) { bar.classList.toggle("open"); if (bar.classList.contains("open")) document.getElementById("dmsSearchInp")?.focus(); }
+  });
+  document.getElementById("dmsSearchInp")?.addEventListener("input", e => _render(e.target.value));
+});
+
+/* ── تحويل بيانات الغرفة لنفس شكل عنصر المحادثة، عشان تندمج في نفس القائمة ── */
+function _roomToItem(r) {
+  return {
+    id: "room:" + r.id, name: r.name || "غرفة", photo: r.photo || "", cls: "room",
+    lastMsg: r.desc || "غرفة نقاش", lastTime: r.lastMessageAt || r.createdAt || null,
+    unread: 0, isOnline: false
+  };
 }
 
 /* ══ PRELOAD — يبدأ فور تسجيل الدخول ══ */
@@ -318,7 +317,7 @@ window._dmsStartListeners = function() {
       _dmsUnreadMap[roomId] = cnt;
       const item = _dmsItems.find(i => i.id === otherId);
       if (item) item.unread = cnt;
-      _render("");
+      _render(document.getElementById("dmsSearchInp")?.value||"");
       _updateNavBadge();
     }, () => {});
   }
@@ -377,24 +376,26 @@ window._dmsStartListeners = function() {
     }
     const pub = _dmsItems.find(i => i.id==="public") || pubItem;
     _dmsItems = [pub, ...items];
-    _render("");
+    _render(document.getElementById("dmsSearchInp")?.value||"");
     _updateNavBadge();
   }, () => {});
 
-  // الغرف
+  // الغرف — تُدمَج الآن داخل نفس قائمة الدردشات (بدل تبويب مستقل)
   onSnapshot(collection(window.db,"rooms"), snap => {
     _dmsRooms = snap.docs.map(d => ({id:d.id,...d.data()}));
-    if (_dmsCurTab==="rooms") _renderRooms();
+    _render(document.getElementById("dmsSearchInp")?.value||"");
   }, () => {});
 };
 
 /* ══ فتح الصفحة ══ */
 window._dmsPageInit = function() {
   // reset UI
+  document.getElementById("dmsSearchBar")?.classList.remove("open");
+  const si = document.getElementById("dmsSearchInp"); if (si) si.value = "";
   _dmsCurFilter = "all";
   _dmsCurTab    = "chats";
   document.querySelectorAll(".dms-chip").forEach((c,i) => c.classList.toggle("active",i===0));
-  document.querySelectorAll(".dms-tab").forEach((t,i)  => t.classList.toggle("active",i===3));
+  document.querySelectorAll(".dms-tab").forEach((t,i)  => t.classList.toggle("active",i===0));
   document.querySelectorAll(".dms-panel").forEach((p,i) => p.classList.toggle("active",i===0));
   const filters = document.getElementById("dmsFilters"); if (filters) filters.style.display = "";
 
