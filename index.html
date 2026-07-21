@@ -790,37 +790,21 @@ window.addEventListener("load", () => {
     <button onclick="document.getElementById('dmsSearchInp').value='';_dmsSearch('')"><i class="fa-solid fa-xmark"></i></button>
   </div>
 
-  <!-- Filter Chips — تظهر فقط في تبويب المحادثات -->
+  <!-- Filter Chips — تظهر فقط في تبويب المحادثات (الغرف بقت مدموجة جوه نفس التبويب) -->
   <div class="dms-filters" id="dmsFilters">
     <button class="dms-chip active" data-filter="all" onclick="_dmsFilter(this,'all')">الكل</button>
     <button class="dms-chip" data-filter="unread" onclick="_dmsFilter(this,'unread')">غير مقروءة</button>
     <button class="dms-chip" data-filter="fav" onclick="_dmsFilter(this,'fav')">مفضلة</button>
+    <button class="dms-chip" data-filter="archive" onclick="_dmsFilter(this,'archive')">الأرشيف</button>
   </div>
 
   <!-- Content Panels -->
   <div class="dms-content">
 
-    <!-- المحادثات -->
+    <!-- المحادثات (تشمل الآن الغرف مدموجة داخل نفس القائمة) -->
     <div class="dms-panel active" id="dmspanel-chats">
       <div class="dms-list" id="dmsConvList">
         <div class="dms-loading"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
-      </div>
-    </div>
-
-    <!-- المجتمعات (الغرف) -->
-    <div class="dms-panel" id="dmspanel-rooms">
-      <div class="dms-section-label">المجتمعات والغرف</div>
-      <div class="dms-list" id="dmsRoomsList">
-        <div class="dms-loading"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
-      </div>
-    </div>
-
-    <!-- المكالمات -->
-    <div class="dms-panel" id="dmspanel-calls">
-      <div class="dms-under-dev">
-        <i class="fa-solid fa-phone"></i>
-        <div class="dms-ud-title">المكالمات</div>
-        <div class="dms-ud-sub">هذه الميزة قيد التطوير</div>
       </div>
     </div>
 
@@ -833,28 +817,82 @@ window.addEventListener("load", () => {
       </div>
     </div>
 
+    <!-- المكالمات -->
+    <div class="dms-panel" id="dmspanel-calls">
+      <div class="dms-under-dev">
+        <i class="fa-solid fa-phone"></i>
+        <div class="dms-ud-title">المكالمات</div>
+        <div class="dms-ud-sub">هذه الميزة قيد التطوير</div>
+      </div>
+    </div>
+
+    <!-- الأعضاء -->
+    <div class="dms-panel" id="dmspanel-members">
+      <div class="dms-list" id="dmsMembersList">
+        <div class="dms-loading"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Inner Bottom Tabs -->
   <div class="dms-tabs">
     <button class="dms-tab active" data-panel="chats" onclick="_dmsSwitchTab(this,'chats')">
       <i class="fa-solid fa-message"></i>
-      <span>المحادثات</span>
-    </button>
-    <button class="dms-tab" data-panel="rooms" onclick="_dmsSwitchTab(this,'rooms')">
-      <i class="fa-solid fa-users"></i>
-      <span>المجتمعات</span>
-    </button>
-    <button class="dms-tab" data-panel="calls" onclick="_dmsSwitchTab(this,'calls')">
-      <i class="fa-solid fa-phone"></i>
-      <span>المكالمات</span>
+      <span>دردشات</span>
     </button>
     <button class="dms-tab" data-panel="status" onclick="_dmsSwitchTab(this,'status')">
       <i class="fa-solid fa-circle-half-stroke"></i>
-      <span>الحالات</span>
+      <span>حالات</span>
+    </button>
+    <button class="dms-tab" data-panel="calls" onclick="_dmsSwitchTab(this,'calls')">
+      <i class="fa-solid fa-phone"></i>
+      <span>مكالمات</span>
+    </button>
+    <button class="dms-tab" data-panel="members" onclick="_dmsSwitchTab(this,'members')">
+      <i class="fa-solid fa-users"></i>
+      <span>أعضاء</span>
     </button>
   </div>
 
+</div>
+
+<!-- ══════════════════════════════════════════
+     AI ASSISTANT CHAT — شاشة مستقلة، من جانب العميل بالكامل (بدون Firestore)
+     نفس كلاسات شاشة الشات الحقيقية المُعاد تصميمها (chat-header/chat-body/
+     chat-input/msg-row/bubble...) عشان تاخد نفس الـ CSS بالظبط تلقائيًا،
+     وبس إضافات خاصة بالمساعد الذكي (ai-ring/ai-avatar/ai-badge/ai-typing).
+══════════════════════════════════════════ -->
+<div id="page-ai-chat" class="page">
+  <div class="chat-main">
+
+    <div class="chat-header">
+      <button class="chat-back-btn" onclick="showPage('page-dms')" title="رجوع">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <div class="avatar-wrap">
+        <div class="avatar-ring ai-ring">
+          <div class="ai-avatar" style="width:100%;height:100%;border-radius:50%;"><i class="fa-solid fa-sparkles"></i></div>
+        </div>
+      </div>
+      <div class="chat-header-info">
+        <div class="name">المساعد الذكي <span class="ai-badge">AI</span></div>
+        <div class="status"><span class="dot"></span><span id="aiChatStatus">جاهز للمساعدة</span></div>
+      </div>
+    </div>
+
+    <div class="chat-body" id="aiChatBody"></div>
+
+    <div class="chat-input" id="aiChatInputBar">
+      <div class="input-pill" style="flex:1;">
+        <input class="inp" type="text" id="aiChatInput" placeholder="اسأل المساعد الذكي..." autocomplete="off">
+      </div>
+      <button class="send-btn" id="aiSendBtn" title="إرسال" onclick="window._sendToAI?.()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="transform:scaleX(-1)"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -4178,8 +4216,8 @@ document.getElementById("sidebarHeaderSearchInp")?.addEventListener("input", e =
   _membersSearchDebounce = setTimeout(() => renderMembersList(q), 300);
 });
 
-async function renderMembersList(q) {
-  const el = document.getElementById("membersList");
+async function renderMembersList(q, containerId = "membersList") {
+  const el = document.getElementById(containerId);
   if (!el) return;
 
   el.innerHTML = (window._buildMemberSkeletons ? window._buildMemberSkeletons(7) : `<div class="spinner" style="margin:30px auto;"></div>`);
@@ -9895,6 +9933,8 @@ try { _listenPinnedMsg(); } catch(e) {}
 <script type="module" src="js/mention.js"></script>
 <script type="module" src="js/dms-page.js"></script>
 <script type="module" src="js/dm-extras.js"></script>
+<script src="js/ai-config.js"></script>
+<script src="js/ai-assistant.js"></script>
 <script src="js/spark.js"></script>
 <!-- ══════════════════════════════════════════
      SETTINGS MODAL — Full Screen Sheet
