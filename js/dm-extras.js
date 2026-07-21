@@ -19,7 +19,7 @@ import {
 /* ══════════════════════════════════════════
    1) حالة عامة (Cache) لكل محادثة: تثبيت / مفضلة / كتم
 ══════════════════════════════════════════ */
-let _exCache   = {};      // otherId → { pinnedAt, archived, mutedUntil }
+let _exCache   = {};      // otherId → { pinnedAt, fav, mutedUntil, archivedAt }
 let _exStarted = false;
 
 function _exRoomId(otherId) {
@@ -34,11 +34,14 @@ function _isMutedNow(entry) {
 }
 
 /* ── قراءة الحالة (تُستخدم من dms-page.js و index.html) ── */
-window._dmExtrasIsArchived = function (otherId) {
-  return !!(_exCache[otherId] && _exCache[otherId].archived);
+window._dmExtrasIsFav = function (otherId) {
+  return !!(_exCache[otherId] && _exCache[otherId].fav);
 };
 window._dmExtrasIsMuted = function (otherId) {
   return _isMutedNow(_exCache[otherId]);
+};
+window._dmExtrasIsArchived = function (otherId) {
+  return !!(_exCache[otherId] && _exCache[otherId].archivedAt);
 };
 
 /* ── الترتيب: المثبتة أولاً (الأحدث تثبيتًا أعلى)، وبقية المحادثات كما هي (فرز مستقر) ── */
@@ -65,9 +68,9 @@ window._dmExtrasStartListeners = function () {
       if (ch.type === "removed") { delete _exCache[otherId]; return; }
       _exCache[otherId] = {
         pinnedAt:   d[`pinnedAt_${uid}`]   || null,
-        // ⚠️ الحقل بـ Firestore بقي fav_{uid} كما هو (لم يُنشأ حقل جديد) — تغيّر الاسم بالواجهة فقط لـ"الأرشيف"
-        archived:   !!d[`fav_${uid}`],
+        fav:        !!d[`fav_${uid}`],
         mutedUntil: d[`mutedUntil_${uid}`] || null,
+        archivedAt: d[`archivedAt_${uid}`] || null,
       };
     });
     window._dmsForceRerender?.();
@@ -98,7 +101,7 @@ window._dmExtrasRender = function (item) {
   window._dmExtrasBindLongPress?.();  // ربط الضغط المطول مرة واحدة فقط (idempotent)
   const c = _exCache[item.id] || {};
   const pinIcon  = c.pinnedAt        ? `<i class="fa-solid fa-thumbtack dms-ex-badge" title="مثبتة"></i>` : "";
-  const favIcon  = c.archived         ? `<i class="fa-solid fa-box-archive dms-ex-badge dms-ex-archived" title="مؤرشفة"></i>` : "";
+  const favIcon  = c.fav             ? `<i class="fa-solid fa-star dms-ex-badge dms-ex-fav" title="مفضلة"></i>` : "";
   const muteIcon = _isMutedNow(c)    ? `<i class="fa-solid fa-bell-slash dms-ex-badge dms-ex-mute" title="مكتومة"></i>` : "";
   // كل الشارات + الزر داخل عنصر flex واحد فقط — لتفادي أي تعارض مع justify-content
   // الموجودة أصلاً على .dms-conv-row1 (وإلا كانت ستوزَّع كعناصر منفصلة بمسافات غير متوقعة)
@@ -191,14 +194,18 @@ function _exEnsureMenuEl() {
 
 window._dmExtrasOpenMenu = function (otherId) {
   _exEnsureMenuEl();
-  const c        = _exCache[otherId] || {};
-  const pinned   = !!c.pinnedAt;
-  const archived = !!c.archived;
-  const muted    = _isMutedNow(c);
+  const c      = _exCache[otherId] || {};
+  const pinned = !!c.pinnedAt;
+  const fav    = !!c.fav;
+  const muted  = _isMutedNow(c);
+  const archived = !!c.archivedAt;
   const menu   = document.getElementById("dmExtrasMenu");
   menu.querySelector(".dmex-body").innerHTML = `
     <button class="dmex-item" onclick="window._dmExtrasTogglePin('${otherId}')">
       <i class="fa-solid fa-thumbtack"></i> ${pinned ? "إلغاء تثبيت المحادثة" : "تثبيت المحادثة"}
+    </button>
+    <button class="dmex-item" onclick="window._dmExtrasToggleFav('${otherId}')">
+      <i class="fa-solid fa-star"></i> ${fav ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
     </button>
     <button class="dmex-item" onclick="window._dmExtrasToggleArchive('${otherId}')">
       <i class="fa-solid fa-box-archive"></i> ${archived ? "إلغاء الأرشفة" : "أرشفة المحادثة"}
@@ -228,15 +235,26 @@ window._dmExtrasTogglePin = async function (otherId) {
   window._dmExtrasCloseMenu();
 };
 
+window._dmExtrasToggleFav = async function (otherId) {
+  const uid = window.currentUser?.uid; if (!uid) return;
+  const fav = !!(_exCache[otherId] && _exCache[otherId].fav);
+  const ok = await _exSetField(otherId, `fav_${uid}`, fav ? null : true);
+  if (ok) {
+    window.toast?.(fav ? "تمت الإزالة من المفضلة" : "تمت الإضافة إلى المفضلة");
+    // الانتقال مباشرة لقسم "مفضلة" عند الإضافة (وليس عند الإزالة) — بإعادة استخدام فلتر الواجهة الموجود أصلاً
+    if (!fav) {
+      const chip = document.querySelector('.dms-chip[data-filter="fav"]');
+      if (chip && typeof window._dmsFilter === "function") window._dmsFilter(chip, "fav");
+    }
+  }
+  window._dmExtrasCloseMenu();
+};
+
 window._dmExtrasToggleArchive = async function (otherId) {
   const uid = window.currentUser?.uid; if (!uid) return;
-  const archived = !!(_exCache[otherId] && _exCache[otherId].archived);
-  const ok = await _exSetField(otherId, `fav_${uid}`, archived ? null : true);
-  if (ok) {
-    window.toast?.(archived ? "تم إلغاء الأرشفة" : "تمت أرشفة المحادثة");
-    // إعادة رسم القائمة فورًا لإخفاء/إظهار المحادثة حسب فلتر "الأرشيف" الحالي
-    window._dmsForceRerender?.();
-  }
+  const archived = !!(_exCache[otherId] && _exCache[otherId].archivedAt);
+  const ok = await _exSetField(otherId, `archivedAt_${uid}`, archived ? null : serverTimestamp());
+  if (ok) window.toast?.(archived ? "تم إلغاء أرشفة المحادثة" : "تم أرشفة المحادثة");
   window._dmExtrasCloseMenu();
 };
 
@@ -263,7 +281,7 @@ let _exRecUnsub = null;
 function _exEnsureRecEl() {
   let el = document.getElementById("dmExtrasRecStatus");
   if (!el) {
-    const host = document.querySelector(".chat-topbar-status");
+    const host = document.querySelector(".chat-header-info .status");
     if (!host) return null;
     el = document.createElement("span");
     el.id = "dmExtrasRecStatus";
@@ -427,52 +445,60 @@ document.addEventListener("dragstart", e => {
   style.id = "dmExtrasStyles";
   style.textContent = `
     .dms-ex-badge { font-size: 12px; opacity: .85; }
-    .dms-ex-badge.dms-ex-archived { color: #9aa3b2; }
-    .dms-ex-badge.dms-ex-mute { color: #9aa0aa; }
+    .dms-ex-badge.dms-ex-fav  { color: #ffc94d; }
+    .dms-ex-badge.dms-ex-mute { color: var(--muted, #8d8d94); }
     .dms-ex-inline {
       display: flex; align-items: center; gap: 4px;
       margin-inline-start: auto; margin-inline-end: 6px; flex-shrink: 0;
     }
     .dms-ex-kebab {
-      background: transparent; border: none; color: var(--muted, #9aa0aa);
+      background: transparent; border: none; color: var(--muted, #8d8d94);
       font-size: 14px; padding: 4px 6px; cursor: pointer; border-radius: 6px; flex-shrink: 0;
     }
-    .dms-ex-kebab:hover { background: rgba(255,255,255,.06); color: var(--gold, #c9a96e); }
+    .dms-ex-kebab:hover { background: rgba(255,255,255,.06); color: var(--gold, #e0b23c); }
 
-    /* ── Action Sheet ── */
+    /* ── Action Sheet — مطابق للتصميم الجديد (نفس ألوان/بلور الهيدر وشريط الكتابة) ── */
     .dmex-sheet { position: fixed; inset: 0; z-index: 9999; display: none; }
     .dmex-sheet.open { display: block; }
-    .dmex-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.5); }
+    .dmex-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
     .dmex-panel {
       position: absolute; left: 0; right: 0; bottom: 0;
-      background: #161821; border-radius: 16px 16px 0 0;
+      background: rgba(20,20,22,0.97);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--panel-border, rgba(255,255,255,.07));
+      border-bottom: none;
+      border-radius: 20px 20px 0 0;
       padding: 10px 14px 20px; max-height: 70vh; overflow-y: auto;
       box-shadow: 0 -4px 24px rgba(0,0,0,.4);
-      animation: dmexSlideUp .2s ease;
+      animation: dmexSlideUp .28s cubic-bezier(.4,0,.2,1);
+      font-family: 'Cairo', system-ui, sans-serif;
     }
     @keyframes dmexSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     .dmex-item {
-      display: flex; align-items: center; gap: 10px; width: 100%;
-      background: transparent; border: none; color: #eee; text-align: right;
-      font-size: 15px; padding: 12px 8px; border-radius: 10px; cursor: pointer;
+      display: flex; align-items: center; gap: 12px; width: 100%;
+      background: transparent; border: none; color: var(--text, #f2f2f4); text-align: right;
+      font-size: 15px; font-family: inherit; padding: 13px 10px; border-radius: 12px; cursor: pointer;
     }
-    .dmex-item:hover { background: rgba(255,255,255,.06); }
-    .dmex-item i { width: 18px; color: var(--gold, #c9a96e); }
-    .dmex-section-label { font-size: 12px; color: #9aa0aa; padding: 10px 8px 2px; }
+    .dmex-item:active { background: rgba(255,255,255,.06); }
+    .dmex-item i { width: 18px; color: var(--gold, #e0b23c); font-size: 15px; }
+    .dmex-section-label { font-size: 12px; color: var(--muted, #8d8d94); padding: 12px 10px 4px; font-weight: 600; }
     .dmex-cancel {
       width: 100%; margin-top: 8px; background: rgba(255,255,255,.06); border: none;
-      color: #eee; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer;
+      color: var(--text, #f2f2f4); padding: 13px; border-radius: 12px; font-size: 14.5px;
+      font-family: inherit; font-weight: 600; cursor: pointer;
     }
+    .dmex-cancel:active { background: rgba(255,255,255,.1); }
 
     /* ── فاصل الرسائل غير المقروءة ── */
     .dm-extras-unread-divider {
       display: flex; align-items: center; gap: 10px;
-      margin: 14px 10px; color: var(--gold, #c9a96e); font-size: 12px;
+      margin: 14px 10px; color: var(--gold, #e0b23c); font-size: 12px;
       opacity: 0; animation: dmexFadeIn .25s ease forwards;
     }
     .dm-extras-unread-divider::before,
     .dm-extras-unread-divider::after {
-      content: ""; flex: 1; height: 1px; background: rgba(201,169,110,.35);
+      content: ""; flex: 1; height: 1px; background: rgba(224,178,60,.35);
     }
     @keyframes dmexFadeIn { to { opacity: 1; } }
 
