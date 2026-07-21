@@ -1,520 +1,406 @@
-/* ══════════════════════════════════════════════════════════════
-   DM EXTRAS — ملف مستقل بالكامل
-   الإضافات: تثبيت المحادثات، المفضلة، كتم المحادثة،
-             مؤشر "يسجل رسالة صوتية"، فاصل "الرسائل غير المقروءة"
+import { collection, query, where, orderBy, onSnapshot, doc, getDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-   ▸ لا يعدّل أي منطق داخل index.html أو dms-page.js
-   ▸ يعتمد فقط على نقاط ربط اختيارية (window.X?.()) مضافة مسبقًا
-   ▸ يعيد استخدام: window.db, window.currentUser, window._currentChatId,
-     window.privateChatId, window._isOnlineVisible ... (بدون تكرار منطقها)
-   ▸ كل الحقول الجديدة تُخزَّن على نفس مستند privateChats/{roomId}
-     بنفس نمط الحقول الموجودة أصلاً (typing_{uid})
-══════════════════════════════════════════════════════════════ */
+/* ── حالة عدّاد غير المقروء لكل محادثة (مستمعات فورية مستقلة — دائمة طوال الجلسة) ── */
+let _dmsUnreadMap    = {};  // roomId → عدد غير المقروء (Live)
+let _dmsUnreadUnsubs = {};  // roomId → دالة إلغاء الاشتراك
 
-import {
-  collection, query, where, onSnapshot, doc, updateDoc,
-  deleteField, serverTimestamp, getDocs, Timestamp
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+/* ── حالة مؤشر الاتصال (Online Dot) ──
+   مستمعات محدودة فقط: المحادثات الظاهرة فعلياً في الشاشة + المحادثة المفتوحة حالياً
+   (وليس كل المحادثات — تفاديًا لمئات المستمعات مع القوائم الكبيرة) ── */
+let _dmsPresenceUnsubs    = {}; // otherId → دالة إلغاء الاشتراك (النشطة حالياً فقط)
+let _dmsPresenceObserver  = null;
 
-/* ══════════════════════════════════════════
-   1) حالة عامة (Cache) لكل محادثة: تثبيت / مفضلة / كتم
-══════════════════════════════════════════ */
-let _exCache   = {};      // otherId → { pinnedAt, fav, mutedUntil, archivedAt }
-let _exStarted = false;
-
-function _exRoomId(otherId) {
-  return (typeof window.privateChatId === "function") ? window.privateChatId(otherId) : null;
+/* ── تحديث DOM مباشرة لمؤشر الاتصال (بدون إعادة رسم كامل القائمة) ── */
+function _dmsSetOnlineDot(otherId, isOnline) {
+  const item = _dmsItems.find(i => i.id === otherId);
+  if (item) item.isOnline = isOnline;
+  const el = document.getElementById(`dms-item-${otherId}`);
+  const ring = el?.querySelector(".dms-avatar-wrap");
+  if (ring) {
+    ring.classList.toggle("online", isOnline);
+    ring.classList.toggle("offline", !isOnline);
+  }
 }
 
-function _isMutedNow(entry) {
-  if (!entry || !entry.mutedUntil) return false;
-  if (entry.mutedUntil === "forever") return true;
-  const ms = entry.mutedUntil?.toMillis ? entry.mutedUntil.toMillis() : 0;
-  return ms > Date.now();
-}
-
-/* ── قراءة الحالة (تُستخدم من dms-page.js و index.html) ── */
-window._dmExtrasIsFav = function (otherId) {
-  return !!(_exCache[otherId] && _exCache[otherId].fav);
-};
-window._dmExtrasIsMuted = function (otherId) {
-  return _isMutedNow(_exCache[otherId]);
-};
-window._dmExtrasIsArchived = function (otherId) {
-  return !!(_exCache[otherId] && _exCache[otherId].archivedAt);
-};
-
-/* ── الترتيب: المثبتة أولاً (الأحدث تثبيتًا أعلى)، وبقية المحادثات كما هي (فرز مستقر) ── */
-window._dmExtrasSort = function (items) {
-  return [...items].sort((a, b) => {
-    const pa = _exCache[a.id]?.pinnedAt?.toMillis?.() || 0;
-    const pb = _exCache[b.id]?.pinnedAt?.toMillis?.() || 0;
-    if (pa || pb) return pb - pa;
-    return 0; // Array.sort مستقر — لا تغيّر ترتيب غير المثبتة
-  });
-};
-
-/* ── مستمع فوري لحالة (تثبيت/مفضلة/كتم) — قراءة فقط لنفس مستند privateChats الموجود ── */
-window._dmExtrasStartListeners = function () {
-  if (_exStarted || !window.db || !window.currentUser) return;
-  _exStarted = true;
-  const uid = window.currentUser.uid;
-  const q = query(collection(window.db, "privateChats"), where("participants", "array-contains", uid));
-  onSnapshot(q, snap => {
-    snap.docChanges().forEach(ch => {
-      const d = ch.doc.data();
-      const otherId = (d.participants || []).find(p => p !== uid);
-      if (!otherId) return;
-      if (ch.type === "removed") { delete _exCache[otherId]; return; }
-      _exCache[otherId] = {
-        pinnedAt:   d[`pinnedAt_${uid}`]   || null,
-        fav:        !!d[`fav_${uid}`],
-        mutedUntil: d[`mutedUntil_${uid}`] || null,
-        archivedAt: d[`archivedAt_${uid}`] || null,
-      };
-    });
-    window._dmsForceRerender?.();
+/* ── مستمع فوري لحالة اتصال مستخدم واحد (idempotent) —
+   يعيد استخدام نفس بيانات users/{uid} ونفس دالة الحساب window._isOnlineVisible
+   الموجودة أصلاً في نظام حالة الاتصال، دون أي منطق جديد ── */
+function _dmsAttachPresenceListener(otherId) {
+  if (!otherId || _dmsPresenceUnsubs[otherId]) return; // مرتبط بالفعل
+  _dmsPresenceUnsubs[otherId] = onSnapshot(doc(window.db, "users", otherId), snap => {
+    if (!snap.exists()) { _dmsSetOnlineDot(otherId, false); return; }
+    const isOnline = window._isOnlineVisible ? window._isOnlineVisible(snap.data()) : false;
+    _dmsSetOnlineDot(otherId, isOnline);
   }, () => {});
-};
+}
 
-/* ── كتابة حقل واحد على مستند المحادثة (نفس نمط typing_{uid} الموجود) ── */
-async function _exSetField(otherId, field, value) {
-  const roomId = _exRoomId(otherId);
-  if (!roomId || !window.db) { window.toast?.("تعذّر الحفظ — حاول مجددًا"); return false; }
-  try {
-    const upd = {};
-    upd[field] = (value === undefined || value === null) ? deleteField() : value;
-    await updateDoc(doc(window.db, "privateChats", roomId), upd);
-    return true;
-  } catch (e) {
-    window.toast?.("تعذّر حفظ التغيير — تحقق من الاتصال");
-    return false;
+/* ── إلغاء مستمع حالة اتصال شخص معيّن (يُستخدم عند خروج العنصر من الشاشة) ── */
+function _dmsDetachPresenceListener(otherId) {
+  if (_dmsPresenceUnsubs[otherId]) {
+    _dmsPresenceUnsubs[otherId]();
+    delete _dmsPresenceUnsubs[otherId];
   }
 }
 
-/* ══════════════════════════════════════════
-   2) أزرار العرض داخل عنصر قائمة "المحادثات"
-      (نقطة الربط الوحيدة مع dms-page.js: window._dmExtrasRender)
-══════════════════════════════════════════ */
-window._dmExtrasRender = function (item) {
-  window._dmExtrasStartListeners?.(); // بدء كسول وآمن (idempotent)
-  window._dmExtrasBindLongPress?.();  // ربط الضغط المطول مرة واحدة فقط (idempotent)
-  const c = _exCache[item.id] || {};
-  const pinIcon  = c.pinnedAt        ? `<i class="fa-solid fa-thumbtack dms-ex-badge" title="مثبتة"></i>` : "";
-  const favIcon  = c.fav             ? `<i class="fa-solid fa-star dms-ex-badge dms-ex-fav" title="مفضلة"></i>` : "";
-  const muteIcon = _isMutedNow(c)    ? `<i class="fa-solid fa-bell-slash dms-ex-badge dms-ex-mute" title="مكتومة"></i>` : "";
-  // كل الشارات + الزر داخل عنصر flex واحد فقط — لتفادي أي تعارض مع justify-content
-  // الموجودة أصلاً على .dms-conv-row1 (وإلا كانت ستوزَّع كعناصر منفصلة بمسافات غير متوقعة)
-  return `<span class="dms-ex-inline">${pinIcon}${favIcon}${muteIcon}<button class="dms-ex-kebab" onclick="event.stopPropagation();window._dmExtrasOpenMenu('${item.id}')"><i class="fa-solid fa-ellipsis-vertical"></i></button></span>`;
-};
-
-/* ══════════════════════════════════════════
-   2b) الضغط المطول على أي محادثة يفتح القائمة الاحترافية
-      (بديل كامل لقائمة "نسخ الاسم" الافتراضية في المتصفح)
-══════════════════════════════════════════ */
-let _exPressTimer   = null;
-let _exPressStartXY = null;
-
-function _exFindItemEl(target) {
-  return target?.closest?.(".dms-conv-item[data-other-id]") || null;
-}
-
-window._dmExtrasBindLongPress = function () {
+/* ── مراقب الظهور (IntersectionObserver) —
+   يُشغّل مستمع الحضور فقط للعناصر الظاهرة فعلياً في الشاشة،
+   ويُلغيه عند خروجها من العرض — إلا إن كانت المحادثة المفتوحة حالياً ── */
+function _dmsSetupPresenceObserver() {
   const container = document.getElementById("dmsConvList");
-  if (!container || container.dataset.exBound === "1") return;
-  container.dataset.exBound = "1";
+  if (!container) return;
+  if (_dmsPresenceObserver) _dmsPresenceObserver.disconnect();
 
-  const armTimer = (item) => {
-    clearTimeout(_exPressTimer);
-    _exPressTimer = setTimeout(() => {
-      _exPressTimer = null;
-      const otherId = item.dataset.otherId;
-      if (otherId) {
-        if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
-        window._dmExtrasOpenMenu(otherId);
+  _dmsPresenceObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const otherId = entry.target.dataset.otherId;
+      if (!otherId) return;
+      if (entry.isIntersecting) {
+        _dmsAttachPresenceListener(otherId);
+      } else if (window._currentChatId !== otherId) {
+        // لا تُلغِ مستمع المحادثة المفتوحة حالياً حتى لو خرجت من العرض
+        _dmsDetachPresenceListener(otherId);
       }
-    }, 480);
-  };
-  const cancelTimer = () => { clearTimeout(_exPressTimer); _exPressTimer = null; _exPressStartXY = null; };
-  const checkMove = (x, y) => {
-    if (!_exPressStartXY) return;
-    if (Math.abs(x - _exPressStartXY.x) > 10 || Math.abs(y - _exPressStartXY.y) > 10) cancelTimer();
-  };
+    });
+  }, { root: container, rootMargin: "150px 0px", threshold: 0 });
 
-  container.addEventListener("touchstart", e => {
-    const item = _exFindItemEl(e.target);
-    if (!item) return;
-    const t = e.touches[0];
-    _exPressStartXY = { x: t.clientX, y: t.clientY };
-    armTimer(item);
-  }, { passive: true });
-  container.addEventListener("touchmove", e => {
-    const t = e.touches[0];
-    checkMove(t.clientX, t.clientY);
-  }, { passive: true });
-  container.addEventListener("touchend", cancelTimer);
-  container.addEventListener("touchcancel", cancelTimer);
-
-  container.addEventListener("mousedown", e => {
-    const item = _exFindItemEl(e.target);
-    if (!item) return;
-    _exPressStartXY = { x: e.clientX, y: e.clientY };
-    armTimer(item);
+  container.querySelectorAll(".dms-conv-item[data-other-id]").forEach(el => {
+    _dmsPresenceObserver.observe(el);
   });
-  container.addEventListener("mousemove", e => checkMove(e.clientX, e.clientY));
-  container.addEventListener("mouseup", cancelTimer);
-  container.addEventListener("mouseleave", cancelTimer);
-
-  // الزر الأيمن / الضغط المطول الذي يستدعي قائمة المتصفح — نمنعه ونعرض قائمتنا بدلاً منه
-  container.addEventListener("contextmenu", e => {
-    const item = _exFindItemEl(e.target);
-    if (!item) return;
-    e.preventDefault();
-    const otherId = item.dataset.otherId;
-    if (otherId) window._dmExtrasOpenMenu(otherId);
-  });
-};
+}
 
 /* ══════════════════════════════════════════
-   3) قائمة الإجراءات (Action Sheet) — تُبنى ديناميكيًا بالكامل
+   DMS PAGE — صفحة الدردشات
+   ▸ preload فور تسجيل الدخول
+   ▸ badge غير مقروء في الـ nav
+   ▸ عداد لكل محادثة
 ══════════════════════════════════════════ */
-function _exEnsureMenuEl() {
-  if (document.getElementById("dmExtrasMenu")) return;
-  const el = document.createElement("div");
-  el.id = "dmExtrasMenu";
-  el.className = "dmex-sheet";
-  el.innerHTML = `
-    <div class="dmex-backdrop" onclick="window._dmExtrasCloseMenu()"></div>
-    <div class="dmex-panel">
-      <div class="dmex-body"></div>
-      <button class="dmex-cancel" onclick="window._dmExtrasCloseMenu()">إلغاء</button>
+
+let _dmsStarted   = false;
+let _dmsCurFilter = "all";
+let _dmsCurTab    = "chats";
+let _dmsUnsubs    = [];
+let _dmsItems     = [];
+let _dmsRooms     = [];
+
+/* ── تنسيق الوقت ── */
+function _fmt(ts) {
+  if (!ts) return "";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 86400000) return d.toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"});
+  if (diff < 604800000) return ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"][d.getDay()];
+  return d.toLocaleDateString("ar-EG",{day:"2-digit",month:"2-digit"});
+}
+
+/* ── avatar ── */
+function _av(photo, name, cls) {
+  if (cls==="public") return `<div class="dms-conv-avatar dms-conv-avatar-public"><i class="fa-solid fa-graduation-cap"></i></div>`;
+  if (cls==="room")   return `<div class="dms-conv-avatar dms-conv-avatar-room"><i class="fa-solid fa-users"></i></div>`;
+  if (cls==="ai")     return `<div class="dms-conv-avatar ai-avatar"><i class="fa-solid fa-sparkles"></i></div>`;
+  if (photo) return `<img class="dms-conv-avatar" src="${photo}" alt="">`;
+  return `<div class="dms-conv-avatar dms-conv-avatar-letter">${(name||"?").charAt(0).toUpperCase()}</div>`;
+}
+
+/* ── بناء عنصر ── */
+function _buildItem(item) {
+  const badge = item.unread > 0 ? `<span class="dms-unread-badge">${item.unread>99?"99+":item.unread}</span>` : "";
+  const safeName = (item.name||"").replace(/'/g,"\\'").replace(/"/g,"&quot;");
+  const safePhoto = (item.photo||"").replace(/'/g,"\\'");
+  // مؤشر الاتصال يظهر فقط في المحادثات الخاصة (ليس الشات العام ولا الغرف)
+  const showDot = item.cls === "";
+  const ringCls = item.cls === "ai" ? " ai-ring" : (showDot ? (item.isOnline ? " online" : " offline") : "");
+  let extrasHTML = "";
+  if (showDot && typeof window._dmExtrasRender === "function") {
+    try { extrasHTML = window._dmExtrasRender(item) || ""; } catch (e) { extrasHTML = ""; }
+  }
+  return `
+    <div class="dms-conv-item" id="dms-item-${item.id}" ${showDot ? `data-other-id="${item.id}"` : ""} onclick="_dmsOpenChat('${item.id}','${safeName}','${safePhoto}')">
+      <div class="dms-avatar-wrap${ringCls}">
+        ${_av(item.photo, item.name, item.cls)}
+      </div>
+      <div class="dms-conv-body">
+        <div class="dms-conv-row1">
+          <span class="dms-conv-name">${item.name||"مستخدم"}${item.cls==="ai" ? ' <span class="ai-badge">AI</span>' : ""}</span>
+          ${extrasHTML}
+          <span class="dms-conv-time">${_fmt(item.lastTime)}</span>
+        </div>
+        <div class="dms-conv-row2">
+          <span class="dms-conv-last">${item.lastMsg||"ابدأ المحادثة"}</span>
+          <span class="dms-conv-badges">${badge}</span>
+        </div>
+      </div>
     </div>`;
-  document.body.appendChild(el);
 }
 
-window._dmExtrasOpenMenu = function (otherId) {
-  _exEnsureMenuEl();
-  const c      = _exCache[otherId] || {};
-  const pinned = !!c.pinnedAt;
-  const fav    = !!c.fav;
-  const muted  = _isMutedNow(c);
-  const archived = !!c.archivedAt;
-  const menu   = document.getElementById("dmExtrasMenu");
-  menu.querySelector(".dmex-body").innerHTML = `
-    <button class="dmex-item" onclick="window._dmExtrasTogglePin('${otherId}')">
-      <i class="fa-solid fa-thumbtack"></i> ${pinned ? "إلغاء تثبيت المحادثة" : "تثبيت المحادثة"}
-    </button>
-    <button class="dmex-item" onclick="window._dmExtrasToggleFav('${otherId}')">
-      <i class="fa-solid fa-star"></i> ${fav ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
-    </button>
-    <button class="dmex-item" onclick="window._dmExtrasToggleArchive('${otherId}')">
-      <i class="fa-solid fa-box-archive"></i> ${archived ? "إلغاء الأرشفة" : "أرشفة المحادثة"}
-    </button>
-    ${muted ? `
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}', null)">
-      <i class="fa-solid fa-bell"></i> إلغاء كتم المحادثة
-    </button>` : `
-    <div class="dmex-section-label">كتم إشعارات هذه المحادثة</div>
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}','1h')"><i class="fa-solid fa-bell-slash"></i> لمدة ساعة</button>
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}','1d')"><i class="fa-solid fa-bell-slash"></i> لمدة يوم</button>
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}','1w')"><i class="fa-solid fa-bell-slash"></i> لمدة أسبوع</button>
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}','forever')"><i class="fa-solid fa-bell-slash"></i> دائم</button>`}
-  `;
-  menu.classList.add("open");
-};
-window._dmExtrasCloseMenu = function () {
-  document.getElementById("dmExtrasMenu")?.classList.remove("open");
-};
-
-/* ── دوال الكتابة الفعلية ── */
-window._dmExtrasTogglePin = async function (otherId) {
-  const uid = window.currentUser?.uid; if (!uid) return;
-  const pinned = !!(_exCache[otherId] && _exCache[otherId].pinnedAt);
-  const ok = await _exSetField(otherId, `pinnedAt_${uid}`, pinned ? null : serverTimestamp());
-  if (ok) window.toast?.(pinned ? "تم إلغاء تثبيت المحادثة" : "تم تثبيت المحادثة");
-  window._dmExtrasCloseMenu();
-};
-
-window._dmExtrasToggleFav = async function (otherId) {
-  const uid = window.currentUser?.uid; if (!uid) return;
-  const fav = !!(_exCache[otherId] && _exCache[otherId].fav);
-  const ok = await _exSetField(otherId, `fav_${uid}`, fav ? null : true);
-  if (ok) {
-    window.toast?.(fav ? "تمت الإزالة من المفضلة" : "تمت الإضافة إلى المفضلة");
-    // الانتقال مباشرة لقسم "مفضلة" عند الإضافة (وليس عند الإزالة) — بإعادة استخدام فلتر الواجهة الموجود أصلاً
-    if (!fav) {
-      const chip = document.querySelector('.dms-chip[data-filter="fav"]');
-      if (chip && typeof window._dmsFilter === "function") window._dmsFilter(chip, "fav");
-    }
+/* ── تحديث badge الـ nav ──
+   العدد هنا = عدد المحادثات (الأشخاص) التي بها رسائل غير مقروءة
+   وليس مجموع الرسائل غير المقروءة ── */
+function _updateNavBadge() {
+  const convCount = _dmsItems.filter(i => (i.unread||0) > 0).length;
+  const el = document.getElementById("navDmsBadge");
+  if (!el) return;
+  if (convCount > 0) {
+    el.textContent    = convCount > 99 ? "99+" : convCount;
+    el.style.display  = "";
+  } else {
+    el.style.display  = "none";
   }
-  window._dmExtrasCloseMenu();
-};
-
-window._dmExtrasToggleArchive = async function (otherId) {
-  const uid = window.currentUser?.uid; if (!uid) return;
-  const archived = !!(_exCache[otherId] && _exCache[otherId].archivedAt);
-  const ok = await _exSetField(otherId, `archivedAt_${uid}`, archived ? null : serverTimestamp());
-  if (ok) window.toast?.(archived ? "تم إلغاء أرشفة المحادثة" : "تم أرشفة المحادثة");
-  window._dmExtrasCloseMenu();
-};
-
-function _futureTs(ms) { return Timestamp.fromMillis(Date.now() + ms); }
-
-window._dmExtrasSetMute = async function (otherId, dur) {
-  const uid = window.currentUser?.uid; if (!uid) return;
-  let val = null, label = "تم إلغاء كتم المحادثة";
-  if (dur === "forever") { val = "forever"; label = "تم كتم المحادثة بشكل دائم"; }
-  else if (dur === "1h") { val = _futureTs(60 * 60 * 1000); label = "تم كتم المحادثة لمدة ساعة"; }
-  else if (dur === "1d") { val = _futureTs(24 * 60 * 60 * 1000); label = "تم كتم المحادثة لمدة يوم"; }
-  else if (dur === "1w") { val = _futureTs(7 * 24 * 60 * 60 * 1000); label = "تم كتم المحادثة لمدة أسبوع"; }
-  const ok = await _exSetField(otherId, `mutedUntil_${uid}`, val);
-  if (ok) window.toast?.(label);
-  window._dmExtrasCloseMenu();
-};
-
-/* ══════════════════════════════════════════
-   4) مؤشر "يسجل رسالة صوتية" — نفس نمط typing_{uid} بحقل recording_{uid} مستقل
-      لا يكتب أبدًا فوق عنصر #chatTopOnline — فقط يُخفيه مؤقتًا ويظهر عنصره الخاص
-══════════════════════════════════════════ */
-let _exRecUnsub = null;
-
-function _exEnsureRecEl() {
-  let el = document.getElementById("dmExtrasRecStatus");
-  if (!el) {
-    const host = document.querySelector(".chat-header-info .status");
-    if (!host) return null;
-    el = document.createElement("span");
-    el.id = "dmExtrasRecStatus";
-    el.style.display = "none";
-    el.innerHTML = '<span style="color:var(--gold, #c9a96e);animation:pulse 1s infinite;">🎤 يسجل رسالة صوتية...</span>';
-    host.appendChild(el);
-  }
-  return el;
 }
 
-function _exStartRecordingListener(chatId) {
-  if (_exRecUnsub) { _exRecUnsub(); _exRecUnsub = null; }
-  if (!chatId || chatId === "public" || chatId.startsWith("room:") || !window.db) {
-    // استعادة العرض الطبيعي (يحسم أي حالة إخفاء متبقية من محادثة خاصة سابقة)
-    const overlay = document.getElementById("dmExtrasRecStatus");
-    const orig    = document.getElementById("chatTopOnline");
-    if (overlay) overlay.style.display = "none";
-    if (orig)    orig.style.display    = "";
+/* ── عرض القائمة (تشمل الدردشات والغرف مدموجة معًا، مرتبة حسب آخر نشاط) ── */
+function _render(search) {
+  const el = document.getElementById("dmsConvList");
+  if (!el) return;
+  let items = [..._dmsItems, ..._dmsRooms.map(_roomToItem)];
+  if (typeof window._aiListItem === "function") {
+    const ai = window._aiListItem();
+    if (ai) items.push(ai);
+  }
+  // إبقاء الشات العام في الأعلى دائمًا. الباقي (دردشات + غرف) يُرتَّب حسب آخر
+  // نشاط، مع الحفاظ على أولوية التثبيت/المفضلة (window._dmExtrasSort) لو متاحة
+  // — نفس المنطق الموجود أصلاً، بس مطبَّق على القائمة المدموجة بالكامل.
+  const pub = items.filter(i => i.id === "public");
+  let rest = items.filter(i => i.id !== "public")
+    .sort((a,b) => (b.lastTime?.toMillis?.()??0) - (a.lastTime?.toMillis?.()??0));
+  if (typeof window._dmExtrasSort === "function") {
+    try { rest = window._dmExtrasSort(rest) || rest; } catch (e) {}
+  }
+  items = [...pub, ...rest];
+
+  // الأرشيف — ميزة جديدة (الوحيدة المضافة فعليًا). المحادثة العامة لا تُؤرشف أبدًا.
+  const isArchived = (id) => {
+    if (id === "public") return false;
+    try { return typeof window._dmExtrasIsArchived === "function" ? window._dmExtrasIsArchived(id) : false; }
+    catch (e) { return false; }
+  };
+  if (_dmsCurFilter === "archive") {
+    items = items.filter(i => isArchived(i.id));
+  } else {
+    items = items.filter(i => !isArchived(i.id));
+  }
+
+  if (_dmsCurFilter === "unread") items = items.filter(i => i.unread > 0);
+  if (_dmsCurFilter === "fav") {
+    items = items.filter(i => {
+      try { return typeof window._dmExtrasIsFav === "function" ? window._dmExtrasIsFav(i.id) : false; }
+      catch (e) { return false; }
+    });
+  }
+  if (search) {
+    const s = search.toLowerCase();
+    items = items.filter(i => (i.name||"").toLowerCase().includes(s));
+  }
+  if (!items.length) {
+    const emptyMsg = _dmsCurFilter === "archive" ? "لا توجد محادثات مؤرشفة" : "لا توجد محادثات";
+    el.innerHTML = `<div class="dms-empty"><i class="fa-regular fa-comment-dots"></i><p>${emptyMsg}</p></div>`;
+    if (_dmsPresenceObserver) { _dmsPresenceObserver.disconnect(); }
     return;
   }
-  const roomId = _exRoomId(chatId);
-  if (!roomId) return;
-  _exRecUnsub = onSnapshot(doc(window.db, "privateChats", roomId), snap => {
-    if (window._currentChatId !== chatId) return;
-    if (!snap.exists()) return;
-    const data = snap.data();
-    const uid  = window.currentUser?.uid;
-    const someoneRecording = Object.keys(data).some(k =>
-      k.startsWith("recording_") && k !== ("recording_" + uid) && data[k] === true
-    );
-    const overlay = _exEnsureRecEl();
-    const orig    = document.getElementById("chatTopOnline");
-    if (!overlay || !orig) return;
-    if (someoneRecording) {
-      orig.style.display    = "none";
-      overlay.style.display = "inline";
-    } else {
-      overlay.style.display = "none";
-      orig.style.display    = "";
-    }
-  }, () => {});
+  el.innerHTML = items.map(_buildItem).join("");
+  // بعد كل رسم: أعد ربط مراقب الظهور بالعناصر الجديدة (تفعيل/إلغاء مستمعات الحضور حسب الظهور الفعلي)
+  _dmsSetupPresenceObserver();
 }
 
-/* ── كتابة إشارة التسجيل (تُستدعى من نقاط الربط في index.html) ── */
-let _exRecFlagOn = false;
-window._dmExtrasSetRecording = function (isRecording) {
-  const uid = window.currentUser?.uid;
-  const cid = window._currentChatId;
-  if (!uid || !cid || cid === "public" || cid.startsWith("room:") || !window.db) return;
-  if (isRecording === _exRecFlagOn) return;
-  _exRecFlagOn = isRecording;
-  const roomId = _exRoomId(cid);
-  if (!roomId) return;
-  const upd = {};
-  upd[`recording_${uid}`] = isRecording ? true : deleteField();
-  updateDoc(doc(window.db, "privateChats", roomId), upd).catch(() => {});
+/* ── إعادة رسم فورية (تُستخدم من ملف الإضافات المستقل بعد تحديث حالة تثبيت/مفضلة/كتم) ── */
+window._dmsForceRerender = function() {
+  _render(document.getElementById("dmsSearchInp")?.value||"");
 };
 
-/* ══════════════════════════════════════════
-   5) فاصل "الرسائل غير المقروءة"
-      يُقرأ فقط من نفس بيانات seen==false الموجودة، بدون أي كتابة إضافية
-══════════════════════════════════════════ */
-let _exDividerObserver   = null;
-let _exDividerUnreadUnsub = null;
-
-function _exRemoveDivider() {
-  document.getElementById("dmExtrasUnreadDivider")?.remove();
-  if (_exDividerObserver)   { _exDividerObserver.disconnect();   _exDividerObserver = null; }
-  if (_exDividerUnreadUnsub){ _exDividerUnreadUnsub();           _exDividerUnreadUnsub = null; }
-}
-
-function _exInsertDividerIfReady(anchorId) {
-  const row = document.getElementById(`msg-${anchorId}`);
-  const container = document.getElementById("chatMessages");
-  if (!row || !container || document.getElementById("dmExtrasUnreadDivider")) return false;
-  const divider = document.createElement("div");
-  divider.className = "dm-extras-unread-divider";
-  divider.id = "dmExtrasUnreadDivider";
-  divider.innerHTML = `<span>الرسائل غير المقروءة</span>`;
-  container.insertBefore(divider, row);
-  return true;
-}
-
-function _exWatchAndInsertDivider(chatId, roomId, anchorId) {
-  const container = document.getElementById("chatMessages");
-  if (!container) return;
-
-  if (!_exInsertDividerIfReady(anchorId)) {
-    _exDividerObserver = new MutationObserver(() => {
-      if (window._currentChatId !== chatId) { _exDividerObserver?.disconnect(); _exDividerObserver = null; return; }
-      if (_exInsertDividerIfReady(anchorId)) { _exDividerObserver?.disconnect(); _exDividerObserver = null; }
-    });
-    _exDividerObserver.observe(container, { childList: true });
+/* ── فتح محادثة ── */
+window._dmsOpenChat = function(id, name, photo) {
+  if (id === "ai") {
+    if (typeof window._openAiChat === "function") window._openAiChat();
+    return;
   }
-  // ملاحظة: الفاصل يبقى ظاهرًا طوال مدة فتح هذه المحادثة، ويُزال تلقائيًا فقط
-  // عند مغادرتها (عبر _dmExtrasOnChatOpen عند فتح أي محادثة أخرى) — وليس لحظة
-  // انقلاب seen=true، لأن ذلك يحدث فوريًا عند الفتح أصلاً في هذا المشروع
-  // (قد لا يُلاحَظ الفاصل إطلاقًا لو اختفى خلال أجزاء من الثانية).
-}
-
-async function _exCaptureUnreadDivider(chatId) {
-  if (!chatId || chatId === "public" || chatId.startsWith("room:") || !window.db) return;
-  const roomId = _exRoomId(chatId);
-  if (!roomId) return;
-  try {
-    const uQ = query(collection(window.db, `privateChats/${roomId}/messages`), where("seen", "==", false));
-    const snap = await getDocs(uQ);
-    const others = snap.docs.filter(d => d.data().uid !== window.currentUser?.uid);
-    if (!others.length) return;
-    others.sort((a, b) => (a.data().createdAt?.toMillis?.() ?? 0) - (b.data().createdAt?.toMillis?.() ?? 0));
-    _exWatchAndInsertDivider(chatId, roomId, others[0].id);
-  } catch (e) {}
-}
-
-/* ══════════════════════════════════════════
-   6) نقطة الدخول الموحّدة — تُستدعى من selectChat في index.html
-══════════════════════════════════════════ */
-window._dmExtrasOnChatOpen = function (chatId) {
-  _exRemoveDivider();
-  _exCaptureUnreadDivider(chatId);
-  _exStartRecordingListener(chatId);
+  window.selectChat(id, name, photo);
 };
 
-/* ══════════════════════════════════════════
-   9) منع التحديد/النسخ على مستوى الموقع بالكامل
-      استثناء: أي حقل كتابة (input/textarea/contenteditable) يبقى كما هو تمامًا
-      لا يؤثر على الأزرار أو الضغط المطول الخاص بقائمة المحادثات (click/touch لا علاقة له بـ selection)
-══════════════════════════════════════════ */
-function _exIsEditableTarget(el) {
-  if (!el) return false;
-  const sel = 'input, textarea, [contenteditable="true"], [contenteditable=""]';
-  return (el.matches && el.matches(sel)) || (el.closest && !!el.closest(sel));
+/* ── إعادة رسم القائمة من مصدر خارجي (مثلاً ai-assistant.js لما تتحدث آخر رسالة) ── */
+window._dmsRerender = function() {
+  _render(document.getElementById("dmsSearchInp")?.value || "");
+};
+
+/* ── تصفير فوري لعداد شخص معيّن عند فتح محادثته (يُستدعى من selectChat) ── */
+window._dmsMarkRead = function(otherId) {
+  const item = _dmsItems.find(i => i.id === otherId);
+  if (item && item.unread) {
+    item.unread = 0;
+    _render(document.getElementById("dmsSearchInp")?.value||"");
+    _updateNavBadge();
+  }
+  // إبقاء مستمع حالة الاتصال فعالاً دائماً طالما المحادثة مفتوحة (حتى لو خرج العنصر من الشاشة)
+  _dmsAttachPresenceListener(otherId);
+};
+
+/* ── فلتر ── */
+window._dmsFilter = function(btn, filter) {
+  _dmsCurFilter = filter;
+  document.querySelectorAll(".dms-chip").forEach(c => c.classList.remove("active"));
+  btn.classList.add("active");
+  _render(document.getElementById("dmsSearchInp")?.value || "");
+};
+
+/* ── تبويبات ── */
+window._dmsSwitchTab = function(btn, panel) {
+  _dmsCurTab = panel;
+  document.querySelectorAll(".dms-tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".dms-panel").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("dmspanel-" + panel)?.classList.add("active");
+  const filters = document.getElementById("dmsFilters");
+  if (filters) filters.style.display = panel === "chats" ? "" : "none";
+  if (panel === "members" && typeof window.renderMembersList === "function") {
+    window.renderMembersList("", "dmsMembersList");
+  }
+};
+
+/* ── بحث ── */
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("dmsSearchToggle")?.addEventListener("click", () => {
+    const bar = document.getElementById("dmsSearchBar");
+    if (bar) { bar.classList.toggle("open"); if (bar.classList.contains("open")) document.getElementById("dmsSearchInp")?.focus(); }
+  });
+  document.getElementById("dmsSearchInp")?.addEventListener("input", e => _render(e.target.value));
+});
+
+/* ── تحويل بيانات الغرفة لنفس شكل عنصر المحادثة، عشان تندمج في نفس القائمة ── */
+function _roomToItem(r) {
+  return {
+    id: "room:" + r.id, name: r.name || "غرفة", photo: r.photo || "", cls: "room",
+    lastMsg: r.desc || "غرفة نقاش", lastTime: r.lastMessageAt || r.createdAt || null,
+    unread: 0, isOnline: false
+  };
 }
 
-document.addEventListener("contextmenu", e => {
-  if (_exIsEditableTarget(e.target)) return;
-  e.preventDefault();
-}, true);
+/* ══ PRELOAD — يبدأ فور تسجيل الدخول ══ */
+window._dmsStartListeners = function() {
+  if (_dmsStarted || !window.db || !window.currentUser) return;
+  _dmsStarted = true;
+  const uid = window.currentUser.uid;
 
-document.addEventListener("selectstart", e => {
-  if (_exIsEditableTarget(e.target)) return;
-  e.preventDefault();
-});
+  // cache أسماء المستخدمين لتجنب getDoc متكررة
+  const _nameCache = {};
+  async function _getUser(uid) {
+    if (_nameCache[uid]) return _nameCache[uid];
+    try {
+      const s = await getDoc(doc(window.db, "users", uid));
+      const u = s.exists() ? { name: s.data().name||"مستخدم", photo: s.data().photo||"" } : { name:"مستخدم", photo:"" };
+      _nameCache[uid] = u;
+      return u;
+    } catch(e) { return { name:"مستخدم", photo:"" }; }
+  }
 
-document.addEventListener("copy", e => {
-  if (_exIsEditableTarget(e.target)) return;
-  e.preventDefault();
-});
+  // الشات العام
+  const pubItem = { id:"public", name:"الشات العام", photo:"", cls:"public", lastMsg:"مباشر — الجميع", lastTime:null, unread:0 };
+  _dmsItems = [pubItem];
 
-document.addEventListener("dragstart", e => {
-  if (_exIsEditableTarget(e.target)) return;
-  e.preventDefault();
-});
+  onSnapshot(query(collection(window.db,"messages"), orderBy("createdAt","desc"), limit(1)), snap => {
+    const d = snap.docs[0]?.data();
+    const p = _dmsItems.find(i => i.id==="public");
+    if (p && d) { p.lastMsg = d.text||(d.image?"📷 صورة":d.audio?"🎤 تسجيل":""); p.lastTime = d.createdAt; }
+    _render(""); _updateNavBadge();
+  }, () => {});
 
-/* ══════════════════════════════════════════
-   10) الأنماط (CSS) — تُحقن مرة واحدة فقط، ذاتية الاحتواء بالكامل
-══════════════════════════════════════════ */
-(function _exInjectStyles() {
-  if (document.getElementById("dmExtrasStyles")) return;
-  const style = document.createElement("style");
-  style.id = "dmExtrasStyles";
-  style.textContent = `
-    .dms-ex-badge { font-size: 12px; opacity: .85; }
-    .dms-ex-badge.dms-ex-fav  { color: #ffc94d; }
-    .dms-ex-badge.dms-ex-mute { color: var(--muted, #8d8d94); }
-    .dms-ex-inline {
-      display: flex; align-items: center; gap: 4px;
-      margin-inline-start: auto; margin-inline-end: 6px; flex-shrink: 0;
-    }
-    .dms-ex-kebab {
-      background: transparent; border: none; color: var(--muted, #8d8d94);
-      font-size: 14px; padding: 4px 6px; cursor: pointer; border-radius: 6px; flex-shrink: 0;
-    }
-    .dms-ex-kebab:hover { background: rgba(255,255,255,.06); color: var(--gold, #e0b23c); }
+  // ── مستمع فوري لعدد غير المقروء الخاص بمحادثة واحدة (idempotent) ──
+  function _dmsAttachUnreadListener(roomId, otherId) {
+    if (_dmsUnreadUnsubs[roomId]) return; // مرتبط بالفعل
+    const uQ = query(
+      collection(window.db, `privateChats/${roomId}/messages`),
+      where("seen","==",false)
+    );
+    _dmsUnreadUnsubs[roomId] = onSnapshot(uQ, uSnap => {
+      // إذا كانت المحادثة مفتوحة حالياً مع نفس الشخص: لا تُحسب كغير مقروءة
+      const cnt = (window._currentChatId === otherId)
+        ? 0
+        : uSnap.docs.filter(m => m.data().uid !== uid).length;
+      _dmsUnreadMap[roomId] = cnt;
+      const item = _dmsItems.find(i => i.id === otherId);
+      if (item) item.unread = cnt;
+      _render(document.getElementById("dmsSearchInp")?.value||"");
+      _updateNavBadge();
+    }, () => {});
+  }
 
-    /* ── Action Sheet — مطابق للتصميم الجديد (نفس ألوان/بلور الهيدر وشريط الكتابة) ── */
-    .dmex-sheet { position: fixed; inset: 0; z-index: 9999; display: none; }
-    .dmex-sheet.open { display: block; }
-    .dmex-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
-    .dmex-panel {
-      position: absolute; left: 0; right: 0; bottom: 0;
-      background: rgba(20,20,22,0.97);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid var(--panel-border, rgba(255,255,255,.07));
-      border-bottom: none;
-      border-radius: 20px 20px 0 0;
-      padding: 10px 14px 20px; max-height: 70vh; overflow-y: auto;
-      box-shadow: 0 -4px 24px rgba(0,0,0,.4);
-      animation: dmexSlideUp .28s cubic-bezier(.4,0,.2,1);
-      font-family: 'Cairo', system-ui, sans-serif;
-    }
-    @keyframes dmexSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .dmex-item {
-      display: flex; align-items: center; gap: 12px; width: 100%;
-      background: transparent; border: none; color: var(--text, #f2f2f4); text-align: right;
-      font-size: 15px; font-family: inherit; padding: 13px 10px; border-radius: 12px; cursor: pointer;
-    }
-    .dmex-item:active { background: rgba(255,255,255,.06); }
-    .dmex-item i { width: 18px; color: var(--gold, #e0b23c); font-size: 15px; }
-    .dmex-section-label { font-size: 12px; color: var(--muted, #8d8d94); padding: 12px 10px 4px; font-weight: 600; }
-    .dmex-cancel {
-      width: 100%; margin-top: 8px; background: rgba(255,255,255,.06); border: none;
-      color: var(--text, #f2f2f4); padding: 13px; border-radius: 12px; font-size: 14.5px;
-      font-family: inherit; font-weight: 600; cursor: pointer;
-    }
-    .dmex-cancel:active { background: rgba(255,255,255,.1); }
+  // ── تحديث DOM مباشرة لمؤشر الاتصال (بدون إعادة رسم كامل القائمة) ──
+  // (الدوال منقولة لمستوى الملف: _dmsSetOnlineDot, _dmsAttachPresenceListener, _dmsDetachPresenceListener, _dmsSetupPresenceObserver)
 
-    /* ── فاصل الرسائل غير المقروءة ── */
-    .dm-extras-unread-divider {
-      display: flex; align-items: center; gap: 10px;
-      margin: 14px 10px; color: var(--gold, #e0b23c); font-size: 12px;
-      opacity: 0; animation: dmexFadeIn .25s ease forwards;
-    }
-    .dm-extras-unread-divider::before,
-    .dm-extras-unread-divider::after {
-      content: ""; flex: 1; height: 1px; background: rgba(224,178,60,.35);
-    }
-    @keyframes dmexFadeIn { to { opacity: 1; } }
+  // المحادثات الخاصة
+  const privQ = query(collection(window.db,"privateChats"), where("participants","array-contains",uid));
+  onSnapshot(privQ, async snap => {
+    const items = [];
+    const activeRoomIds  = new Set();
+    const activeOtherIds = new Set();
+    for (const ds of snap.docs) {
+      const d       = ds.data();
+      const roomId  = ds.id;
+      const otherId = (d.participants||[]).find(p => p !== uid);
+      if (!otherId) continue;
+      activeRoomIds.add(roomId);
+      activeOtherIds.add(otherId);
+      const u = await _getUser(otherId);
 
-    /* ── منع التحديد/النسخ على مستوى الموقع (باستثناء حقول الكتابة) ── */
-    body, body * {
-      -webkit-user-select: none !important;
-      -moz-user-select: none !important;
-      user-select: none !important;
-      -webkit-touch-callout: none !important;
+      const existing = _dmsItems.find(i => i.id === otherId);
+      items.push({
+        id: otherId, name: u.name, photo: u.photo, cls: "",
+        lastMsg:  d.lastMessage   || "",
+        lastTime: d.lastMessageAt || null,
+        unread:   _dmsUnreadMap[roomId] || 0,
+        isOnline: existing?.isOnline || false
+      });
+
+      // عدّاد غير المقروء: مستمع فوري دائم لكل المحادثات (بلا استثناء)
+      _dmsAttachUnreadListener(roomId, otherId);
+      // حالة الاتصال: تُفعَّل فقط عبر IntersectionObserver بعد الرسم (أو إذا كانت المحادثة مفتوحة حالياً)
     }
-    input, textarea, [contenteditable="true"], [contenteditable=""] {
-      -webkit-user-select: text !important;
-      -moz-user-select: text !important;
-      user-select: text !important;
-      -webkit-touch-callout: default !important;
+
+    // تنظيف مستمعي غير المقروء للغرف التي لم تعد موجودة (محادثة محذوفة مثلاً)
+    Object.keys(_dmsUnreadUnsubs).forEach(rid => {
+      if (!activeRoomIds.has(rid)) {
+        _dmsUnreadUnsubs[rid]();
+        delete _dmsUnreadUnsubs[rid];
+        delete _dmsUnreadMap[rid];
+      }
+    });
+    // تنظيف مستمعي الحضور للمستخدمين الذين لم تعد لديهم محادثة معنا إطلاقاً
+    Object.keys(_dmsPresenceUnsubs).forEach(oid => {
+      if (!activeOtherIds.has(oid)) {
+        _dmsPresenceUnsubs[oid]();
+        delete _dmsPresenceUnsubs[oid];
+      }
+    });
+
+    items.sort((a,b) => (b.lastTime?.toMillis?.()??0) - (a.lastTime?.toMillis?.()??0));
+    if (typeof window._dmExtrasSort === "function") {
+      try { items = window._dmExtrasSort(items) || items; } catch (e) {}
     }
-  `;
-  document.head.appendChild(style);
-})();
+    const pub = _dmsItems.find(i => i.id==="public") || pubItem;
+    _dmsItems = [pub, ...items];
+    _render(document.getElementById("dmsSearchInp")?.value||"");
+    _updateNavBadge();
+  }, () => {});
+
+  // الغرف — تُدمَج الآن داخل نفس قائمة الدردشات (بدل تبويب مستقل)
+  onSnapshot(collection(window.db,"rooms"), snap => {
+    _dmsRooms = snap.docs.map(d => ({id:d.id,...d.data()}));
+    _render(document.getElementById("dmsSearchInp")?.value||"");
+  }, () => {});
+};
+
+/* ══ فتح الصفحة ══ */
+window._dmsPageInit = function() {
+  // reset UI
+  document.getElementById("dmsSearchBar")?.classList.remove("open");
+  const si = document.getElementById("dmsSearchInp"); if (si) si.value = "";
+  _dmsCurFilter = "all";
+  _dmsCurTab    = "chats";
+  document.querySelectorAll(".dms-chip").forEach((c,i) => c.classList.toggle("active",i===0));
+  document.querySelectorAll(".dms-tab").forEach((t,i)  => t.classList.toggle("active",i===0));
+  document.querySelectorAll(".dms-panel").forEach((p,i) => p.classList.toggle("active",i===0));
+  const filters = document.getElementById("dmsFilters"); if (filters) filters.style.display = "";
+
+  // إن لم تبدأ الـ listeners بعد، ابدأها الآن
+  window._dmsStartListeners?.();
+  // عرض ما هو محمّل فعلاً (سريع لأن البيانات جاهزة)
+  _render("");
+};
