@@ -13,8 +13,8 @@
    أو Proxy بحيث محدش يقدر يشوفه أو يستخدمه غيرك.
 ══════════════════════════════════════════════════════════════ */
 
-// ── المفتاح (فاضي دلوقتي عمدًا — المساعد موقوف لحد ما يتحط هنا) ──
-const GEMINI_API_KEY = "";
+// ── المفتاح ──
+const GEMINI_API_KEY = "AQ.Ab8RN6KJtNx6B9jRS9584uCYODDOpgU41P_mfWksAwLVx8izqA";
 
 // ── الموديل والـ Endpoint ──
 const GEMINI_MODEL = "gemini-3.5-flash";
