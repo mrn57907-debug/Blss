@@ -22,6 +22,9 @@ window._aiListItem = function () {
 window._openAiChat = function () {
   _aiUnread = 0;
   window.showPage?.("page-ai-chat");
+  if (!_aiMessages.length) {
+    _aiMessages.push({ who: "in", text: "أهلاً بيك! أنا المساعد الذكي، اسألني في أي حاجة.", ts: Date.now() });
+  }
   _renderAiMessages();
   window._dmsRerender?.();
   setTimeout(() => { document.getElementById("aiChatInput")?.focus(); }, 200);
@@ -35,7 +38,8 @@ function _renderAiMessages() {
     body.innerHTML = `<div class="empty-state" style="margin:auto;">اسأل المساعد الذكي عن أي حاجة في الموقع <i class="fa-solid fa-sparkles"></i></div>`;
     return;
   }
-  body.innerHTML = _aiMessages.map(m => {
+  const dayDivider = `<div class="date-divider"><span>اليوم</span></div>`;
+  body.innerHTML = dayDivider + _aiMessages.map(m => {
     const isMe = m.who === "out";
     const timeStr = new Date(m.ts).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
     return `
