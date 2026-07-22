@@ -778,16 +778,13 @@ window.addEventListener("load", () => {
 
   <!-- Header -->
   <div class="dms-header">
-    <button class="dms-back-btn" onclick="if(!window._navGoBackIfMatches?.('page:page-dms')) showPage('page-home')"><i class="fa-solid fa-arrow-right"></i></button>
-    <span class="dms-header-title">المحادثات</span>
-    <button class="dms-search-toggle" id="dmsSearchToggle"><i class="fa-solid fa-magnifying-glass"></i></button>
+    <span class="dms-header-title">الدردشات</span>
   </div>
 
-  <!-- Search Bar -->
-  <div class="dms-search-bar" id="dmsSearchBar" style="display:none;">
+  <!-- Search Bar — always visible, matching reference design -->
+  <div class="dms-search-bar" id="dmsSearchBar">
     <i class="fa-solid fa-magnifying-glass"></i>
-    <input type="text" id="dmsSearchInp" placeholder="ابحث في المحادثات..." autocomplete="off">
-    <button onclick="document.getElementById('dmsSearchInp').value='';_dmsSearch('')"><i class="fa-solid fa-xmark"></i></button>
+    <input type="text" id="dmsSearchInp" placeholder="البحث عن رسائل أو مستخدمين..." autocomplete="off">
   </div>
 
   <!-- Filter Chips — تظهر فقط في تبويب المحادثات (الغرف بقت مدموجة جوه نفس التبويب) -->
@@ -795,7 +792,7 @@ window.addEventListener("load", () => {
     <button class="dms-chip active" data-filter="all" onclick="_dmsFilter(this,'all')">الكل</button>
     <button class="dms-chip" data-filter="unread" onclick="_dmsFilter(this,'unread')">غير مقروءة</button>
     <button class="dms-chip" data-filter="fav" onclick="_dmsFilter(this,'fav')">مفضلة</button>
-    <button class="dms-chip" data-filter="archive" onclick="_dmsFilter(this,'archive')">الأرشيف</button>
+    <button class="dms-chip dms-chip-archive" data-filter="archive" onclick="_dmsFilter(this,'archive')">الأرشيف</button>
   </div>
 
   <!-- Content Panels -->
@@ -877,15 +874,17 @@ window.addEventListener("load", () => {
       </div>
       <div class="chat-header-info">
         <div class="name">المساعد الذكي <span class="ai-badge">AI</span></div>
-        <div class="status"><span class="dot"></span><span id="aiChatStatus">جاهز للمساعدة</span></div>
+        <div class="status online"><span class="dot"></span><span id="aiChatStatus">مساعد ذكي لموقع معهد القاهرة</span></div>
       </div>
     </div>
 
     <div class="chat-body" id="aiChatBody"></div>
 
     <div class="chat-input" id="aiChatInputBar">
-      <div class="input-pill" style="flex:1;">
+      <button class="plus-btn" title="إرفاق"><i class="fa-solid fa-plus"></i></button>
+      <div class="input-pill">
         <input class="inp" type="text" id="aiChatInput" placeholder="اسأل المساعد الذكي..." autocomplete="off">
+        <button class="mic-btn" title="رسالة صوتية"><i class="fa-solid fa-microphone"></i></button>
       </div>
       <button class="send-btn" id="aiSendBtn" title="إرسال" onclick="window._sendToAI?.()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="transform:scaleX(-1)"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
@@ -4286,22 +4285,25 @@ async function renderMembersList(q, containerId = "membersList") {
 
         const alreadyOpen = !!_acceptedPeers[uid] || !!document.getElementById(`dm-${uid}`);
 
+        const online = window._isOnlineVisible ? window._isOnlineVisible(u) : false;
+        const roleLabel = g.key==="owner" ? "مالك" : g.key==="admin" ? "مشرف" : "عضو";
+
         const item = document.createElement("div");
         item.className = "dm-item";
         item.style.cssText = "cursor:pointer;";
         item.innerHTML = `
-          <div class="dm-avatar-wrap">
+          <div class="dm-avatar-wrap ${online ? "online" : "offline"}">
             <div class="dm-avatar" style="${g.key==="owner"?"background:linear-gradient(135deg,var(--gold),var(--goldL));color:#060d1a;":g.key==="admin"?"background:linear-gradient(135deg,var(--orange),#fb923c);color:#fff;":""}">
               ${u.photo ? `<img src="${esc(u.photo)}" alt="">` : _defaultAvatarHTML(u.gender, 46)}
             </div>
           </div>
           <div class="dm-info">
             <div class="dm-top-row">
-              <div class="dm-name">${renderUserDisplay(u.name||"مستخدم", u)}</div>
+              <div class="dm-name">${renderUserDisplay(u.name||"مستخدم", u)} <span class="dm-role-inline">— ${roleLabel}</span></div>
               ${alreadyOpen ? `<div class="dm-time" style="color:var(--success);font-size:10px;"><i class="fa-solid fa-comments"></i></div>` : ""}
             </div>
             <div class="dm-bottom-row">
-              <div class="dm-preview">${isOwner() && u.email ? esc(u.email) : g.key==="owner"?"مؤسس النظام":g.key==="admin"?"مشرف":"عضو"}</div>
+              <div class="dm-preview">${isOwner() && u.email ? esc(u.email) : (g.key==="owner"?"مؤسس النظام":"")}</div>
             </div>
           </div>
         `;
