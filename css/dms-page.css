@@ -30,35 +30,19 @@
 .dms-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 10px;
-  padding: 8px 16px 14px;
+  padding: 20px 16px 14px;
   flex-shrink: 0;
 }
-.dms-back-btn {
-  background: rgba(255,255,255,0.06); border: none;
-  width: 32px; height: 32px; border-radius: 50%;
-  color: var(--text); font-size: 15px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0;
-  transition: background .15s ease;
-}
-.dms-back-btn:active { background: rgba(255,255,255,.12); }
 .dms-header-title {
-  font-size: 26px; font-weight: 800; letter-spacing: -0.5px;
-  color: var(--text); flex: 1;
-}
-.dms-search-toggle {
-  background: rgba(255,255,255,0.06); border: none;
-  width: 32px; height: 32px; border-radius: 50%;
-  color: var(--muted); font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0;
+  font-size: 32px; font-weight: 800; letter-spacing: -0.5px;
+  color: var(--text);
 }
 
-/* ── Search Bar ── */
+/* ── Search Bar — always visible, matching reference design ── */
 .dms-search-bar {
-  display: none;
+  display: flex;
   align-items: center; gap: 10px;
   margin: 0 20px 14px;
   padding: 11px 14px;
@@ -67,7 +51,6 @@
   border-radius: 14px;
   flex-shrink: 0;
 }
-.dms-search-bar.open { display: flex; }
 .dms-search-bar i { color: var(--muted); font-size: 14px; flex-shrink: 0; }
 .dms-search-bar input {
   flex: 1; background: none; border: none;
@@ -75,10 +58,6 @@
   font-size: 15px; font-family: inherit;
 }
 .dms-search-bar input::placeholder { color: var(--muted); }
-.dms-search-bar button {
-  background: none; border: none;
-  color: var(--muted); font-size: 15px; cursor: pointer; flex-shrink: 0;
-}
 
 /* ── Filter Chips ── */
 .dms-filters {
@@ -102,6 +81,11 @@
   border-color: var(--gold);
 }
 
+.dms-chip.dms-chip-archive {
+  background: rgba(20,20,22,0.18);
+  backdrop-filter: blur(9px) saturate(150%);
+  -webkit-backdrop-filter: blur(9px) saturate(150%);
+}
 /* ── Content Area ── */
 .dms-content {
   flex: 1; overflow: hidden;
@@ -241,7 +225,7 @@
 .dms-tabs {
   position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
   width: calc(100% - 40px);
-  background: rgba(28,28,30,0.55);
+  background: rgba(28,28,30,0.18);
   backdrop-filter: blur(10px) saturate(150%);
   -webkit-backdrop-filter: blur(10px) saturate(150%);
   border: 1px solid var(--panel-border);
@@ -261,10 +245,12 @@
   font-weight: 600;
 }
 .dms-tab i { font-size: 20px; }
+.dms-tab span { display: none; }
 .dms-tab.active {
   color: var(--gold);
   background: rgba(224,178,60,0.16);
   border-radius: 16px;
+  padding: 8px 20px;
 }
 
 /* ══════════════════════════════════════════
@@ -279,9 +265,14 @@
   transition: background .2s ease, transform .15s ease;
 }
 #page-dms .dm-item:active { background: rgba(255,255,255,.05); transform: scale(0.985); }
-#page-dms .dm-avatar-wrap { width: 52px; height: 52px; flex-shrink: 0; }
+#page-dms .dm-avatar-wrap { width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; }
+#page-dms .dm-avatar-wrap.online,
+#page-dms .dm-avatar-wrap.offline { padding: 2px; }
+#page-dms .dm-avatar-wrap.online  { background: var(--online); }
+#page-dms .dm-avatar-wrap.offline { background: var(--offline); }
+#page-dms .dm-role-inline { font-size: 12px; font-weight: 500; color: var(--muted); }
 #page-dms .dm-avatar {
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 100%; height: 100%; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   border: 2.5px solid var(--bg); background: #2a2a2e;
@@ -307,8 +298,6 @@
 /* ── Light Theme ── */
 html.theme-light #page-dms { background: #f2f2f7; --text:#000; --muted:rgba(0,0,0,.45); }
 html.theme-light .dms-header-title { color: #000; }
-html.theme-light .dms-back-btn,
-html.theme-light .dms-search-toggle { background: rgba(0,0,0,.06); }
 html.theme-light .dms-chip {
   border-color: rgba(0,0,0,.12);
   background: rgba(0,0,0,.04);
