@@ -105,7 +105,7 @@ window._dmExtrasRender = function (item) {
   const muteIcon = _isMutedNow(c)    ? `<i class="fa-solid fa-bell-slash dms-ex-badge dms-ex-mute" title="مكتومة"></i>` : "";
   // كل الشارات + الزر داخل عنصر flex واحد فقط — لتفادي أي تعارض مع justify-content
   // الموجودة أصلاً على .dms-conv-row1 (وإلا كانت ستوزَّع كعناصر منفصلة بمسافات غير متوقعة)
-  return `<span class="dms-ex-inline">${pinIcon}${favIcon}${muteIcon}<button class="dms-ex-kebab" onclick="event.stopPropagation();window._dmExtrasOpenMenu('${item.id}')"><i class="fa-solid fa-ellipsis-vertical"></i></button></span>`;
+  return `<span class="dms-ex-inline">${pinIcon}${favIcon}${muteIcon}</span>`;
 };
 
 /* ══════════════════════════════════════════
@@ -185,10 +185,11 @@ function _exEnsureMenuEl() {
   el.className = "dmex-sheet";
   el.innerHTML = `
     <div class="dmex-backdrop" onclick="window._dmExtrasCloseMenu()"></div>
-    <div class="dmex-panel">
-      <div class="dmex-body"></div>
-      <button class="dmex-cancel" onclick="window._dmExtrasCloseMenu()">إلغاء</button>
-    </div>`;
+    <div class="dmex-bar">
+      <button class="dmex-close" onclick="window._dmExtrasCloseMenu()"><i class="fa-solid fa-xmark"></i></button>
+      <div class="dmex-actions"></div>
+    </div>
+    <div class="dmex-mute-options"></div>`;
   document.body.appendChild(el);
 }
 
@@ -200,30 +201,42 @@ window._dmExtrasOpenMenu = function (otherId) {
   const muted  = _isMutedNow(c);
   const archived = !!c.archivedAt;
   const menu   = document.getElementById("dmExtrasMenu");
-  menu.querySelector(".dmex-body").innerHTML = `
-    <button class="dmex-item" onclick="window._dmExtrasTogglePin('${otherId}')">
-      <i class="fa-solid fa-thumbtack"></i> ${pinned ? "إلغاء تثبيت المحادثة" : "تثبيت المحادثة"}
+
+  menu.querySelector(".dmex-actions").innerHTML = `
+    <button class="dmex-pill${pinned ? " active" : ""}" onclick="window._dmExtrasTogglePin('${otherId}')">
+      <i class="fa-solid fa-thumbtack"></i> ${pinned ? "إلغاء التثبيت" : "تثبيت المحادثة"}
     </button>
-    <button class="dmex-item" onclick="window._dmExtrasToggleFav('${otherId}')">
+    <button class="dmex-pill${fav ? " active" : ""}" onclick="window._dmExtrasToggleFav('${otherId}')">
       <i class="fa-solid fa-star"></i> ${fav ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
     </button>
-    <button class="dmex-item" onclick="window._dmExtrasToggleArchive('${otherId}')">
-      <i class="fa-solid fa-box-archive"></i> ${archived ? "إلغاء الأرشفة" : "أرشفة المحادثة"}
+    <button class="dmex-pill${archived ? " active" : ""}" onclick="window._dmExtrasToggleArchive('${otherId}')">
+      <i class="fa-solid fa-box-archive"></i> ${archived ? "إلغاء الأرشفة" : "أرشفة"}
     </button>
-    ${muted ? `
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}', null)">
-      <i class="fa-solid fa-bell"></i> إلغاء كتم المحادثة
-    </button>` : `
-    <div class="dmex-section-label">كتم إشعارات هذه المحادثة</div>
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}','1h')"><i class="fa-solid fa-bell-slash"></i> لمدة ساعة</button>
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}','1d')"><i class="fa-solid fa-bell-slash"></i> لمدة يوم</button>
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}','1w')"><i class="fa-solid fa-bell-slash"></i> لمدة أسبوع</button>
-    <button class="dmex-item" onclick="window._dmExtrasSetMute('${otherId}','forever')"><i class="fa-solid fa-bell-slash"></i> دائم</button>`}
+    <button class="dmex-pill${muted ? " active" : ""}" onclick="window._dmExtrasToggleMuteOptions('${otherId}')">
+      <i class="fa-solid fa-bell-slash"></i> صامت
+    </button>
   `;
+
+  const muteBox = menu.querySelector(".dmex-mute-options");
+  muteBox.innerHTML = muted ? `
+    <button class="dmex-mute-opt dmex-unmute" onclick="window._dmExtrasSetMute('${otherId}', null)">إلغاء الصامت</button>
+  ` : `
+    <button class="dmex-mute-opt" onclick="window._dmExtrasSetMute('${otherId}','1h')">لمدة ساعة</button>
+    <button class="dmex-mute-opt" onclick="window._dmExtrasSetMute('${otherId}','1d')">لمدة يوم</button>
+    <button class="dmex-mute-opt" onclick="window._dmExtrasSetMute('${otherId}','1w')">لمدة أسبوع</button>
+    <button class="dmex-mute-opt" onclick="window._dmExtrasSetMute('${otherId}','forever')">دائم</button>
+  `;
+  muteBox.classList.remove("open");
+
   menu.classList.add("open");
 };
+window._dmExtrasToggleMuteOptions = function (otherId) {
+  document.querySelector("#dmExtrasMenu .dmex-mute-options")?.classList.toggle("open");
+};
 window._dmExtrasCloseMenu = function () {
-  document.getElementById("dmExtrasMenu")?.classList.remove("open");
+  const menu = document.getElementById("dmExtrasMenu");
+  menu?.classList.remove("open");
+  menu?.querySelector(".dmex-mute-options")?.classList.remove("open");
 };
 
 /* ── دوال الكتابة الفعلية ── */
@@ -451,44 +464,63 @@ document.addEventListener("dragstart", e => {
       display: flex; align-items: center; gap: 4px;
       margin-inline-start: auto; margin-inline-end: 6px; flex-shrink: 0;
     }
-    .dms-ex-kebab {
-      background: transparent; border: none; color: var(--muted, #8d8d94);
-      font-size: 14px; padding: 4px 6px; cursor: pointer; border-radius: 6px; flex-shrink: 0;
-    }
-    .dms-ex-kebab:hover { background: rgba(255,255,255,.06); color: var(--gold, #e0b23c); }
 
-    /* ── Action Sheet — مطابق للتصميم الجديد (نفس ألوان/بلور الهيدر وشريط الكتابة) ── */
-    .dmex-sheet { position: fixed; inset: 0; z-index: 9999; display: none; }
+    /* ── شريط الإجراءات (الضغط المطوّل) — نفس نمط "الزجاج الشفاف" المستخدم
+       أصلاً في الفقاعة السفلية وشرائح الفلترة، مش Bottom-Sheet قديم ── */
+    .dmex-sheet { position: fixed; inset: 0; z-index: 9999; display: none; pointer-events: none; }
     .dmex-sheet.open { display: block; }
-    .dmex-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
-    .dmex-panel {
-      position: absolute; left: 0; right: 0; bottom: 0;
-      background: rgba(20,20,22,0.97);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    .dmex-backdrop { position: absolute; inset: 0; pointer-events: auto; }
+    .dmex-bar {
+      position: absolute; top: 84px; left: 20px; right: 20px;
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(20,20,22,0.18);
+      backdrop-filter: blur(10px) saturate(150%);
+      -webkit-backdrop-filter: blur(10px) saturate(150%);
       border: 1px solid var(--panel-border, rgba(255,255,255,.07));
-      border-bottom: none;
-      border-radius: 20px 20px 0 0;
-      padding: 10px 14px 20px; max-height: 70vh; overflow-y: auto;
-      box-shadow: 0 -4px 24px rgba(0,0,0,.4);
-      animation: dmexSlideUp .28s cubic-bezier(.4,0,.2,1);
+      border-radius: 14px;
+      padding: 8px 10px;
+      pointer-events: auto;
+      font-family: 'Cairo', system-ui, sans-serif;
+      animation: dmexBarIn .18s ease;
+    }
+    @keyframes dmexBarIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .dmex-close {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(255,255,255,.06); border: none; color: var(--muted, #8d8d94);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .dmex-actions { display: flex; align-items: center; gap: 6px; flex: 1; overflow-x: auto; }
+    .dmex-pill {
+      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--panel-border, rgba(255,255,255,.07));
+      border-radius: 12px; padding: 7px 12px;
+      font-size: 13px; font-family: inherit; color: var(--text, #f2f2f4); cursor: pointer;
+      white-space: nowrap;
+    }
+    .dmex-pill i { color: var(--gold, #e0b23c); font-size: 12.5px; }
+    .dmex-pill.active { background: rgba(224,178,60,.15); border-color: rgba(224,178,60,.4); color: var(--gold, #e0b23c); }
+    .dmex-pill.active i { color: var(--gold, #e0b23c); }
+
+    .dmex-mute-options {
+      position: absolute; top: 138px; left: 20px; right: 20px;
+      display: none; flex-direction: column; gap: 4px;
+      background: rgba(20,20,22,0.18);
+      backdrop-filter: blur(10px) saturate(150%);
+      -webkit-backdrop-filter: blur(10px) saturate(150%);
+      border: 1px solid var(--panel-border, rgba(255,255,255,.07));
+      border-radius: 14px; padding: 8px;
+      pointer-events: auto;
       font-family: 'Cairo', system-ui, sans-serif;
     }
-    @keyframes dmexSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .dmex-item {
-      display: flex; align-items: center; gap: 12px; width: 100%;
-      background: transparent; border: none; color: var(--text, #f2f2f4); text-align: right;
-      font-size: 15px; font-family: inherit; padding: 13px 10px; border-radius: 12px; cursor: pointer;
+    .dmex-mute-options.open { display: flex; }
+    .dmex-mute-opt {
+      background: transparent; border: none; text-align: right;
+      color: var(--text, #f2f2f4); font-size: 14px; font-family: inherit;
+      padding: 9px 12px; border-radius: 10px; cursor: pointer;
     }
-    .dmex-item:active { background: rgba(255,255,255,.06); }
-    .dmex-item i { width: 18px; color: var(--gold, #e0b23c); font-size: 15px; }
-    .dmex-section-label { font-size: 12px; color: var(--muted, #8d8d94); padding: 12px 10px 4px; font-weight: 600; }
-    .dmex-cancel {
-      width: 100%; margin-top: 8px; background: rgba(255,255,255,.06); border: none;
-      color: var(--text, #f2f2f4); padding: 13px; border-radius: 12px; font-size: 14.5px;
-      font-family: inherit; font-weight: 600; cursor: pointer;
-    }
-    .dmex-cancel:active { background: rgba(255,255,255,.1); }
+    .dmex-mute-opt:active { background: rgba(255,255,255,.05); }
+    .dmex-unmute { color: #e07b7b; }
 
     /* ── فاصل الرسائل غير المقروءة ── */
     .dm-extras-unread-divider {
