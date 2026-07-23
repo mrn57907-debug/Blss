@@ -2042,7 +2042,7 @@ html.theme-light .lib-detail-count { color: #6b83a3; }
   --online:      #3ecf6e;
   --offline:     #5a5a5e;
   --seen-blue:   #4a90e2;
-  flex:1; min-height:0; overflow-y:auto; padding: 18px 16px;
+  flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding: 18px 16px;
   display:flex; flex-direction:column;
   justify-content:flex-end; gap:10px;
 }
@@ -2125,6 +2125,18 @@ html.theme-light .lib-detail-count { color: #6b83a3; }
   color:#fff;
   border-bottom-right-radius: 6px;
   box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+}
+
+/* ── ملء الشاشة كاملة + منع تمرير السكرول لسحب-التحديث الأصلي بالمتصفح ── */
+#page-ai-chat {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column;
+  background: var(--chat-bg);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+#page-ai-chat .chat-main {
+  flex: 1; min-height: 0;
 }
 
 /* ── فقاعة المساعد الذكي — لون مميّز (أزرق) بدل الأبيض العادي، Scoped على
