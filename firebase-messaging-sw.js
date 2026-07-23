@@ -62,3 +62,8 @@ self.addEventListener('notificationclick', function(event) {
 // Keep SW alive — prevents Chrome from killing it mid-notification
 self.addEventListener('install',  () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+
+// معالج fetch بسيط (تمرير مباشر للشبكة، بلا أي تخزين مؤقت أو تغيير سلوك) —
+// مطلوب من Chrome ليُحتسب الموقع "قابل للتثبيت كتطبيق" (Install app) بدل
+// "إضافة اختصار" فقط. لا يغيّر أي طلب شبكة موجود.
+self.addEventListener('fetch', () => {});
