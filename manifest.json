@@ -1,0 +1,27 @@
+{
+  "name": "نظام الجامعة",
+  "short_name": "نظام الجامعة",
+  "description": "نظام الجامعة — دردشات وإدارة",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#060d1a",
+  "theme_color": "#060d1a",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "images/military-icon.png",
+      "sizes": "591x590",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/military-icon.png",
+      "sizes": "591x590",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
