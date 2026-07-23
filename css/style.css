@@ -152,6 +152,7 @@ body {
 #page-owner.active,
 #page-admin.active { display: block !important; }
 #page-chat.active  { display: flex !important; }
+#page-ai-chat.active { display: flex !important; }
 
 /* ══════════════════════════════════════════
    SHARED INPUTS & BUTTONS
@@ -1089,8 +1090,12 @@ html.theme-light .lib-detail-count { color: #6b83a3; }
 
 /* Owner Badge */
 .badge-owner-icon {
-  display: none;   ← السطر الجديد ده بس
-  ...باقي الأسطر زي ما هي...
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: linear-gradient(135deg, #c9a96e, #f0d080, #c9a96e);
+  flex-shrink: 0; vertical-align: middle; position: relative; top: -1px;
+  box-shadow: 0 0 6px rgba(201,169,110,.55), 0 0 12px rgba(201,169,110,.25);
+  animation: ownerGlow 2.5s ease-in-out infinite;
 }
 @keyframes ownerGlow {
   0%,100% { box-shadow: 0 0 6px rgba(201,169,110,.55),0 0 12px rgba(201,169,110,.25); }
