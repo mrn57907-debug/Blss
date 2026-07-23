@@ -39,7 +39,7 @@
 }
 
 html {
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: contain;
 }
 body {
   font-family: 'Cairo', system-ui, sans-serif;
@@ -47,7 +47,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: contain;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -2046,7 +2046,7 @@ html.theme-light .lib-detail-count { color: #6b83a3; }
   --online:      #3ecf6e;
   --offline:     #5a5a5e;
   --seen-blue:   #4a90e2;
-  flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding: 18px 16px;
+  flex:1; min-height:0; overflow-y:auto; padding: 18px 16px;
   display:flex; flex-direction:column;
   justify-content:flex-end; gap:10px;
 }
